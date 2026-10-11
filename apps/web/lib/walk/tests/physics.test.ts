@@ -294,6 +294,29 @@ describe("jumping", () => {
   })
 })
 
+describe("the ceiling beam", () => {
+  it("walks under it without a bump", () => {
+    const s = hold(at([1500, 2000], 180), { forward: 1 }, 0.7)
+    expect(s.position[1]).toBeGreaterThan(2775)
+    expect(s.bump).toBeNull()
+  })
+
+  it("bumps the head jumping under it", () => {
+    let s = at([1500, 2650], 180)
+    let highest = 0
+    for (let i = 0; i < 60; i++) {
+      s = advanceWalk(world, s, { ...IDLE, heading: 180, jump: true }, 1 / 60)
+      highest = Math.max(highest, s.feet + PLAYER.height)
+    }
+    expect(highest).toBeLessThanOrEqual(2220)
+    expect(s.bump).toMatchObject({
+      bumped: "BM1",
+      kind: "feature",
+      label: "the ceiling beam",
+    })
+  })
+})
+
 describe("advanceWalk", () => {
   it("runs whole fixed steps and carries the remainder", () => {
     const s = advanceWalk(

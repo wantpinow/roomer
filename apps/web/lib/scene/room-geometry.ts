@@ -1,6 +1,8 @@
 import {
+  type BeamFeature,
   type DoorFeature,
   type Feature,
+  isBeamFeature,
   isCeilingFeature,
   isFloorFeature,
   isWallFeature,
@@ -48,6 +50,7 @@ export const SHELL_ROLES = [
   "hearth",
   "plate",
   "light",
+  "beam",
 ] as const
 
 export type ShellRole = (typeof SHELL_ROLES)[number]
@@ -716,10 +719,43 @@ function addWallFeature(
   }
 }
 
+/**
+ * A beam's plan outline: a rectangle `width` wide around its centreline
+ * (start → end). Shared with walk mode, which bumps heads on it.
+ */
+export function beamFootprint(
+  beam: Pick<BeamFeature, "start" | "end" | "width">
+): Point[] {
+  const [sx, sz] = beam.start
+  const [ex, ez] = beam.end
+  const length = Math.hypot(ex - sx, ez - sz) || 1
+  // Unit normal to the centreline, scaled to half the width.
+  const nx = (-(ez - sz) / length) * (beam.width / 2)
+  const nz = ((ex - sx) / length) * (beam.width / 2)
+  return [
+    [sx + nx, sz + nz],
+    [ex + nx, ez + nz],
+    [ex - nx, ez - nz],
+    [sx - nx, sz - nz],
+  ]
+}
+
 function addFloorAndCeilingFeatures(b: ShellBuilder): void {
   const H = b.height
   for (const f of b.room.features) {
-    if (isFloorFeature(f)) {
+    if (isBeamFeature(f)) {
+      // Architecture hanging from the ceiling: hidden with it (top and
+      // orbit views), drawn in the ceiling's colour.
+      b.solids.push({
+        kind: "prism",
+        role: "beam",
+        feature: f.id,
+        ceiling: true,
+        footprint: beamFootprint(f),
+        y0: Math.max(0, H - f.drop),
+        y1: H,
+      })
+    } else if (isFloorFeature(f)) {
       const t = placementTransform({
         x: f.x,
         z: f.z,

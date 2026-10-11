@@ -89,6 +89,7 @@ describe("id pass shell colours", () => {
     expect(idPassShellColor("floor")).toBe(ID_PASS_SHELL.floor)
     expect(idPassShellColor("glass")).toBe(ID_PASS_SHELL.openings)
     expect(idPassShellColor("radiator")).toBe(ID_PASS_SHELL.fixtures)
+    expect(idPassShellColor("beam")).toBe(ID_PASS_SHELL.ceiling)
     expect(ID_PASS_NON_ITEM_COLORS).toContain(ID_PASS_BACKGROUND)
   })
 })

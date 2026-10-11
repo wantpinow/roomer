@@ -2,6 +2,7 @@ import {
   type AssetSpec,
   defaultCameras,
   type Feature,
+  isBeamFeature,
   isFloorFeature,
   isWallFeature,
   type Placement,
@@ -18,6 +19,8 @@ import {
   type RoomGeometry,
   wallFeatureFootprint,
 } from "@roomer/core/geometry"
+
+import { beamFootprint } from "@/lib/scene/room-geometry"
 
 import {
   circleInsidePenetration,
@@ -77,6 +80,8 @@ export interface WalkSceneInput {
 }
 
 function featureLabel(feature: Feature): string {
+  // "Bumped into the ceiling beam" reads better than its long label.
+  if (feature.type === "beam") return "the ceiling beam"
   if (feature.label) return feature.label
   const name = feature.type.replace("-", " ")
   return `the ${name} ${feature.id}`
@@ -131,6 +136,14 @@ function featureColliders(room: RoomGeometry): Collider[] {
           feature.bottom
         )
       }
+    } else if (isBeamFeature(feature)) {
+      // Overhead: only heads (and anyone standing on furniture) meet it.
+      add(
+        feature,
+        beamFootprint(feature),
+        Math.max(0, room.ceilingHeight - feature.drop),
+        room.ceilingHeight
+      )
     } else if (isFloorFeature(feature) && feature.type !== "floor-socket") {
       const t = placementTransform({
         x: feature.x,

@@ -50,6 +50,18 @@ describe("buildWalkWorld", () => {
     expect(byId("WIN1")).toHaveLength(1)
   })
 
+  it("hangs the ceiling beam overhead: clear of a standing six-footer", () => {
+    const [beam] = byId("BM1")
+    expect(beam).toMatchObject({
+      label: "the ceiling beam",
+      y0: 2220,
+      y1: 2450,
+    })
+    expect(blocks(beam!, 0)).toBe(false)
+    // Standing on a 420 mm coffee table, though, it's at head height.
+    expect(blocks(beam!, 420)).toBe(true)
+  })
+
   it("only lets a six-footer stand where his head clears the ceiling", () => {
     const coffeeTop = byId("coffee-table").find((c) => c.y1 === 420)!
     const diningTop = byId("dining-table").find((c) => c.y1 === 750)!

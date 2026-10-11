@@ -32,6 +32,7 @@ export const CLAY_SHELL = {
   hearth: "#c4bcb1",
   plate: "#f2f0ec",
   light: "#f2f0ec",
+  beam: "#f4f2ee",
 } as const satisfies Record<ShellRole, string>
 
 /** What the clay pass shows through windows and past the room. */
@@ -62,6 +63,8 @@ export const ID_PASS_SHELL_ROLE = {
   pipe: "fixtures",
   plate: "fixtures",
   light: "fixtures",
+  // Plastered like the ceiling it hangs from: architecture, not an item.
+  beam: "ceiling",
 } as const satisfies Record<ShellRole, keyof typeof ID_PASS_SHELL>
 
 /** The id pass background: what is seen through windows and doorways. */

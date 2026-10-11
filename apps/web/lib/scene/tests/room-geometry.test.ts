@@ -15,6 +15,7 @@ import {
 import { describe, expect, it } from "vitest"
 
 import {
+  beamFootprint,
   buildRoomShell,
   CEILING_THICKNESS,
   cutWalls,
@@ -323,6 +324,19 @@ describe("buildRoomShell — living room", () => {
     ).toBe(true)
   })
 
+  it("hangs beam BM1 across the room, 250 wide, 230 below the ceiling", () => {
+    const [beam] = prisms(shell.solids, { role: "beam", feature: "BM1" })
+    expect(round(planBounds(beam!))).toEqual({
+      minX: 0,
+      maxX: 2980,
+      minZ: 2525,
+      maxZ: 2775,
+    })
+    expect([beam!.y0, beam!.y1]).toEqual([2220, LIVING_ROOM_CEILING_HEIGHT])
+    // Hidden with the ceiling in the top and orbit views.
+    expect(beam!.ceiling).toBe(true)
+  })
+
   it("lays a floor slab and a ceiling slab over the outer outline", () => {
     const [floor] = prisms(shell.solids, { role: "floor" })
     const [ceiling] = prisms(shell.solids, { role: "ceiling" })
@@ -475,6 +489,27 @@ describe("buildRoomShell — plain rectangle", () => {
       // Handles stand proud of the room face.
       expect(h.maxZ).toBeGreaterThan(0)
     }
+  })
+})
+
+describe("beamFootprint", () => {
+  it("is a rectangle around a diagonal centreline", () => {
+    const footprint = beamFootprint({
+      start: [0, 0],
+      end: [3000, 4000],
+      width: 200,
+    })
+    // Unit direction (0.6, 0.8), so the half-width offset is (−80, 60).
+    const expected = [
+      [-80, 60],
+      [2920, 4060],
+      [3080, 3940],
+      [80, -60],
+    ]
+    footprint.forEach(([x, z], i) => {
+      expect(x).toBeCloseTo(expected[i]![0]!)
+      expect(z).toBeCloseTo(expected[i]![1]!)
+    })
   })
 })
 
