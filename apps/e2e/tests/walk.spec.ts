@@ -190,3 +190,66 @@ test("a standing walker passes under the beam; a jump hits it", async ({
   expect(jump.peakFeet).toBeLessThanOrEqual(underside - WALKER_HEIGHT + 1)
   expect(jump.end.grounded).toBe(true)
 })
+
+test("Enter takes a photo: a render of the walk view lands as a thumbnail", async ({
+  page,
+  livingRoom,
+}) => {
+  await startWalking(page, livingRoom)
+  const at = await page.evaluate(() => window.__roomerWalk!.position())
+  await page.locator("[data-walk-viewer]").focus()
+  await page.keyboard.press("Enter")
+  await expect(page.locator("[data-walk-note]")).toHaveText(
+    "Photo taken — rendering…"
+  )
+
+  // The render record carries the walk camera: where the walker stood, at
+  // eye height, rectilinear, named after the time; medium quality, sized
+  // for the stage's shape. (e2e renders with the free stub.)
+  await expect
+    .poll(
+      async () =>
+        (
+          await convex.query(api.renders.listByLayout, {
+            layoutId: livingRoom.layoutId,
+          })
+        )[0]?.status,
+      { timeout: 60_000 }
+    )
+    .toBe("done")
+  const [render] = await convex.query(api.renders.listByLayout, {
+    layoutId: livingRoom.layoutId,
+  })
+  expect(render).toMatchObject({ kind: "photoreal", quality: "medium" })
+  expect(render!.view.name).toMatch(/^Walk photo \d\d:\d\d$/)
+  expect(render!.view.projection).toBe("rectilinear")
+  expectNear(render!.view.position[0], at.x, 1, "photo x")
+  expectNear(render!.view.position[1], at.eye, 1, "photo eye height")
+  expectNear(render!.view.position[2], at.z, 1, "photo z")
+  expect(render!.view.fov).toBeLessThanOrEqual(70)
+
+  // The walk view shows the finished photo as a thumbnail.
+  const thumbnail = page.locator("[data-walk-photo-ready]")
+  await expect(thumbnail).toBeVisible()
+  await expect(thumbnail).toHaveAttribute("href", render!.outputUrl!)
+})
+
+test("Shift+Enter saves the view as one of the room's cameras", async ({
+  page,
+  livingRoom,
+}) => {
+  await startWalking(page, livingRoom)
+  const before = await convex.query(api.rooms.get, {
+    roomId: livingRoom.roomId,
+  })
+  await page.locator("[data-walk-viewer]").focus()
+  await page.keyboard.press("Shift+Enter")
+  await expect(page.locator("[data-walk-note]")).toHaveText(
+    /^Saved “Walk view \d\d:\d\d” to the room's cameras$/
+  )
+  const after = await convex.query(api.rooms.get, { roomId: livingRoom.roomId })
+  expect(after!.cameras).toHaveLength(before!.cameras.length + 1)
+  const saved = after!.cameras.at(-1)!
+  expect(saved.id).toMatch(/^walk-\d+$/)
+  expect(saved.name).toMatch(/^Walk view \d\d:\d\d$/)
+})
