@@ -76,8 +76,8 @@ export type ThemePalette = typeof light | typeof dark
  * `issueWashOpacity` for the fill behind the outline).
  */
 const planLight = {
-  paper: "#fbf9f5",
-  floor: "#f1ebe1",
+  paper: "#f5f2ec",
+  floor: "#fbf9f5",
   wallFill: "#3a3530",
   wallHairline: "#26221e",
   door: "#5c554c",
@@ -104,8 +104,8 @@ const planLight = {
 } as const
 
 const planDark = {
-  paper: "#1f1c19",
-  floor: "#26231f",
+  paper: "#1b1916",
+  floor: "#24211d",
   wallFill: "#d9d2c6",
   wallHairline: "#eee9e1",
   door: "#c2baae",
