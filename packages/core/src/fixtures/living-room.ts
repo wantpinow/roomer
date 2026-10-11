@@ -17,8 +17,8 @@ export const LIVING_ROOM_CEILING_HEIGHT = 2450
 export const LIVING_ROOM_MEASUREMENTS = {
   kind: "walk",
   segments: [
-    { length: 2980, turn: 90 }, // W1 hall end (C1 → C2)
-    { length: 7090, turn: 90 }, // W2 long right wall, kitchen door
+    { length: 2980, turn: 90 }, // W1 kitchen end (C1 → C2), door D1 to the kitchen
+    { length: 7090, turn: 90 }, // W2 long right wall, door D2 to the hall
     { length: 810, turn: -90 }, // W3 step into the window recess
     { length: 600, turn: 90 }, // W4 recess side
     { length: 2170, turn: 90 }, // W5 window wall
@@ -42,7 +42,7 @@ export const LIVING_ROOM_FEATURES: Feature[] = [
   {
     type: "door",
     id: "D1",
-    label: "Hall door",
+    label: "Kitchen door",
     wall: "W1",
     offset: 1150,
     width: 800,
@@ -54,7 +54,7 @@ export const LIVING_ROOM_FEATURES: Feature[] = [
   {
     type: "door",
     id: "D2",
-    label: "Kitchen door",
+    label: "Hall door",
     wall: "W2",
     offset: 5250,
     width: 760,
@@ -103,7 +103,7 @@ export const LIVING_ROOM_FEATURES: Feature[] = [
   {
     type: "pendant",
     id: "L1",
-    label: "Pendant (hall end)",
+    label: "Pendant (kitchen end)",
     x: 1490,
     z: 2400,
     assumed: true,

@@ -45,8 +45,8 @@ describe("defaultCameras", () => {
       "corner-c6",
     ])
     expect(cameras.map((c) => c.name)).toEqual([
-      "From the hall door",
       "From the kitchen door",
+      "From the hall door",
       "From corner C1",
       "From corner C2",
       "From corner C3",

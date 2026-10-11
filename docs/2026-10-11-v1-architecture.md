@@ -311,21 +311,22 @@ the UI milestone; no Inter/Roboto/Arial defaults). Lint severities use muted, ac
 
 ## 9. The test room (from Patrick's floor plan, estimated)
 
-Living/Dining room, 7.69m × 2.98m. Plan-up = the hall end. Walk measurements (start C1 = top-left
+Living/Dining room, 7.69m × 2.98m. Plan-up = the kitchen end (the full ground-floor plan: kitchen above the room through D1; hall, stairs, WC and front door to the right of the room's window end, reached through D2; the front window WIN1 faces the street). Walk measurements (start C1 = top-left
 inner corner, heading right):
 
 | Segment | Length | Then turn | Wall |
 |---|---|---|---|
-| C1→C2 | 2980 | +90 | W1 hall end (door D1) |
-| C2→C3 | 7090 | +90 | W2 long right wall (door D2 to kitchen) |
+| C1→C2 | 2980 | +90 | W1 kitchen end (door D1 to the kitchen) |
+| C2→C3 | 7090 | +90 | W2 long right wall (door D2 to the hall) |
 | C3→C4 | 810 | −90 | W3 step |
 | C4→C5 | 600 | +90 | W4 recess side |
 | C5→C6 | 2170 | +90 | W5 window wall (window WIN1) |
 | C6→C1 | 7690 | +90 | W6 long left wall (pier OB1) |
 
 Features (estimates; Patrick will correct after measuring):
-- D1 on W1: offset 1150, width 800, swing **out** (into hall), hinge end. Height 1980.
-- D2 on W2: offset 5250, width 760, swing **in**, hinge at the end nearer the window (`end`).
+- D1 "Kitchen door" on W1: offset 1150, width 800, swing **out** (into the kitchen), hinge end. Height 1980.
+- D2 "Hall door" on W2: offset 5250, width 760, swing **in**, hinge at the end nearer the window (`end`).
+- Main circulation runs hall door D2 ↔ kitchen door D1 diagonally through the room: keep it clear. Natural zoning: dining at the kitchen end, lounge/TV at the window end.
 - WIN1 on W5: offset 120, width 1930, bottom 650, height 1450, opens out.
 - OB1 on W6 ("bit of wall pointing out", not a fireplace): offset 4920, width 1000, depth 120,
   full height.
