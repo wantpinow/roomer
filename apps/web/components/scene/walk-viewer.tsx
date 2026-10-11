@@ -17,13 +17,39 @@ import type { SceneContent } from "@/lib/scene/types"
 import { isWalkKey } from "@/lib/walk/keys"
 import { verticalFovFor, WALK_HFOV } from "@/lib/walk/lens"
 import type { WalkBump } from "@/lib/walk/physics"
-import { PLAYER } from "@/lib/walk/player"
+import {
+  DEFAULT_STATURE_MM,
+  parseStature,
+  STATURE_RANGE_IN,
+  statureInches,
+  stepStature,
+  walkerSize,
+} from "@/lib/walk/stature"
 import { buildWalkWorld } from "@/lib/walk/world"
 
 import { passCanvasProps } from "./canvas-config"
 import { RoomScene } from "./room-scene"
 import { type LookDelta, WalkController } from "./walk-controller"
 import { WalkHud, type WalkMode } from "./walk-hud"
+
+/** Where the walker's height setting is remembered (per browser). */
+const STATURE_KEY = "roomer.walk.statureMm"
+
+function storedStature(): number | null {
+  try {
+    return parseStature(window.localStorage.getItem(STATURE_KEY))
+  } catch {
+    return null
+  }
+}
+
+function storeStature(statureMm: number): void {
+  try {
+    window.localStorage.setItem(STATURE_KEY, String(statureMm))
+  } catch {
+    // Private mode or blocked storage: the setting just isn't remembered.
+  }
+}
 
 /** Starting vertical fov (a 16:9 viewport); `WalkLens` keeps it right. */
 const INITIAL_WALK_VFOV = Math.round(verticalFovFor(WALK_HFOV, 16 / 9))
@@ -55,6 +81,11 @@ export interface WalkViewerProps {
   onBump?: (bump: WalkBump) => void
   /** Called when the user leaves the walk (Esc). */
   onExit?: () => void
+  /**
+   * The walker's starting height, mm (default: the height last chosen in
+   * this browser, else 6 ft). The HUD's −/+ control changes it from there.
+   */
+  statureMm?: number
   className?: string
 }
 
@@ -69,17 +100,31 @@ export function WalkViewer({
   scene,
   onBump,
   onExit,
+  statureMm,
   className,
 }: WalkViewerProps) {
   const { room, placements, assets } = scene
-  const world = useMemo(
-    () => buildWalkWorld({ room, placements, assets }),
-    [room, placements, assets]
+  const [stature, setStature] = useState(
+    () => statureMm ?? storedStature() ?? DEFAULT_STATURE_MM
   )
+  const changeStature = useCallback((inches: number) => {
+    setStature((current) => {
+      const next = stepStature(current, inches)
+      if (next !== current) storeStature(next)
+      return next
+    })
+  }, [])
+  const world = useMemo(
+    () => buildWalkWorld({ room, placements, assets, statureMm: stature }),
+    [room, placements, assets, stature]
+  )
+  const [spawnX, spawnZ] = world.spawn.position
+  const spawnHeading = world.spawn.heading
   const content = useMemo((): SceneContent => {
-    const [x, z] = world.spawn.position
-    const [dx, dz] = directionOf(world.spawn.heading)
-    const eye = PLAYER.eyeHeight
+    const [x, z] = [spawnX, spawnZ]
+    const [dx, dz] = directionOf(spawnHeading)
+    // Only seeds the scene; WalkController drives the real camera.
+    const eye = walkerSize().eyeHeight
     return {
       room,
       placements,
@@ -97,7 +142,7 @@ export function WalkViewer({
         },
       },
     }
-  }, [world, room, placements, assets])
+  }, [spawnX, spawnZ, spawnHeading, room, placements, assets])
 
   const root = useRef<HTMLDivElement>(null)
   const keys = useRef(new Set<string>())
@@ -191,6 +236,16 @@ export function WalkViewer({
       exit()
       return
     }
+    if (event.code === "Minus" || event.code === "NumpadSubtract") {
+      event.preventDefault()
+      changeStature(-1)
+      return
+    }
+    if (event.code === "Equal" || event.code === "NumpadAdd") {
+      event.preventDefault()
+      changeStature(1)
+      return
+    }
     if (!isWalkKey(event.code)) return
     event.preventDefault()
     keys.current.add(event.code)
@@ -207,7 +262,7 @@ export function WalkViewer({
       aria-label="First-person walk view"
       data-walk-viewer={mode}
       className={cn(
-        "relative h-full w-full cursor-crosshair outline-none",
+        "@container relative h-full w-full cursor-crosshair outline-none",
         className
       )}
       onKeyDown={onKeyDown}
@@ -237,7 +292,14 @@ export function WalkViewer({
           onBump={handleBump}
         />
       </Canvas>
-      <WalkHud mode={mode} />
+      <WalkHud
+        mode={mode}
+        player={world.player}
+        onTaller={() => changeStature(1)}
+        onShorter={() => changeStature(-1)}
+        canGrow={statureInches(stature) < STATURE_RANGE_IN.max}
+        canShrink={statureInches(stature) > STATURE_RANGE_IN.min}
+      />
     </div>
   )
 }

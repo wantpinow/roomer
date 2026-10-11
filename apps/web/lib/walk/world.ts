@@ -28,6 +28,7 @@ import {
   circlePolygonPenetration,
 } from "./collide"
 import { CONTACT_SLOP, PLAYER } from "./player"
+import { DEFAULT_STATURE_MM, walkerSize, type WalkerSize } from "./stature"
 
 // What the walker can bump into, built from the same shapes the linter
 // uses: every placed part (core's worldShapes), the room's fixed obstacles,
@@ -49,7 +50,7 @@ export interface Collider {
   y1: number
   /** Rugs: something to stand on, never something to bump into. */
   walkable: boolean
-  /** A 6-footer fits upright on top (top + height ≤ ceiling). */
+  /** The walker fits upright on top (top + stature ≤ ceiling). */
   standable: boolean
   /** Plan bounds, for quick rejection. */
   box: Bounds2
@@ -67,6 +68,8 @@ export interface WalkWorld {
   /** Labels for the outline's edges (edge i is wall W(i+1)). */
   wallLabels: string[]
   ceilingHeight: number
+  /** How tall the walker is and where their eyes are, mm. */
+  player: WalkerSize
   /** Extra clearance from the plaster: the skirting board's depth, mm. */
   wallInset: number
   colliders: Collider[]
@@ -77,6 +80,8 @@ export interface WalkSceneInput {
   room: RoomGeometry
   placements: readonly Placement[]
   assets: Readonly<Record<string, AssetSpec>>
+  /** How tall the walker is, mm (default 6 ft = 1830). */
+  statureMm?: number
 }
 
 function featureLabel(feature: Feature): string {
@@ -89,16 +94,17 @@ function featureLabel(feature: Feature): string {
 
 function collider(
   fields: Omit<Collider, "box" | "standable">,
-  ceilingHeight: number
+  ceilingHeight: number,
+  stature: number
 ): Collider {
   return {
     ...fields,
-    standable: fields.y1 + PLAYER.height <= ceilingHeight,
+    standable: fields.y1 + stature <= ceilingHeight,
     box: bounds(fields.footprint),
   }
 }
 
-function featureColliders(room: RoomGeometry): Collider[] {
+function featureColliders(room: RoomGeometry, stature: number): Collider[] {
   const walls = deriveWalls(room.corners)
   const out: Collider[] = []
   const add = (feature: Feature, footprint: Point[], y0: number, y1: number) =>
@@ -113,7 +119,8 @@ function featureColliders(room: RoomGeometry): Collider[] {
           y1,
           walkable: false,
         },
-        room.ceilingHeight
+        room.ceilingHeight,
+        stature
       )
     )
   for (const feature of room.features) {
@@ -164,7 +171,10 @@ function featureColliders(room: RoomGeometry): Collider[] {
   return out
 }
 
-function placementColliders(input: WalkSceneInput): Collider[] {
+function placementColliders(
+  input: WalkSceneInput,
+  stature: number
+): Collider[] {
   const out: Collider[] = []
   for (const placement of input.placements) {
     const asset = input.assets[placement.assetId]
@@ -183,7 +193,8 @@ function placementColliders(input: WalkSceneInput): Collider[] {
             y1: shape.y1,
             walkable,
           },
-          input.room.ceilingHeight
+          input.room.ceilingHeight,
+          stature
         )
       )
     }
@@ -191,11 +202,11 @@ function placementColliders(input: WalkSceneInput): Collider[] {
   return out
 }
 
-/** Does `c` stop a walker whose feet are at `feet` (mm)? */
-export function blocks(c: Collider, feet: number): boolean {
+/** Does `c` stop a walker `height` tall whose feet are at `feet` (mm)? */
+export function blocks(c: Collider, feet: number, height: number): boolean {
   if (c.walkable) return false
-  if (c.y0 >= feet + PLAYER.height) return false
-  // Low enough to step onto — unless a 6-footer couldn't stand up there.
+  if (c.y0 >= feet + height) return false
+  // Low enough to step onto — unless the walker couldn't stand up there.
   return c.y1 > feet + PLAYER.stepUp || !c.standable
 }
 
@@ -208,7 +219,7 @@ export function groundAt(
   let ground = 0
   for (const c of world.colliders) {
     if (c.y1 <= ground || c.y1 > feet + PLAYER.stepUp) continue
-    // Rugs always; anything else only if a 6-footer fits upright on it.
+    // Rugs always; anything else only if the walker fits upright on it.
     if (!c.walkable && !c.standable) continue
     if (!nearBox(c.box, position, PLAYER.radius)) continue
     if (circleOverlapsPolygon(position, PLAYER.radius, c.footprint))
@@ -242,7 +253,10 @@ export function isFree(
   )
   if (wall && wall.depth > CONTACT_SLOP) return false
   return !world.colliders.some((c) => {
-    if (!blocks(c, feet) || !nearBox(c.box, position, PLAYER.radius))
+    if (
+      !blocks(c, feet, world.player.height) ||
+      !nearBox(c.box, position, PLAYER.radius)
+    )
       return false
     const pen = circlePolygonPenetration(position, PLAYER.radius, c.footprint)
     return pen !== null && pen.depth > CONTACT_SLOP
@@ -300,13 +314,18 @@ function spawnFor(
 
 export function buildWalkWorld(input: WalkSceneInput): WalkWorld {
   const { room } = input
+  const player = walkerSize(input.statureMm ?? DEFAULT_STATURE_MM)
   const outline: Point[] = room.corners.map(([x, z]) => [x, z])
   const base = {
     outline,
     wallLabels: deriveWalls(room.corners).map((w) => `the wall ${w.id}`),
     ceilingHeight: room.ceilingHeight,
+    player,
     wallInset: room.skirting.depth,
-    colliders: [...featureColliders(room), ...placementColliders(input)],
+    colliders: [
+      ...featureColliders(room, player.height),
+      ...placementColliders(input, player.height),
+    ],
   }
   return { ...base, spawn: spawnFor(base, room) }
 }

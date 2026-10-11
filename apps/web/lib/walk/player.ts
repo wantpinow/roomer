@@ -1,12 +1,10 @@
-// The walker: a six-foot (1830 mm) adult as an upright cylinder. Distances
-// are millimetres and times seconds throughout lib/walk, like the rest of
-// the domain; the viewer converts to metres at the edge.
+// The walker: an adult as an upright cylinder. How tall is a setting (see
+// stature.ts, stored on the world as `world.player`); everything else about
+// the body lives here. Distances are millimetres and times seconds
+// throughout lib/walk, like the rest of the domain; the viewer converts to
+// metres at the edge.
 
 export const PLAYER = {
-  /** Standing height, mm (6 ft). */
-  height: 1830,
-  /** Eye height above the feet, mm. */
-  eyeHeight: 1710,
   /** Body radius, mm: shoulders are about 500 mm across. */
   radius: 250,
   /** Highest ledge walked onto without jumping, mm (a rug, a low step). */

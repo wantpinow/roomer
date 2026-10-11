@@ -13,6 +13,7 @@ import {
   eyeHeight,
   headBob,
   IDLE,
+  reseat,
   stepWalk,
   teleport,
   type WalkInput,
@@ -53,7 +54,8 @@ describe("createWalkState", () => {
     const s = createWalkState(world)
     expect(s.position).toEqual(world.spawn.position)
     expect(s).toMatchObject({ feet: 0, vy: 0, grounded: true, bump: null })
-    expect(eyeHeight(s)).toBe(PLAYER.eyeHeight)
+    expect(eyeHeight(world, s)).toBe(world.player.eyeHeight)
+    expect(world.player).toEqual({ height: 1830, eyeHeight: 1711 })
   })
 })
 
@@ -206,7 +208,10 @@ describe("standing on things", () => {
     expect(standing.feet).toBe(420)
     expect(standing.grounded).toBe(true)
     expect(standing.position[1]).toBeGreaterThan(3400 - PLAYER.radius)
-    expect(eyeHeight(standing)).toBeCloseTo(420 + PLAYER.eyeHeight, 0)
+    expect(eyeHeight(world, standing)).toBeCloseTo(
+      420 + world.player.eyeHeight,
+      0
+    )
   })
 
   it("lands back on the floor after walking off the table", () => {
@@ -282,7 +287,7 @@ describe("jumping", () => {
     let highest = 0
     for (let i = 0; i < 60; i++) {
       s = advanceWalk(world, s, { ...IDLE, heading: 90, jump: true }, 1 / 60)
-      highest = Math.max(highest, s.feet + PLAYER.height)
+      highest = Math.max(highest, s.feet + world.player.height)
     }
     expect(highest).toBeLessThanOrEqual(2450)
     expect(s.bump).toMatchObject({
@@ -291,6 +296,114 @@ describe("jumping", () => {
       label: "the ceiling",
     })
     expect(s.feet).toBe(560)
+  })
+})
+
+describe("stature", () => {
+  const short = buildWalkWorld({
+    room: FIXTURE_ROOM,
+    placements: FIXTURE_PLACEMENTS,
+    assets: FIXTURE_ASSETS,
+    statureMm: 1626, // 5′4″
+  })
+
+  it("sets eye height from stature", () => {
+    expect(short.player).toEqual({ height: 1626, eyeHeight: 1520 })
+    expect(eyeHeight(short, createWalkState(short))).toBe(1520)
+  })
+
+  it("lets a 5′4″ walker stand on the dining table under a 2,450 mm ceiling", () => {
+    // 750 + 1626 = 2376 ≤ 2450; for a six-footer 750 + 1830 = 2580 is not.
+    const onTable = teleport(
+      short,
+      createWalkState(short),
+      [1085, 6300],
+      180,
+      750
+    )
+    const settled = hold(onTable, {}, 0.3, short)
+    expect(settled.feet).toBe(750)
+    expect(settled.grounded).toBe(true)
+    const tall = teleport(world, createWalkState(world), [1085, 6300], 180, 750)
+    expect(hold(tall, {}, 0.3).feet).toBeLessThan(750)
+  })
+
+  it("bumps heads at the new height", () => {
+    // A 4′10″ walker jumping under the beam (underside 2220) tops out at
+    // 1473 + 500 = 1973: no bump. A 6′10″ walker hits it.
+    const jumpUnderBeam = (w: WalkWorld) => {
+      let s = teleport(w, createWalkState(w), [1500, 2650], 180)
+      for (let i = 0; i < 60; i++) {
+        s = advanceWalk(w, s, { ...IDLE, heading: 180, jump: true }, 1 / 60)
+      }
+      return s
+    }
+    const make = (statureMm: number) =>
+      buildWalkWorld({
+        room: FIXTURE_ROOM,
+        placements: FIXTURE_PLACEMENTS,
+        assets: FIXTURE_ASSETS,
+        statureMm,
+      })
+    expect(jumpUnderBeam(make(1473)).bump).toBeNull()
+    expect(jumpUnderBeam(make(2083)).bump).toMatchObject({ bumped: "BM1" })
+  })
+})
+
+describe("reseat", () => {
+  it("keeps the walker's spot and heading in a rebuilt world", () => {
+    const moved = hold(at([1500, 1500], 135), { forward: 1 }, 0.5)
+    const taller = buildWalkWorld({
+      room: FIXTURE_ROOM,
+      placements: FIXTURE_PLACEMENTS,
+      assets: FIXTURE_ASSETS,
+      statureMm: 1930,
+    })
+    const s = reseat(taller, moved)
+    expect(s.position).toEqual(moved.position)
+    expect(s.heading).toBe(135)
+    expect(s.velocity).toEqual([0, 0])
+    expect(eyeHeight(taller, s)).toBe(Math.round(1930 * 0.935))
+  })
+
+  it("keeps someone standing on the coffee table up there", () => {
+    const onTable = hold(
+      teleport(world, createWalkState(world), [1618, 3950], 180, 420),
+      {},
+      0.2
+    )
+    const s = reseat(
+      buildWalkWorld({
+        room: FIXTURE_ROOM,
+        placements: FIXTURE_PLACEMENTS,
+        assets: FIXTURE_ASSETS,
+        statureMm: 1700,
+      }),
+      onTable
+    )
+    expect(s.feet).toBe(420)
+  })
+
+  it("steps aside when furniture now stands where the walker was", () => {
+    const standing = at([1500, 1500], 180)
+    const blocked = buildWalkWorld({
+      room: FIXTURE_ROOM,
+      placements: [
+        ...FIXTURE_PLACEMENTS,
+        {
+          id: "box",
+          assetId: "test-sideboard",
+          x: 1500,
+          z: 1500,
+          facing: 180,
+          elevation: 0,
+        },
+      ],
+      assets: FIXTURE_ASSETS,
+    })
+    const s = reseat(blocked, standing)
+    expect(s.position).not.toEqual(standing.position)
+    expect(isFree(blocked, s.position)).toBe(true)
   })
 })
 
@@ -306,7 +419,7 @@ describe("the ceiling beam", () => {
     let highest = 0
     for (let i = 0; i < 60; i++) {
       s = advanceWalk(world, s, { ...IDLE, heading: 180, jump: true }, 1 / 60)
-      highest = Math.max(highest, s.feet + PLAYER.height)
+      highest = Math.max(highest, s.feet + world.player.height)
     }
     expect(highest).toBeLessThanOrEqual(2220)
     expect(s.bump).toMatchObject({

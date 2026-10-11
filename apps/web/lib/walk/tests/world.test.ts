@@ -34,7 +34,7 @@ describe("buildWalkWorld", () => {
   it("makes rugs walkable surfaces, never walls", () => {
     const [rug] = byId("rug")
     expect(rug!.walkable).toBe(true)
-    expect(blocks(rug!, 0)).toBe(false)
+    expect(blocks(rug!, 0, 1830)).toBe(false)
   })
 
   it("includes the pier, the radiator and the window sill as fixed obstacles", () => {
@@ -57,9 +57,9 @@ describe("buildWalkWorld", () => {
       y0: 2220,
       y1: 2450,
     })
-    expect(blocks(beam!, 0)).toBe(false)
+    expect(blocks(beam!, 0, 1830)).toBe(false)
     // Standing on a 420 mm coffee table, though, it's at head height.
-    expect(blocks(beam!, 420)).toBe(true)
+    expect(blocks(beam!, 420, 1830)).toBe(true)
   })
 
   it("only lets a six-footer stand where his head clears the ceiling", () => {
@@ -68,8 +68,8 @@ describe("buildWalkWorld", () => {
     expect(coffeeTop.standable).toBe(true)
     expect(diningTop.standable).toBe(false)
     // So the dining table blocks even someone standing on a chair.
-    expect(blocks(diningTop, 480)).toBe(true)
-    expect(blocks(coffeeTop, 300)).toBe(false)
+    expect(blocks(diningTop, 480, 1830)).toBe(true)
+    expect(blocks(coffeeTop, 300, 1830)).toBe(false)
   })
 })
 

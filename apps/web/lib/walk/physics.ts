@@ -21,7 +21,14 @@ import {
   PLAYER,
   SUBSTEP,
 } from "./player"
-import { blocks, groundAt, nearBox, type WalkWorld } from "./world"
+import {
+  blocks,
+  groundAt,
+  isFree,
+  nearBox,
+  nearestFree,
+  type WalkWorld,
+} from "./world"
 
 // First-person walking as a pure, fixed-step simulation: the same inputs
 // always give the same path. Each 1/120 s step moves the body circle on the
@@ -130,7 +137,8 @@ function penetrations(
     })
   }
   for (const c of world.colliders) {
-    if (!blocks(c, feet) || !nearBox(c.box, position, PLAYER.radius)) continue
+    if (!blocks(c, feet, world.player.height)) continue
+    if (!nearBox(c.box, position, PLAYER.radius)) continue
     const pen = circlePolygonPenetration(position, PLAYER.radius, c.footprint)
     if (pen) {
       out.push({ pen, bump: { bumped: c.id, kind: c.kind, label: c.label } })
@@ -264,9 +272,10 @@ export function stepWalk(
     vy = 0
     grounded = true
   }
-  const above = overhead(world, moved.position, state.feet + PLAYER.height)
-  if (feet + PLAYER.height > above.height) {
-    feet = Math.max(ground, above.height - PLAYER.height)
+  const { height } = world.player
+  const above = overhead(world, moved.position, state.feet + height)
+  if (feet + height > above.height) {
+    feet = Math.max(ground, above.height - height)
     if (vy > 0) {
       if (vy > BUMP_SPEED) record(above.bump)
       vy = 0
@@ -332,8 +341,29 @@ export function teleport(
 }
 
 /** Eye height above the floor (mm) including a gentle head-bob. */
-export function eyeHeight(state: WalkState): number {
-  return state.feet + PLAYER.eyeHeight + headBob(state)
+export function eyeHeight(world: WalkWorld, state: WalkState): number {
+  return state.feet + world.player.eyeHeight + headBob(state)
+}
+
+/**
+ * Carries a walker into a rebuilt world (new stature, moved furniture):
+ * same spot and heading, feet re-grounded on whatever is now underfoot,
+ * and nudged to the nearest free spot if something now stands there.
+ */
+export function reseat(world: WalkWorld, state: WalkState): WalkState {
+  const feet = groundAt(world, state.position, state.feet)
+  const position = isFree(world, state.position, feet)
+    ? state.position
+    : nearestFree(world, state.position)
+  return {
+    ...state,
+    position,
+    feet: position === state.position ? feet : groundAt(world, position, 0),
+    velocity: [0, 0],
+    vy: 0,
+    grounded: true,
+    carry: 0,
+  }
 }
 
 /** Head-bob offset (mm): a stride-paced bob that fades as you stop. */

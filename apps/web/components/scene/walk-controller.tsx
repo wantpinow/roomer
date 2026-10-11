@@ -11,6 +11,7 @@ import {
   createWalkState,
   eyeHeight,
   IDLE,
+  reseat,
   teleport,
   type WalkBump,
   type WalkInput,
@@ -94,11 +95,20 @@ export function WalkController({
     onBumpRef.current = onBump
   }, [onBump])
 
-  // A new room (or new furniture) restarts the walk at the door.
+  // A different room restarts the walk at its door; the same room rebuilt
+  // (new stature, furniture moved by the agent) keeps the walker where they
+  // are, re-grounded.
+  const outline = useRef(JSON.stringify(world.outline))
   useEffect(() => {
-    state.current = createWalkState(world)
-    pendingHeading.current = world.spawn.heading
-    lastBump.current = null
+    const next = JSON.stringify(world.outline)
+    if (next === outline.current) {
+      state.current = reseat(world, state.current)
+    } else {
+      outline.current = next
+      state.current = createWalkState(world)
+      pendingHeading.current = world.spawn.heading
+      lastBump.current = null
+    }
   }, [world])
 
   useEffect(() => {
@@ -110,7 +120,7 @@ export function WalkController({
         x: state.current.position[0],
         z: state.current.position[1],
         feet: state.current.feet,
-        eye: eyeHeight(state.current),
+        eye: eyeHeight(world, state.current),
         heading: state.current.heading,
         grounded: state.current.grounded,
       }),
@@ -177,7 +187,7 @@ export function WalkController({
     const s = state.current
     camera.position.set(
       s.position[0] / 1000,
-      eyeHeight(s) / 1000,
+      eyeHeight(world, s) / 1000,
       s.position[1] / 1000
     )
     if (s.bump && s.bump !== lastBump.current) {
