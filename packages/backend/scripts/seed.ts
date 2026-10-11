@@ -1,7 +1,9 @@
 /**
  * Seeds the local dev deployment (`pnpm seed`): the living room, the generic
  * starter library and a "Starter" layout. Idempotent — re-running only adds
- * what's missing.
+ * what's missing. `pnpm seed --refresh` also brings an existing living room
+ * back in line with the fixture (features, labels, finishes, default
+ * cameras), keeping its id and layouts.
  *
  * Runs the internal `seed:run` mutation through the Convex CLI against the
  * deployment `convex dev` wrote to .env.local (the anonymous local backend
@@ -59,12 +61,19 @@ async function main() {
     )
   }
 
-  console.log(`Seeding ${deployment} (${url})…`)
-  const output = execFileSync("npx", ["convex", "run", "seed:run"], {
-    cwd: backendRoot,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "inherit"],
-  })
+  const refresh = process.argv.includes("--refresh")
+  console.log(
+    `Seeding ${deployment} (${url})${refresh ? " with --refresh" : ""}…`
+  )
+  const output = execFileSync(
+    "npx",
+    ["convex", "run", "seed:run", JSON.stringify({ refresh })],
+    {
+      cwd: backendRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "inherit"],
+    }
+  )
   // `convex run` prints the mutation's return value as JSON.
   const result: SeedResult = JSON.parse(output)
   const { created } = result
@@ -83,6 +92,13 @@ async function main() {
       ? `✔ created layout "Starter" ${result.layoutId}`
       : `• layout "Starter" ${result.layoutId} already there`
   )
+  if (result.refreshed) {
+    console.log(
+      result.refreshed.length > 0
+        ? `✔ refreshed the room from the fixture:\n${result.refreshed.map((line) => `    ${line}`).join("\n")}`
+        : "• room already matches the fixture"
+    )
+  }
 }
 
 main().catch((error: unknown) => {

@@ -121,10 +121,10 @@ export const recordHealthcheck = mutation({
  * call it after `reset` or on top of existing data.
  */
 export const seedLivingRoom = mutation({
-  args: {},
+  args: { refresh: v.optional(v.boolean()) },
   returns: vSeedResult,
-  handler: async (ctx) => {
+  handler: async (ctx, args) => {
     assertE2E()
-    return await doSeed(ctx)
+    return await doSeed(ctx, args)
   },
 })
