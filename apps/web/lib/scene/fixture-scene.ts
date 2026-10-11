@@ -1,6 +1,7 @@
 import {
   type AssetSpec,
   type Camera,
+  defaultCameras,
   LIVING_ROOM_CEILING_HEIGHT,
   LIVING_ROOM_CORNERS,
   LIVING_ROOM_FEATURES,
@@ -115,33 +116,43 @@ export const FIXTURE_PLACEMENTS: Placement[] = [
   ),
 ]
 
-const FROM_DOOR: Camera = {
-  id: "from-kitchen-door",
-  name: "From the kitchen door",
-  position: [1550, 1600, 350],
-  target: [1150, 1050, 7000],
-  fov: 55,
+const DEFAULT_CAMERAS = defaultCameras(FIXTURE_ROOM)
+
+function defaultCamera(id: string): Camera {
+  const camera = DEFAULT_CAMERAS.find((c) => c.id === id)
+  if (!camera) throw new Error(`The fixture room has no default camera ${id}`)
+  return camera
 }
 
+/** Core's default doorway camera at D1: level, 1.5 m up, fov 70. */
+const FROM_DOOR = defaultCamera("from-d1")
+
 export const FIXTURE_CAMERAS: Record<
-  "fromDoor" | "fromHall" | "fromWindow",
+  "fromDoor" | "fromHall" | "fromWindow" | "fromHallDoor",
   Camera
 > = {
-  /** Just inside door D1 (from the kitchen), looking down the room to the window. */
+  /** Just inside door D1 (from the kitchen), looking down the room. */
   fromDoor: FROM_DOOR,
   /**
    * @deprecated D1 turned out to be the kitchen door, not the hall's; use
    * `fromDoor`. Kept until the photoreal spike script moves over.
    */
   fromHall: FROM_DOOR,
-  /** From the window end, looking back towards the kitchen door. */
+  /** Core's default camera at D2 (from the hall), looking across the room. */
+  fromHallDoor: defaultCamera("from-d2"),
+  /** From the window end, looking back towards the kitchen door (level). */
   fromWindow: {
     id: "from-window",
     name: "From the window",
-    position: [1900, 1450, 7550],
-    target: [1200, 1150, 400],
-    fov: 55,
+    position: [1900, 1500, 7550],
+    target: [1200, 1500, 400],
+    fov: 70,
   },
+}
+
+/** The same camera with a fisheye lens and a different vertical fov. */
+export function withFisheye(camera: Camera, fov: number): Camera {
+  return { ...camera, id: `${camera.id}-fisheye`, fov, projection: "fisheye" }
 }
 
 export interface FixtureSceneOptions {

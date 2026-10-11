@@ -102,9 +102,9 @@ describe("roomViewSetup", () => {
       ASPECT
     )
     expect(camera.kind).toBe("perspective")
-    expect(camera.position).toEqual([1.55, 1.6, 0.35])
-    expect(camera.target).toEqual([1.15, 1.05, 7])
-    expect(camera.kind === "perspective" && camera.fov).toBe(55)
+    expect(camera.position).toEqual([1.55, 1.5, 0.3])
+    expect(camera.target).toEqual([1.55, 1.5, 7.69])
+    expect(camera.kind === "perspective" && camera.fov).toBe(70)
     expect(cutWalls).toEqual([])
   })
 

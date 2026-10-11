@@ -5,6 +5,7 @@ import {
   FIXTURE_ASSETS,
   FIXTURE_CAMERAS,
   FIXTURE_PLACEMENTS,
+  withFisheye,
 } from "../fixture-scene"
 
 describe("FIXTURE_PLACEMENTS", () => {
@@ -49,6 +50,29 @@ describe("buildFixtureScene", () => {
       width: 800,
       height: 600,
       showCeiling: false,
+    })
+  })
+})
+
+describe("FIXTURE_CAMERAS", () => {
+  it("uses core's level, 1.5 m, fov 70 default at the kitchen door", () => {
+    expect(FIXTURE_CAMERAS.fromDoor).toMatchObject({
+      id: "from-d1",
+      position: [1550, 1500, 300],
+      target: [1550, 1500, 7690],
+      fov: 70,
+    })
+  })
+})
+
+describe("withFisheye", () => {
+  it("swaps the lens and fov, keeping the viewpoint", () => {
+    const camera = withFisheye(FIXTURE_CAMERAS.fromDoor, 100)
+    expect(camera).toMatchObject({
+      id: "from-d1-fisheye",
+      fov: 100,
+      projection: "fisheye",
+      position: FIXTURE_CAMERAS.fromDoor.position,
     })
   })
 })

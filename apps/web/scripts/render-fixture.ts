@@ -1,9 +1,13 @@
 /**
  * `pnpm --filter web render:fixture` — renders the furnished living-room
  * fixture through the running dev server's /render page and writes PNGs to
- * .roomer-out/render-fixture/: clay and id passes from two room cameras (kitchen door, window end), a
- * depth pass, the top and orbit views, and the sofa's four asset previews.
- * Checks each id pass pixel-exactly and that renders are deterministic.
+ * .roomer-out/render-fixture/: clay and id passes from two room cameras
+ * (core's default at the kitchen door, and the window end; both level,
+ * 1.5 m, fov 70), a clay render from core's default at the hall door, a
+ * depth pass, the top and orbit views, and the sofa's
+ * four asset previews. `--fisheye` adds fisheye (fov 100) clay, id and
+ * depth renders of the same viewpoints. Checks each id pass pixel-exactly
+ * and that renders are deterministic.
  *
  * Needs `pnpm dev` (or `pnpm --filter web dev`) running; RENDER_BASE_URL
  * overrides http://localhost:3000.
@@ -19,6 +23,7 @@ import {
   FIXTURE_ASSETS,
   FIXTURE_CAMERAS,
   FIXTURE_PLACEMENTS,
+  withFisheye,
 } from "../lib/scene/fixture-scene"
 import { idPassLegend } from "../lib/scene/id-pass"
 import { ID_PASS_NON_ITEM_COLORS } from "../lib/scene/palette"
@@ -39,8 +44,38 @@ const fromWindow = {
   camera: FIXTURE_CAMERAS.fromWindow,
 } as const
 
+const fisheye = process.argv.includes("--fisheye")
+const FISHEYE_FOV = 100
+const fisheyeDoor = {
+  kind: "camera",
+  camera: withFisheye(FIXTURE_CAMERAS.fromDoor, FISHEYE_FOV),
+} as const
+const fisheyeWindow = {
+  kind: "camera",
+  camera: withFisheye(FIXTURE_CAMERAS.fromWindow, FISHEYE_FOV),
+} as const
+
+const FISHEYE_RENDERS: [name: string, scene: RenderScene][] = [
+  ["clay-from-door-fisheye", buildFixtureScene({ view: fisheyeDoor })],
+  ["clay-from-window-fisheye", buildFixtureScene({ view: fisheyeWindow })],
+  [
+    "id-from-door-fisheye",
+    buildFixtureScene({ view: fisheyeDoor, pass: "id" }),
+  ],
+  [
+    "depth-from-door-fisheye",
+    buildFixtureScene({ view: fisheyeDoor, pass: "depth" }),
+  ],
+]
+
+const fromHallDoor = {
+  kind: "camera",
+  camera: FIXTURE_CAMERAS.fromHallDoor,
+} as const
+
 const RENDERS: [name: string, scene: RenderScene][] = [
   ["clay-from-door", buildFixtureScene({ view: fromDoor })],
+  ["clay-from-hall-door", buildFixtureScene({ view: fromHallDoor })],
   ["clay-from-window", buildFixtureScene({ view: fromWindow })],
   ["id-from-door", buildFixtureScene({ view: fromDoor, pass: "id" })],
   ["id-from-window", buildFixtureScene({ view: fromWindow, pass: "id" })],
@@ -94,7 +129,10 @@ async function main() {
   const written: string[] = []
   let ok = true
 
-  for (const [name, scene] of RENDERS) {
+  for (const [name, scene] of [
+    ...RENDERS,
+    ...(fisheye ? FISHEYE_RENDERS : []),
+  ]) {
     const started = Date.now()
     const png = await renderScene(scene)
     const file = path.join(outDir, `${name}.png`)
