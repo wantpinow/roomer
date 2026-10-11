@@ -554,6 +554,13 @@ export function assetDetail(
     )
     if (clear.length > 0) lines.push(`Clearance: ${clear.join(", ")}`)
   }
+  if (asset.clearanceZones?.length) {
+    lines.push(
+      `Clearance zones (replace the clearance above for lint; [minX, minZ, maxX, maxZ] item-local mm): ${asset.clearanceZones
+        .map((zone) => `${zone.name} [${zone.rect.map(n).join(", ")}]`)
+        .join("; ")}`
+    )
+  }
   if (asset.description) lines.push(`Description: ${asset.description}`)
   if (asset.product) {
     const p = asset.product

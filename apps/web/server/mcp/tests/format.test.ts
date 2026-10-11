@@ -38,6 +38,7 @@ import {
   NOW,
   renderRecord,
   roomDetail,
+  SOFA_ID,
   TABLE_ID,
 } from "./fakes"
 
@@ -348,6 +349,27 @@ describe("assets", () => {
       `- generic-coffee-table · "Generic coffee table" · table, floor · 1,100W × 600D × 420H mm · £369 · library · 1 photo, 0 previews · id ${TABLE_ID}`
     )
     expect(assetList([])).toMatch(/^No assets match/)
+  })
+
+  it("lists clearance zones with their rectangles", () => {
+    const text = assetDetailText({
+      ...assetDetail(SOFA_ID),
+      clearanceZones: [{ name: "legroom", rect: [-497, 85, 1548, 535] }],
+    })
+    expect(text).toContain(
+      "Clearance zones (replace the clearance above for lint; [minX, minZ, maxX, maxZ] item-local mm): legroom [-497, 85, 1,548, 535]"
+    )
+  })
+
+  it("shows half-millimetre bounds as sent", () => {
+    expect(
+      boundsLine(
+        { min: [-1145, -0.5, -1370], max: [1145, 4.5, 1370] },
+        { w: 2290, d: 2740, h: 5 }
+      )
+    ).toBe(
+      "Parts' bounding box: 2,290W × 2,740D × 5H mm — x -1,145…1,145, y -0.5…4.5, z -1,370…1,370; matches the listed dims."
+    )
   })
 
   it("details an asset and offers the parts JSON", () => {
