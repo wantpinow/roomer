@@ -72,7 +72,28 @@ async function startWalking(page: Page, seed: SeedResult) {
   await waitForWalker(page)
 }
 
-test("walk mode mounts and Escape leaves it", async ({ page, livingRoom }) => {
+const walkViewer = (page: Page) => page.locator("[data-walk-viewer]")
+const pauseCard = (page: Page) =>
+  page.getByRole("dialog", { name: /Paused|Click to start walking/ })
+
+/** From the first-visit card into walking (keys work while focused). */
+async function walkOn(page: Page) {
+  await page
+    .getByRole("button", { name: /Start walking|Resume walking/ })
+    .click()
+  await expect(walkViewer(page)).toHaveAttribute("data-walk-viewer", "walking")
+}
+
+/** Escape, then wait out the echo window so the next Escape counts. */
+async function pressEscape(page: Page) {
+  await page.keyboard.press("Escape")
+  await page.waitForTimeout(600)
+}
+
+test("walk mode opens paused and Escape there leaves it", async ({
+  page,
+  livingRoom,
+}) => {
   await startWalking(page, livingRoom)
   const spawn = await page.evaluate(() => {
     const walker = window.__roomerWalk!
@@ -84,13 +105,69 @@ test("walk mode mounts and Escape leaves it", async ({ page, livingRoom }) => {
   expectNear(spawn.at.z, spawn.spawn[1], 1, "spawn z")
   expectNear(spawn.at.eye - spawn.at.feet, 1710, 20, "eye height")
 
-  await page.locator("[data-walk-viewer]").focus()
+  // A first visit waits for the click that captures the mouse.
+  await expect(walkViewer(page)).toHaveAttribute("data-walk-viewer", "paused")
+  await expect(
+    page.getByRole("dialog", { name: "Click to start walking" })
+  ).toBeVisible()
+  await expect(
+    page.getByRole("button", { name: "Start walking" })
+  ).toBeFocused()
+
   await page.keyboard.press("Escape")
   await expect(viewMode(page, "Plan")).toHaveAttribute("aria-checked", "true")
   await expect(planView(page)).toBeVisible()
   await expect
     .poll(() => page.evaluate(() => !!window.__roomerWalk))
     .toBe(false)
+})
+
+test("Escape pauses: the card sets the height and takes a photo; Resume walks on; Escape twice leaves", async ({
+  page,
+  livingRoom,
+}) => {
+  await startWalking(page, livingRoom)
+  await walkOn(page)
+
+  // Releasing the mouse pauses — still in Walk mode, the card up.
+  await pressEscape(page)
+  await expect(walkViewer(page)).toHaveAttribute("data-walk-viewer", "paused")
+  await expect(page.getByRole("dialog", { name: "Paused" })).toBeVisible()
+  await expect(viewMode(page, "Walk")).toHaveAttribute("aria-checked", "true")
+  await expect(
+    page.getByRole("button", { name: "Resume walking" })
+  ).toBeFocused()
+
+  // An inch taller: the card's readout and the walker's eyes follow.
+  await page.getByRole("button", { name: /^Taller by an inch/ }).click()
+  await expect(pauseCard(page)).toContainText("Height 6′1″ · eyes 1.73 m")
+  const eye = await page.evaluate(() => {
+    const at = window.__roomerWalk!.position()
+    return at.eye - at.feet
+  })
+  expectNear(eye, Math.round(1854 * 0.935), 2, "eye height at 6′1″")
+
+  // A photo of the held view: a (stub) render with the walk camera.
+  await page.getByRole("button", { name: "Take photo" }).click()
+  await expect
+    .poll(
+      async () => {
+        const [render] = await convex.query(api.renders.listByLayout, {
+          layoutId: livingRoom.layoutId,
+        })
+        return render ? `${render.view.name.slice(0, 10)} ${render.status}` : ""
+      },
+      { timeout: 60_000 }
+    )
+    .toBe("Walk photo done")
+
+  // Resume walks on; Escape pauses; Escape again leaves for the plan.
+  await page.getByRole("button", { name: "Resume walking" }).click()
+  await expect(walkViewer(page)).toHaveAttribute("data-walk-viewer", "walking")
+  await pressEscape(page)
+  await expect(walkViewer(page)).toHaveAttribute("data-walk-viewer", "paused")
+  await page.keyboard.press("Escape")
+  await expect(viewMode(page, "Plan")).toHaveAttribute("aria-checked", "true")
 })
 
 test("walking into the sofa stops at its front, quietly", async ({
@@ -196,8 +273,8 @@ test("Enter takes a photo: a render of the walk view lands as a thumbnail", asyn
   livingRoom,
 }) => {
   await startWalking(page, livingRoom)
+  await walkOn(page)
   const at = await page.evaluate(() => window.__roomerWalk!.position())
-  await page.locator("[data-walk-viewer]").focus()
   await page.keyboard.press("Enter")
   await expect(page.locator("[data-walk-note]")).toHaveText(
     "Photo taken — rendering…"
@@ -242,7 +319,7 @@ test("Shift+Enter saves the view as one of the room's cameras", async ({
   const before = await convex.query(api.rooms.get, {
     roomId: livingRoom.roomId,
   })
-  await page.locator("[data-walk-viewer]").focus()
+  await walkOn(page)
   await page.keyboard.press("Shift+Enter")
   await expect(page.locator("[data-walk-note]")).toHaveText(
     /^Saved “Walk view \d\d:\d\d” to the room's cameras$/
