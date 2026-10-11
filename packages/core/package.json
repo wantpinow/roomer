@@ -6,7 +6,7 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./*": "./src/*.ts"
+    "./*": "./src/*/index.ts"
   },
   "scripts": {
     "lint": "eslint --max-warnings 0 .",
