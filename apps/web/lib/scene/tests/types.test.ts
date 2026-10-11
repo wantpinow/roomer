@@ -38,6 +38,18 @@ describe("zRenderScene", () => {
     )
   })
 
+  it("accepts a fisheye camera up to fov 120", () => {
+    const view = {
+      kind: "camera",
+      camera: { ...FIXTURE_CAMERAS.fromDoor, fov: 120, projection: "fisheye" },
+    }
+    expect(zRenderScene.safeParse({ ...scene, view }).success).toBe(true)
+    const tooWide = { ...view, camera: { ...view.camera, fov: 130 } }
+    expect(zRenderScene.safeParse({ ...scene, view: tooWide }).success).toBe(
+      false
+    )
+  })
+
   it("rejects unknown passes and views", () => {
     expect(zRenderScene.safeParse({ ...scene, pass: "normal" }).success).toBe(
       false

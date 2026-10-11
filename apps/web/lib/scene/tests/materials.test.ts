@@ -121,6 +121,17 @@ describe("createSceneMaterials — depth pass", () => {
       materials.part({ tone: "dark", placementIndex: 5 })
     )
     expect(materials.background.getHex()).toBe(0)
+    expect((wall as ShaderMaterial).uniforms.uRadial!.value).toBe(0)
+  })
+
+  it("measures straight-line distance for fisheye sources", () => {
+    const materials = createSceneMaterials("depth", {
+      near: 0,
+      far: 9,
+      radial: true,
+    })
+    const wall = materials.shell("wall") as ShaderMaterial
+    expect(wall.uniforms.uRadial!.value).toBe(1)
   })
 })
 

@@ -48,12 +48,17 @@ export interface RoomSceneProps {
    * neither installs a camera for `scene.view` nor adds orbit controls.
    */
   externalCamera?: boolean
+  /** Composer MSAA samples for the clay pass (see ClayEffects). */
+  multisampling?: number
+  /** Depth pass measures straight-line distance (fisheye sources). */
+  radialDepth?: boolean
 }
 
 /** Depth range (metres) covering the shell from the camera's point of view. */
 function depthRangeFor(
   camera: CameraSetup,
-  corners: readonly Vec3[]
+  corners: readonly Vec3[],
+  radial: boolean
 ): DepthRange {
   const forward: Vec3 = [
     camera.target[0] - camera.position[0],
@@ -61,16 +66,20 @@ function depthRangeFor(
     camera.target[2] - camera.position[2],
   ]
   const length = Math.hypot(...forward)
-  const depths = corners.map(
-    (c) =>
-      ((c[0] - camera.position[0]) * forward[0] +
-        (c[1] - camera.position[1]) * forward[1] +
-        (c[2] - camera.position[2]) * forward[2]) /
-      length
-  )
+  const depths = corners.map((c) => {
+    const v: Vec3 = [
+      c[0] - camera.position[0],
+      c[1] - camera.position[1],
+      c[2] - camera.position[2],
+    ]
+    return radial
+      ? Math.hypot(...v)
+      : (v[0] * forward[0] + v[1] * forward[1] + v[2] * forward[2]) / length
+  })
   return {
-    near: Math.max(0, Math.min(...depths)),
+    near: radial ? 0 : Math.max(0, Math.min(...depths)),
     far: Math.max(...depths),
+    radial,
   }
 }
 
@@ -88,6 +97,8 @@ export function RoomScene({
   interactive = false,
   fast = false,
   externalCamera = false,
+  multisampling,
+  radialDepth = false,
 }: RoomSceneProps) {
   const { room, placements, assets, view, pass } = scene
   const aspect = useThree((state) => state.size.width / state.size.height)
@@ -112,9 +123,10 @@ export function RoomScene({
       boxCorners(
         [b.minX / 1000, b.minY / 1000, b.minZ / 1000],
         [b.maxX / 1000, b.maxY / 1000, b.maxZ / 1000]
-      )
+      ),
+      radialDepth
     )
-  }, [shell, setup])
+  }, [shell, setup, radialDepth])
   const materials = useMemo(
     () => createSceneMaterials(pass, depthRange),
     [pass, depthRange]
@@ -170,7 +182,12 @@ export function RoomScene({
           )
         })}
       </group>
-      {clay ? <ClayEffects fast={fast} /> : null}
+      {clay ? (
+        <ClayEffects
+          fast={fast}
+          {...(multisampling === undefined ? {} : { multisampling })}
+        />
+      ) : null}
     </>
   )
 }

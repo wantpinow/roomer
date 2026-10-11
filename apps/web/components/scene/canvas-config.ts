@@ -14,11 +14,21 @@ export type PassCanvasProps = Pick<
 
 export function passCanvasProps(
   pass: RenderPass,
-  { preserveDrawingBuffer = false }: { preserveDrawingBuffer?: boolean } = {}
+  {
+    preserveDrawingBuffer = false,
+    antialias = true,
+  }: {
+    preserveDrawingBuffer?: boolean
+    /**
+     * Canvas MSAA for clay (the id and depth passes never antialias). Off
+     * for fisheye sources, which are supersampled and filtered instead.
+     */
+    antialias?: boolean
+  } = {}
 ): PassCanvasProps {
   if (pass === "clay") {
     return {
-      gl: { antialias: true, alpha: false, preserveDrawingBuffer },
+      gl: { antialias, alpha: false, preserveDrawingBuffer },
       shadows: { enabled: true, type: PCFShadowMap },
       flat: false,
       linear: false,

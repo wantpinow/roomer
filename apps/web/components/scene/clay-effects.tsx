@@ -16,10 +16,17 @@ export const CLAY_AO = {
  * shading, then Khronos PBR Neutral tone mapping (keeps the warm whites white). `fast` trades AO quality for frame rate
  * in the interactive viewer.
  */
-export function ClayEffects({ fast = false }: { fast?: boolean }) {
+export function ClayEffects({
+  fast = false,
+  multisampling,
+}: {
+  fast?: boolean
+  /** Override the composer's MSAA samples (default 8, 0 when fast). */
+  multisampling?: number
+}) {
   return (
     <EffectComposer
-      multisampling={fast ? 0 : 8}
+      multisampling={multisampling ?? (fast ? 0 : 8)}
       frameBufferType={HalfFloatType}
     >
       <N8AO

@@ -36,10 +36,16 @@ import type { ShellRole } from "./room-geometry"
 export type PlacementState = "normal" | "hovered" | "selected"
 
 export interface DepthRange {
-  /** View-space depth (metres) drawn white. */
+  /** Depth (metres) drawn white. */
   near: number
-  /** View-space depth (metres) drawn black. */
+  /** Depth (metres) drawn black. */
   far: number
+  /**
+   * Measure straight-line distance from the camera instead of distance
+   * along the view axis (fisheye sources, whose wide view would otherwise
+   * read the edges of the room as close).
+   */
+  radial?: boolean
 }
 
 export interface SceneMaterials {
@@ -61,20 +67,24 @@ export function exactColor(hex: string): Color {
 }
 
 const DEPTH_VERTEX = /* glsl */ `
-varying float vDepth;
+varying vec3 vView;
 void main() {
   vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-  vDepth = -mvPosition.z;
+  vView = mvPosition.xyz;
   gl_Position = projectionMatrix * mvPosition;
 }
 `
 
+// Distance is computed per fragment: interpolating a per-vertex length
+// across a long wall would bow it.
 const DEPTH_FRAGMENT = /* glsl */ `
 uniform float uNear;
 uniform float uFar;
-varying float vDepth;
+uniform float uRadial;
+varying vec3 vView;
 void main() {
-  float d = clamp((vDepth - uNear) / max(uFar - uNear, 1e-6), 0.0, 1.0);
+  float depth = uRadial > 0.5 ? length(vView) : -vView.z;
+  float d = clamp((depth - uNear) / max(uFar - uNear, 1e-6), 0.0, 1.0);
   gl_FragColor = vec4(vec3(1.0 - d), 1.0);
 }
 `
@@ -86,7 +96,11 @@ export function createDepthMaterial(
   return new ShaderMaterial({
     vertexShader: DEPTH_VERTEX,
     fragmentShader: DEPTH_FRAGMENT,
-    uniforms: { uNear: { value: range.near }, uFar: { value: range.far } },
+    uniforms: {
+      uNear: { value: range.near },
+      uFar: { value: range.far },
+      uRadial: { value: range.radial ? 1 : 0 },
+    },
     side,
   })
 }
