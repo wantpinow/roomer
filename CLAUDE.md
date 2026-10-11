@@ -40,6 +40,11 @@ pnpm e2e            # Playwright: boots its own backend (:3220) + Next (:3100), 
 pnpm e2e:ui         # same, Playwright UI mode
 pnpm seed           # seed the dev deployment: living room, starter library, "Starter" layout (idempotent)
 pnpm seed --refresh # also bring the existing living room back in line with its fixture (keeps ids, layouts)
+pnpm seed:export    # write the dev deployment's rooms, assets and non-archived layouts to seed/roomer.json
+pnpm seed --import [path]  # upsert seed/roomer.json (rooms by name, assets by key, layouts by room+name),
+                    # download missing product photos, render missing previews (web on :3000);
+                    # replaces those layouts' contents, so export first if you've been editing
+pnpm seed --previews  # render previews for assets that have none (needs the web app on :3000)
 pnpm mcp --list     # list the MCP tools of the running server (needs `pnpm dev`)
 pnpm mcp <tool> '<json>'  # call a tool; images land in .roomer-out/mcp/ (paths printed); exit 1 on a tool error
 pnpm mcp <tool> @args.json  # arguments from a file (big asset specs); --json also prints structuredContent

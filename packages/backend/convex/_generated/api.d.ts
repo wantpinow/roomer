@@ -9,6 +9,7 @@
  */
 
 import type * as assets from "../assets.js";
+import type * as compare from "../compare.js";
 import type * as e2e from "../e2e.js";
 import type * as errors from "../errors.js";
 import type * as files from "../files.js";
@@ -18,6 +19,8 @@ import type * as layouts from "../layouts.js";
 import type * as renders from "../renders.js";
 import type * as rooms from "../rooms.js";
 import type * as seed from "../seed.js";
+import type * as seedData from "../seedData.js";
+import type * as seedFile from "../seedFile.js";
 import type * as validators from "../validators.js";
 
 import type {
@@ -28,6 +31,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   assets: typeof assets;
+  compare: typeof compare;
   e2e: typeof e2e;
   errors: typeof errors;
   files: typeof files;
@@ -37,6 +41,8 @@ declare const fullApi: ApiFromModules<{
   renders: typeof renders;
   rooms: typeof rooms;
   seed: typeof seed;
+  seedData: typeof seedData;
+  seedFile: typeof seedFile;
   validators: typeof validators;
 }>;
 

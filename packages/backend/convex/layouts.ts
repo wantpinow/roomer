@@ -39,6 +39,7 @@ import {
   loadAssets,
   primaryImageUrl,
 } from "./assets"
+import { sameValue } from "./compare"
 import {
   appError,
   conflict,
@@ -650,6 +651,82 @@ export async function doApplyChanges(
     lintCounts: report.counts,
   })
   return { revision, changes: result.changes, lint: report, placements }
+}
+
+/**
+ * Set a layout's placements, notes, status and finishes wholesale (the seed
+ * import). Placements are taken as given — already resolved, asset ids
+ * already checked — then linted. Content changes (placements, finishes)
+ * bump the revision; any change appends one event. Nothing is written when
+ * the layout already matches.
+ */
+export async function doReplaceLayoutContent(
+  ctx: MutationCtx,
+  args: {
+    layoutId: Id<"layouts">
+    placements: StoredPlacement[]
+    status: Doc<"layouts">["status"]
+    notes?: string
+    finishes?: Finishes
+    actor: Actor
+    summary: string
+  }
+): Promise<{ changed: boolean; revision: number; lint: LintReport }> {
+  const layout = await getLayoutOrThrow(ctx, args.layoutId)
+  const content = parseInput(
+    zStoredLayoutSpec,
+    {
+      placements: args.placements,
+      ...(args.finishes ? { finishes: args.finishes } : {}),
+    },
+    "layout",
+    []
+  )
+  const ids = content.placements.map((p) => p.id)
+  const repeated = ids.find((id, i) => ids.indexOf(id) !== i)
+  if (repeated !== undefined) {
+    throw invalidInput(
+      `Two placements in '${layout.name}' have the id '${repeated}'; placement ids must be unique within a layout.`
+    )
+  }
+  const contentChanged =
+    !sameValue(layout.placements, content.placements) ||
+    !sameValue(layout.finishes ?? null, content.finishes ?? null)
+  const metaChanged =
+    (layout.notes ?? "") !== (args.notes ?? "") || layout.status !== args.status
+  if (!contentChanged && !metaChanged) {
+    return { changed: false, revision: layout.revision, lint: layout.lint }
+  }
+
+  const room = await getRoomOrThrow(ctx, layout.roomId)
+  const report = contentChanged
+    ? await lintStored(ctx, room, content.placements)
+    : layout.lint
+  const revision = contentChanged ? layout.revision + 1 : layout.revision
+  const { _id, _creationTime, notes, finishes, ...rest } = layout
+  void [_creationTime, notes, finishes]
+  // replace, not patch: notes or finishes the new content lacks must go.
+  await ctx.db.replace(_id, {
+    ...rest,
+    status: args.status,
+    ...(args.notes ? { notes: args.notes } : {}),
+    ...(content.finishes ? { finishes: content.finishes } : {}),
+    placements: content.placements,
+    lint: report,
+    revision,
+    updatedAt: Date.now(),
+  })
+  await syncLayoutAssetRefs(ctx, _id, content.placements)
+  await appendEvent(ctx, {
+    layoutId: _id,
+    revision,
+    actor: args.actor,
+    summary: args.summary,
+    changes: [],
+    lintCountsBefore: layout.lint.counts,
+    lintCounts: report.counts,
+  })
+  return { changed: true, revision, lint: report }
 }
 
 export async function doRemoveLayout(

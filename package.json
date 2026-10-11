@@ -11,6 +11,7 @@
     "typecheck": "turbo typecheck",
     "test": "turbo test",
     "seed": "pnpm --filter @roomer/backend seed",
+    "seed:export": "pnpm --filter @roomer/backend seed:export",
     "e2e": "pnpm --filter @roomer/e2e e2e",
     "e2e:ui": "pnpm --filter @roomer/e2e e2e:ui",
     "mcp": "pnpm --filter web mcp"

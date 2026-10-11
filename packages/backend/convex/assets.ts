@@ -19,6 +19,7 @@ import { z } from "zod"
 import { internal } from "./_generated/api"
 import type { Doc, Id } from "./_generated/dataModel"
 import { internalMutation, internalQuery } from "./_generated/server"
+import { sameValue } from "./compare"
 import {
   conflict,
   invalidInput,
@@ -414,6 +415,49 @@ export async function doUpdateAsset(
     bounds: validation.bounds,
     relintedLayouts,
   }
+}
+
+/**
+ * Replace an asset's whole spec (and source) — unlike `update`, fields the
+ * new spec leaves out are removed. Used by the seed import to make an asset
+ * match the file exactly. Validates like create, re-lints the layouts using
+ * it, and drops its previews when the model changed (they'd show the old
+ * one). Nothing is written when the asset already matches.
+ */
+export async function doReplaceAssetSpec(
+  ctx: MutationCtx,
+  args: { assetId: Id<"assets">; spec: AssetSpec; source: AssetSource }
+): Promise<{ changed: boolean; previewsCleared: boolean; warnings: string[] }> {
+  const asset = await getAssetOrThrow(ctx, args.assetId)
+  const spec = parseInput(zAssetSpec, args.spec, "asset")
+  const validation = validateOrThrow(spec)
+  const current = assetSpecOf(asset)
+  if (sameValue(current, spec) && asset.source === args.source) {
+    return {
+      changed: false,
+      previewsCleared: false,
+      warnings: validation.warnings,
+    }
+  }
+  const modelChanged =
+    !sameValue(current.geometry, spec.geometry) ||
+    !sameValue(current.dims, spec.dims)
+  const previewsCleared = modelChanged && asset.previews.length > 0
+  if (previewsCleared) {
+    for (const preview of asset.previews) {
+      await ctx.storage.delete(preview.storageId)
+    }
+  }
+  await ctx.db.replace(asset._id, {
+    ...spec,
+    key: asset.key,
+    source: args.source,
+    images: asset.images,
+    previews: previewsCleared ? [] : asset.previews,
+    updatedAt: Date.now(),
+  })
+  await scheduleAssetRelint(ctx, asset._id, `${spec.name} was updated`)
+  return { changed: true, previewsCleared, warnings: validation.warnings }
 }
 
 export async function doSetImages(
