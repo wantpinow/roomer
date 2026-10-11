@@ -273,6 +273,9 @@ It's returned to the agent as both SVG text and PNG. It's the main way the agent
 ### 3D viewer (browser)
 R3F scene with the clay look. Walls facing the camera are hidden or see-through so you can look inside. There's a top-down view and a free-orbit view, a lint panel, and switching between layouts. Item labels show on hover. It updates live as the agent makes changes, through Convex live queries.
 
+### Walk mode (first person)
+Added 2026-10-11 at Patrick's request: walk around the room in first person as a 6-ft (1,830mm) person, eyes at about 1,710mm. You bump into walls and furniture, and you can jump (about 500mm) to stand on low furniture. Collision uses the same per-part shapes as the linter, so what you bump into is exactly what lint considers solid. Controls are WASD and mouse-look, Space to jump, Shift to run and Esc to exit. It is a fourth stage mode next to Plan / 3D / Camera.
+
 ### Clay renders (headless)
 `/render/view?layout=…&camera=…&pass=clay|id|depth` loads the same scene, then sets `window.__ROOMER_READY__`. Playwright takes a screenshot of the canvas.
 
