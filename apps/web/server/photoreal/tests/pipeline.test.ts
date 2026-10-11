@@ -295,4 +295,64 @@ describe("generatePhotoreal", () => {
     ).rejects.toThrow("cancelled")
     expect(renderer.requests).toHaveLength(1)
   })
+
+  it("sends room photos after the product photos and reserves their slots", async () => {
+    const renderer = fakeRenderer({ maxInputImages: 5 })
+    const room = {
+      load: vi.fn(async () => ({ data: JPEG, mime: "image/webp" })),
+    }
+    const result = await generatePhotoreal(
+      makeInput({ renderer, roomPhotos: [room] })
+    )
+    const request = renderer.requests[0]!
+    expect(request.images.map((i) => i.role)).toEqual([
+      "clay",
+      "id",
+      "reference",
+      "reference",
+      "room",
+    ])
+    expect(request.images[4]!.mime).toBe("image/jpeg")
+    expect(result.prompt).toContain("Image 5 is a photo of the real room")
+    expect(result.prompt).toContain("Images 3–4 are product photos")
+    expect(result.roomPhotosFailed).toBe(0)
+  })
+
+  it("drops room photos that fail to load or do not fit", async () => {
+    const renderer = fakeRenderer({ maxInputImages: 3 })
+    const ok = { load: vi.fn(async () => ({ data: JPEG, mime: "image/jpeg" })) }
+    const broken = {
+      load: vi.fn(async (): Promise<{ data: Buffer; mime: string }> => {
+        throw new Error("gone")
+      }),
+    }
+    const result = await generatePhotoreal(
+      makeInput({ renderer, roomPhotos: [broken, ok, ok] })
+    )
+    // 3 slots: clay, id, and one room photo (the broken one) — no references.
+    expect(renderer.requests[0]!.images.map((i) => i.role)).toEqual([
+      "clay",
+      "id",
+    ])
+    expect(result.roomPhotosFailed).toBe(1)
+    expect(result.references).toEqual([])
+    expect(result.prompt).not.toContain("real room")
+  })
+
+  it("follows the renderer's id-map preference unless told otherwise", async () => {
+    const gemini = fakeRenderer({ prefersIdPass: false })
+    const auto = await generatePhotoreal(makeInput({ renderer: gemini }))
+    expect(gemini.requests[0]!.images.map((i) => i.role)).not.toContain("id")
+    expect(auto.prompt).not.toContain("ID map")
+    expect(auto.references[0]!.imageIndex).toBe(2)
+
+    await generatePhotoreal(makeInput({ renderer: gemini, idPass: "send" }))
+    expect(gemini.requests[1]!.images[1]!.role).toBe("id")
+
+    const openai = fakeRenderer()
+    await generatePhotoreal(makeInput({ renderer: openai, idPass: "omit" }))
+    await generatePhotoreal(makeInput({ renderer: openai }))
+    expect(openai.requests[0]!.images.map((i) => i.role)).not.toContain("id")
+    expect(openai.requests[1]!.images[1]!.role).toBe("id")
+  })
 })

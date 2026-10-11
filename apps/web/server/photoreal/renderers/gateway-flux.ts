@@ -29,6 +29,7 @@ export function createGatewayFluxRenderer(
   return {
     id: model,
     maxInputImages: FLUX_MAX_INPUT_IMAGES,
+    prefersIdPass: false,
     async render({ prompt, images, size, signal }) {
       assertInputCount(model, images, FLUX_MAX_INPUT_IMAGES)
       const aspectRatio = nearestAspectRatio(size)

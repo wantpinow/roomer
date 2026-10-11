@@ -22,7 +22,8 @@ import {
 } from "./types"
 
 // Spec §8 steps 2–4 as pure orchestration: choose product photos from what
-// the id pass saw, number the images, build the prompt, call the renderer.
+// the id pass saw, number the images (clay, id map, product photos, room
+// photos), build the prompt, call the renderer.
 // Rendering the passes, counting id-pass pixels and storing the result are
 // the caller's job (server/render + the MCP tool), so this runs the same in
 // unit tests (fake renderer), the spike script and the app.
@@ -46,17 +47,32 @@ export interface ReferenceImageSource {
   load(): Promise<{ data: Buffer; mime: string }>
 }
 
+/** A photo of the real room, fetched when the render runs. */
+export interface RoomPhotoSource {
+  load(): Promise<{ data: Buffer; mime: string }>
+}
+
 export interface GeneratePhotorealInput {
   renderer: ImageRenderer
   /** Clay pass PNG — image 1. */
   clay: Buffer
-  /** Id pass PNG — image 2. Omit to send no id map. */
+  /** Id pass PNG — image 2 when sent (see `idPass`). */
   id?: Buffer
+  /**
+   * Whether to send the id map: "auto" (default) follows the renderer's
+   * `prefersIdPass`; "send" / "omit" override it (experiments).
+   */
+  idPass?: "auto" | "send" | "omit"
   legend: readonly PhotorealLegendItem[]
   /** Pixels per placement, from the id pass. */
   visibility: Visibility
   /** Product photos by asset id. Pass `{}` to send none. */
   references: Readonly<Record<string, readonly ReferenceImageSource[]>>
+  /**
+   * Photos of the real room (spec: `referencePhotos`), sent after the
+   * product photos for architecture, surfaces and light only.
+   */
+  roomPhotos?: readonly RoomPhotoSource[]
   finishes: Finishes
   roomSummary: string
   cameraDescription: string
@@ -95,6 +111,8 @@ export interface GeneratePhotorealResult {
   skipped: (Omit<SkippedReference, "reason"> & {
     reason: PhotorealSkipReason
   })[]
+  /** Room photos that could not be loaded (and were left out). */
+  roomPhotosFailed: number
   raw?: unknown
 }
 
@@ -104,8 +122,18 @@ export async function generatePhotoreal(
   const now = input.now ?? (() => performance.now())
   const started = now()
   const { renderer, legend } = input
-  const withIdPass = input.id !== undefined
+  const idPass = input.idPass ?? "auto"
+  const withIdPass =
+    input.id !== undefined &&
+    (idPass === "send" ||
+      (idPass === "auto" && renderer.prefersIdPass !== false))
   const passCount = withIdPass ? 2 : 1
+  // Room photos are asked for deliberately, so they get their slots before
+  // product photos fill the rest.
+  const roomPhotoSources = (input.roomPhotos ?? []).slice(
+    0,
+    Math.max(0, renderer.maxInputImages - passCount)
+  )
   const names = new Map(legend.map((item) => [item.assetId, item.name]))
 
   const { selected, skipped: unselected } = selectReferences({
@@ -117,16 +145,17 @@ export async function generatePhotoreal(
     imagesByAsset: input.references,
     maxReferences: Math.min(
       input.maxReferences ?? Infinity,
-      renderer.maxInputImages - passCount
+      renderer.maxInputImages - passCount - roomPhotoSources.length
     ),
     ...(input.minVisibleFraction === undefined
       ? {}
       : { minVisibleFraction: input.minVisibleFraction }),
   })
 
-  const loaded = await Promise.allSettled(
-    selected.map((reference) => reference.image.load())
-  )
+  const [loaded, loadedRoomPhotos] = await Promise.all([
+    Promise.allSettled(selected.map((reference) => reference.image.load())),
+    Promise.allSettled(roomPhotoSources.map((photo) => photo.load())),
+  ])
   input.signal?.throwIfAborted()
   const skipped: GeneratePhotorealResult["skipped"] = [...unselected]
 
@@ -138,7 +167,7 @@ export async function generatePhotoreal(
       label: "clay render (the camera and layout to keep)",
     },
   ]
-  if (input.id) {
+  if (withIdPass && input.id) {
     images.push({
       role: "id",
       data: input.id,
@@ -173,6 +202,24 @@ export async function generatePhotoreal(
     })
   })
 
+  const roomPhotoIndexes: number[] = []
+  let roomPhotosFailed = 0
+  for (const result of loadedRoomPhotos) {
+    if (result.status === "rejected") {
+      roomPhotosFailed++
+      continue
+    }
+    const { data, mime } = result.value
+    images.push({
+      role: "room",
+      data,
+      mime: sniffImageMime(data) ?? mime,
+      label:
+        "photo of the real room (architecture and light only, not its furniture)",
+    })
+    roomPhotoIndexes.push(images.length)
+  }
+
   const imageIndexOf = new Map(references.map((r) => [r.assetId, r.imageIndex]))
   const promptLegend: PromptLegendEntry[] = legend.map((item) => {
     const referenceIndex = imageIndexOf.get(item.assetId)
@@ -196,6 +243,7 @@ export async function generatePhotoreal(
     legend: promptLegend,
     cameraDescription: input.cameraDescription,
     withIdPass,
+    roomPhotoIndexes,
     ...(input.extraPrompt ? { extraPrompt: input.extraPrompt } : {}),
   })
 
@@ -216,6 +264,7 @@ export async function generatePhotoreal(
     durationMs: Math.round(now() - started),
     references,
     skipped,
+    roomPhotosFailed,
     ...(output.raw === undefined ? {} : { raw: output.raw }),
   }
 }

@@ -1,11 +1,12 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`buildPhotorealPrompt > matches the stored prompt for the full clay + id + references input 1`] = `
-"Turn image 1 into a realistic photograph of this room, as if shot by a professional interior photographer.
+"Paint over image 1 to turn it into a realistic photograph of this room, as if shot by a professional interior photographer.
 
-Image 1 is a plain grey 3D "clay" render of the room. It fixes the camera and the layout:
-- Keep the exact camera position, height, angle, lens and framing. Laid over image 1, the photo must line up with it.
-- Keep every wall, door, window, radiator and piece of furniture exactly where it is, at the same size, proportions and orientation. Do not move, resize, rotate, add or remove anything.
+Image 1 is a plain grey 3D "clay" render of the room. Treat it as the underpainting: the photo must line up with it exactly.
+- Same camera: identical position, height, tilt, lens and field of view. Do not zoom, crop, pan, re-centre or re-level the view; keep the same amount of ceiling, floor and wall in frame.
+- Every edge in image 1 stays where it is: wall corners, the ceiling line, beams, door and window frames, and the outline of every piece of furniture. Each item keeps its exact position, size, proportions and orientation. Do not move, resize, rotate, add or remove anything.
+- Walls that are plain in image 1 stay plain: do not add windows, doors, openings or light fittings that are not there.
 - Change only surfaces and light: materials, colours, textures, reflections and shadows.
 
 Image 2 is an ID map of the same view. Each piece of furniture is painted one flat colour so you can tell which item is which. The colours are labels, not paint: none of them may appear in the photo. Grey and white areas are the room itself.
@@ -17,20 +18,21 @@ Image 2 is an ID map of the same view. Each piece of furniture is painted one fl
 Images 3–5 are product photos of the actual pieces. Make each item look like its product: the same materials, colours, textures and details (legs, arms, edges, handles, weave). Keep its position, size and angle from image 1, and ignore the photo's own background, camera angle and lighting.
 
 Room: Living room, about 2.98 m × 7.69 m (roughly rectangular, with a step in the outline), ceiling 2.45 m.
-Finishes: walls soft warm white, matt; floor light natural oak boards, matt finish; ceiling white; skirting boards warm white, satin.
+Finishes: walls warm white, matt; floor pale natural oak herringbone, matt; ceiling white; skirting boards white, satin.
 Styling: Calm, warm, Scandinavian-leaning interior: natural oak and walnut, boucle and linen, cream, sand and terracotta accents, soft daylight.
 Camera: Eye-level view (1.6 m) from just inside the kitchen door (D1), looking towards the front window (WIN1). Daylight comes from the front window (WIN1), straight ahead.
 
 Light: soft natural daylight through the window, gentle soft-edged shadows, a warm true-to-life white balance. Ceiling lights off.
-Photo: eye-level interior photograph with a natural perspective and straight verticals, realistic materials, sharp focus, no people. No text, labels, watermarks or borders. Do not add furniture, rugs, plants, artwork, cushions, throws or decor that is not in image 1."
+Photo: interior photograph with the perspective of image 1, realistic materials, sharp focus, no people. No text, labels, watermarks or borders. Do not add furniture, rugs, plants, artwork, cushions, throws or decor that is not in image 1."
 `;
 
 exports[`buildPhotorealPrompt > matches the stored prompt without an id map 1`] = `
-"Turn image 1 into a realistic photograph of this room, as if shot by a professional interior photographer.
+"Paint over image 1 to turn it into a realistic photograph of this room, as if shot by a professional interior photographer.
 
-Image 1 is a plain grey 3D "clay" render of the room. It fixes the camera and the layout:
-- Keep the exact camera position, height, angle, lens and framing. Laid over image 1, the photo must line up with it.
-- Keep every wall, door, window, radiator and piece of furniture exactly where it is, at the same size, proportions and orientation. Do not move, resize, rotate, add or remove anything.
+Image 1 is a plain grey 3D "clay" render of the room. Treat it as the underpainting: the photo must line up with it exactly.
+- Same camera: identical position, height, tilt, lens and field of view. Do not zoom, crop, pan, re-centre or re-level the view; keep the same amount of ceiling, floor and wall in frame.
+- Every edge in image 1 stays where it is: wall corners, the ceiling line, beams, door and window frames, and the outline of every piece of furniture. Each item keeps its exact position, size, proportions and orientation. Do not move, resize, rotate, add or remove anything.
+- Walls that are plain in image 1 stay plain: do not add windows, doors, openings or light fittings that are not there.
 - Change only surfaces and light: materials, colours, textures, reflections and shadows.
 
 The furniture in image 1, largest first:
@@ -42,10 +44,10 @@ The furniture in image 1, largest first:
 Images 3–5 are product photos of the actual pieces. Make each item look like its product: the same materials, colours, textures and details (legs, arms, edges, handles, weave). Keep its position, size and angle from image 1, and ignore the photo's own background, camera angle and lighting.
 
 Room: Living room, about 2.98 m × 7.69 m (roughly rectangular, with a step in the outline), ceiling 2.45 m.
-Finishes: walls soft warm white, matt; floor light natural oak boards, matt finish; ceiling white; skirting boards warm white, satin.
+Finishes: walls warm white, matt; floor pale natural oak herringbone, matt; ceiling white; skirting boards white, satin.
 Styling: Calm, warm, Scandinavian-leaning interior: natural oak and walnut, boucle and linen, cream, sand and terracotta accents, soft daylight.
 Camera: Eye-level view (1.6 m) from just inside the kitchen door (D1), looking towards the front window (WIN1). Daylight comes from the front window (WIN1), straight ahead.
 
 Light: soft natural daylight through the window, gentle soft-edged shadows, a warm true-to-life white balance. Ceiling lights off.
-Photo: eye-level interior photograph with a natural perspective and straight verticals, realistic materials, sharp focus, no people. No text, labels, watermarks or borders. Do not add furniture, rugs, plants, artwork, cushions, throws or decor that is not in image 1."
+Photo: interior photograph with the perspective of image 1, realistic materials, sharp focus, no people. No text, labels, watermarks or borders. Do not add furniture, rugs, plants, artwork, cushions, throws or decor that is not in image 1."
 `;

@@ -105,6 +105,20 @@ function unwrap(error: unknown): unknown {
 
 const TIMEOUT_NAMES = new Set(["TimeoutError", "GatewayTimeoutError"])
 
+/** The first string `code` in the cause chain (e.g. undici's UND_ERR_SOCKET). */
+export function networkCode(error: unknown): string | undefined {
+  let node: unknown = error
+  for (let depth = 0; depth < 6 && node; depth++) {
+    const code = readString(node, "code")
+    if (code && /^(UND_ERR_|E[A-Z]+)/.test(code)) return code
+    node =
+      typeof node === "object" && node !== null && "cause" in node
+        ? Reflect.get(node, "cause")
+        : undefined
+  }
+  return undefined
+}
+
 export interface ToPhotorealErrorContext {
   model: string
   /** Values that must never appear in the message (the API key). */
@@ -169,9 +183,17 @@ export function toPhotorealError(
       withStatus
     )
   }
+  const code = networkCode(thrown)
+  const dropped =
+    code === undefined
+      ? ""
+      : ` The connection was dropped (${code}); the gateway cuts synchronous image calls off after about 60s, so a slow model may never finish — try a faster one.`
   return new PhotorealError(
     "UPSTREAM",
-    `${model} failed upstream${status ? ` (HTTP ${status})` : ""}: ${detail}`,
+    `${model} failed upstream${status ? ` (HTTP ${status})` : ""}: ${detail}.${dropped}`.replace(
+      /\.\./g,
+      "."
+    ),
     withStatus
   )
 }

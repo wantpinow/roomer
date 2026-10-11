@@ -38,6 +38,8 @@ export function createGatewayGeminiRenderer(
   return {
     id: model,
     maxInputImages: GEMINI_MAX_INPUT_IMAGES,
+    // Gemini copies id-map colours onto small items; see ImageRenderer.
+    prefersIdPass: false,
     async render({ prompt, images, size, quality, signal }) {
       assertInputCount(model, images, GEMINI_MAX_INPUT_IMAGES)
       const aspectRatio = nearestAspectRatio(size)

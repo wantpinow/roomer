@@ -34,6 +34,7 @@ export function createGatewayOpenAIRenderer(
   return {
     id: model,
     maxInputImages: OPENAI_MAX_INPUT_IMAGES,
+    prefersIdPass: true,
     async render({ prompt, images, size, quality, signal }) {
       assertInputCount(model, images, OPENAI_MAX_INPUT_IMAGES)
       const outputSize = openAIImageSize(size)

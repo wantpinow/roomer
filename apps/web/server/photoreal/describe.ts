@@ -9,6 +9,7 @@ import {
   area,
   bounds,
   deriveWalls,
+  isBeamFeature,
   distance,
   normalize,
   pointSegmentDistance,
@@ -51,8 +52,10 @@ export interface RoomDescriptionInput extends RoomGeometry {
 
 /**
  * "Living room, about 2.98 m × 7.69 m (roughly rectangular, with a step in
- * the outline), ceiling 2.45 m. Doors: hall door (D1), kitchen door (D2).
- * Windows: front window (WIN1), 1.93 m wide. Also: radiator, wall pier."
+ * the outline), ceiling 2.45 m. Doors: kitchen door (D1), hall door (D2).
+ * Window: front window (WIN1), 1.93 m wide. Also: wall pier, radiator.
+ * Ceiling beam (BM1): 0.25 m wide, hanging 0.23 m below the ceiling,
+ * spanning the room wall to wall."
  */
 export function describeRoomForPrompt(room: RoomDescriptionInput): string {
   const outline: Point[] = room.corners.map(([x, z]) => [x, z])
@@ -96,6 +99,17 @@ export function describeRoomForPrompt(room: RoomDescriptionInput): string {
     )
     .map((f) => f.label?.trim().toLowerCase() || f.type)
   if (others.length) sentences.push(`Also: ${others.join(", ")}.`)
+
+  const walls = deriveWalls(room.corners)
+  const onWall = (point: Point) =>
+    walls.some((w) => pointSegmentDistance(point, w.start, w.end) <= 50)
+  for (const beam of room.features.filter(isBeamFeature)) {
+    const ends: Point[] = [beam.start, beam.end].map(([x, z]) => [x, z])
+    const span = ends.every(onWall) ? ", spanning the room wall to wall" : ""
+    sentences.push(
+      `${beam.label?.trim() || "Ceiling beam"} (${beam.id}): ${metres(beam.width)} wide, hanging ${metres(beam.drop)} below the ceiling${span}.`
+    )
+  }
   return sentences.join(" ")
 }
 
@@ -103,6 +117,8 @@ export function describeRoomForPrompt(room: RoomDescriptionInput): string {
 const NEAR_DOOR_MM = 1000
 /** Within this distance of a corner the camera is "in the corner". */
 const NEAR_CORNER_MM = 1200
+/** Vertical fov from which a lens reads as wide-angle (70 ≈ 16mm full-frame). */
+const WIDE_ANGLE_FOV = 60
 /** Light sources within this bearing of the view axis are "ahead". */
 const AHEAD_DEG = 30
 
@@ -125,12 +141,13 @@ function sideOf(view: Point, toward: Point): Side | undefined {
 }
 
 /**
- * "Eye-level view (1.6 m) from just inside the hall door (D1), looking
- * towards the front window (WIN1), tilted slightly down. Daylight comes from
- * the front window (WIN1), straight ahead."
+ * "Eye-level view (1.5 m) from just inside the kitchen door (D1), looking
+ * towards the front window (WIN1), level (vertical lines stay vertical);
+ * wide-angle lens, 70° vertical field of view. Daylight comes from the front
+ * window (WIN1), straight ahead."
  */
 export function describeCameraForPrompt(
-  camera: Pick<Camera, "position" | "target" | "fov">,
+  camera: Pick<Camera, "position" | "target" | "fov" | "projection">,
   room: RoomGeometry
 ): string {
   const outline: Point[] = room.corners.map(([x, z]) => [x, z])
@@ -187,10 +204,16 @@ export function describeCameraForPrompt(
         ? ", tilted slightly down"
         : tilt < -3
           ? ", tilted up"
-          : ""
+          : ", level (vertical lines stay vertical)"
+  const lens =
+    camera.projection === "fisheye"
+      ? "fisheye lens (straight lines bow outwards)"
+      : camera.fov >= WIDE_ANGLE_FOV
+        ? "wide-angle lens"
+        : "standard lens"
 
   const sentences = [
-    `Eye-level view (${metres(camera.position[1])}) ${from}${looking}${tilted}, ${Math.round(camera.fov)}° vertical field of view.`,
+    `Eye-level view (${metres(camera.position[1])}) ${from}${looking}${tilted}; ${lens}, ${Math.round(camera.fov)}° vertical field of view.`,
   ]
   const light = landmarks
     .filter((l) => l.feature.type === "window")

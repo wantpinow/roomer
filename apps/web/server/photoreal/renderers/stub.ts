@@ -100,6 +100,7 @@ export function createStubRenderer(): ImageRenderer {
   return {
     id: STUB_MODEL,
     maxInputImages: STUB_MAX_INPUT_IMAGES,
+    prefersIdPass: true,
     async render({ images, signal }) {
       signal?.throwIfAborted()
       const clay = images.find((image) => image.role === "clay")

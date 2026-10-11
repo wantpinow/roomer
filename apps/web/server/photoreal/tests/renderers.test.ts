@@ -122,6 +122,15 @@ describe("getImageRenderer", () => {
       expect(renderer.maxInputImages).toBe(MAX_INPUT_IMAGES[model])
     }
     expect(MAX_INPUT_IMAGES["openai/gpt-image-2.5-sunburst"]).toBe(16)
+    // Spike: Gemini paints id-map colours onto small items, so it skips the map.
+    expect(
+      getImageRenderer("google/gemini-3-pro-image", { apiKey: API_KEY })
+        .prefersIdPass
+    ).toBe(false)
+    expect(
+      getImageRenderer("openai/gpt-image-2.5-sunburst", { apiKey: API_KEY })
+        .prefersIdPass
+    ).toBe(true)
     expect(MAX_INPUT_IMAGES["bfl/flux-3-image"]).toBe(10)
   })
 })

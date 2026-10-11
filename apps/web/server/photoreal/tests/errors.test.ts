@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   PhotorealError,
   isPhotorealError,
+  networkCode,
   redactSecrets,
   toPhotorealError,
 } from "../errors"
@@ -124,5 +125,26 @@ describe("toPhotorealError", () => {
     expect(isPhotorealError(error)).toBe(true)
     expect(isPhotorealError(original)).toBe(false)
     expect(error.name).toBe("PhotorealError")
+  })
+
+  it("explains a dropped connection found in the cause chain", () => {
+    const socket = Object.assign(new Error("other side closed"), {
+      code: "UND_ERR_SOCKET",
+    })
+    const fetchFailed = new TypeError("fetch failed", { cause: socket })
+    const gateway = Object.assign(
+      new Error("Invalid error response format: Gateway request failed", {
+        cause: fetchFailed,
+      }),
+      { statusCode: 500 }
+    )
+    expect(networkCode(gateway)).toBe("UND_ERR_SOCKET")
+    const error = toPhotorealError(gateway, { model: "bfl/flux-3-image" })
+    expect(error.code).toBe("UPSTREAM")
+    expect(error.message).toContain(
+      "The connection was dropped (UND_ERR_SOCKET)"
+    )
+    expect(error.message).not.toContain("..")
+    expect(networkCode(new Error("plain"))).toBeUndefined()
   })
 })

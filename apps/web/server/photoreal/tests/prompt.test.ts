@@ -73,7 +73,12 @@ describe("buildPhotorealPrompt", () => {
 
   it("explains image 1 as the layout to keep and image 2 as colour labels", () => {
     const prompt = buildPhotorealPrompt(BASE)
-    expect(prompt).toMatch(/^Turn image 1 into a realistic photograph/)
+    expect(prompt).toMatch(
+      /^Paint over image 1 to turn it into a realistic photograph/
+    )
+    expect(prompt).toContain(
+      "Do not zoom, crop, pan, re-centre or re-level the view"
+    )
     expect(prompt).toContain("Image 2 is an ID map")
     expect(prompt).toContain("none of them may appear in the photo")
     expect(prompt).toContain("Images 3–5 are product photos")
@@ -140,7 +145,7 @@ describe("buildPhotorealPrompt", () => {
   it("includes finishes, styling and the camera, and skips empty ones", () => {
     const prompt = buildPhotorealPrompt(BASE)
     expect(prompt).toContain(
-      "Finishes: walls soft warm white, matt; floor light natural oak boards, matt finish; ceiling white; skirting boards warm white, satin."
+      "Finishes: walls warm white, matt; floor pale natural oak herringbone, matt; ceiling white; skirting boards white, satin."
     )
     expect(prompt).toContain("Styling: Calm, warm, Scandinavian-leaning")
     expect(prompt).toContain("Camera: Eye-level view (1.6 m)")
@@ -170,5 +175,19 @@ describe("buildPhotorealPrompt", () => {
     expect(prompt).not.toContain("ID map")
     expect(prompt).not.toContain("The furniture in image 1")
     expect(prompt).toContain("Finishes:")
+  })
+
+  it("explains a room photo as architecture and light only", () => {
+    const prompt = buildPhotorealPrompt({ ...BASE, roomPhotoIndexes: [6] })
+    expect(prompt).toContain(
+      "Image 6 is a photo of the real room, taken earlier with someone else's furniture. Use it only for the room itself"
+    )
+    expect(prompt).toContain(
+      "Ignore all furniture, rugs, art, plants, decor and any watermark in it"
+    )
+    const two = buildPhotorealPrompt({ ...BASE, roomPhotoIndexes: [6, 7] })
+    expect(two).toContain("Images 6–7 are photos of the real room")
+    expect(two).toContain("Use them only")
+    expect(buildPhotorealPrompt(BASE)).not.toContain("real room")
   })
 })

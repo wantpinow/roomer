@@ -9,8 +9,12 @@ import type {
 // images; an `ImageRenderer` turns them into one PNG. Implementations live in
 // ./renderers — one per AI Gateway API family, plus a free stub for e2e.
 
-/** What an input image is for; the prompt refers to images by position. */
-export type InputImageRole = "clay" | "id" | "reference"
+/**
+ * What an input image is for; the prompt refers to images by position.
+ * `reference` = a product photo; `room` = a photo of the real room (for its
+ * architecture and light, not its furniture).
+ */
+export type InputImageRole = "clay" | "id" | "reference" | "room"
 
 export interface InputImage {
   role: InputImageRole
@@ -46,6 +50,13 @@ export interface ImageRenderer {
   id: PhotorealModel
   /** Most input images the model accepts (passes + references). */
   maxInputImages: number
+  /**
+   * Whether the pipeline sends the id map to this model by default. The
+   * 2026-10-11 spike found Gemini paints the id colours onto small items
+   * (teal and magenta chairs), so it gets product photos without the map.
+   * Default true.
+   */
+  prefersIdPass?: boolean
   render(request: ImageRenderRequest): Promise<ImageRenderResult>
 }
 

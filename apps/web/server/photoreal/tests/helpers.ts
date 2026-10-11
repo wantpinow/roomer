@@ -20,13 +20,16 @@ export function solidPng(
 
 /** A renderer that records its requests and answers with `output`. */
 export function fakeRenderer(
-  overrides: Partial<Pick<ImageRenderer, "id" | "maxInputImages">> = {},
+  overrides: Partial<
+    Pick<ImageRenderer, "id" | "maxInputImages" | "prefersIdPass">
+  > = {},
   output: Buffer = solidPng(4, 4, [10, 20, 30])
 ): ImageRenderer & { requests: ImageRenderRequest[] } {
   const requests: ImageRenderRequest[] = []
   return {
     id: overrides.id ?? "openai/gpt-image-2.5-sunburst",
     maxInputImages: overrides.maxInputImages ?? 16,
+    prefersIdPass: overrides.prefersIdPass ?? true,
     requests,
     async render(request) {
       requests.push(request)
