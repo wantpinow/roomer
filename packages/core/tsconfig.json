@@ -1,0 +1,17 @@
+{
+  "extends": "@roomer/typescript-config/base.json",
+  "compilerOptions": {
+    // Read only by bundlers (Next, Convex's esbuild, Vite) — never emitted —
+    // so imports need no `.js` suffix. Same as masterguest's config package.
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    // Core runs in Convex's V8 runtime, the browser and Node, so Node's
+    // ambient types (process, Buffer, …) must not sneak in through @types/*.
+    "types": []
+  },
+  "include": ["src", "tests", "vitest.config.ts"],
+  "exclude": ["node_modules", "dist"]
+}

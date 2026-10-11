@@ -1,0 +1,29 @@
+{
+  "name": "@roomer/core",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "lint": "eslint --max-warnings 0 .",
+    "format": "prettier --write --ignore-path ../../.prettierignore \"**/*.ts\"",
+    "format:check": "prettier --check --ignore-path ../../.prettierignore \"**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "polygon-clipping": "^0.15.7",
+    "zod": "^4.6.6"
+  },
+  "devDependencies": {
+    "@roomer/eslint-config": "workspace:*",
+    "@roomer/typescript-config": "workspace:*",
+    "eslint": "9.39.5",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}
