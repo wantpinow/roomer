@@ -48,7 +48,7 @@ import {
   type MutationCtx,
   type QueryCtx,
 } from "./functions"
-import { scheduleRoomRelint } from "./layouts"
+import { bestLayout, MAX_LAYOUTS_PER_ROOM, scheduleRoomRelint } from "./layouts"
 import { vCamera, vNewRoom, vShellMeasurements, vShellOp } from "./validators"
 
 /** Max ops in one `applyShellChanges` batch. */
@@ -115,15 +115,42 @@ function wallSummaries(corners: readonly Vec2[]) {
   }))
 }
 
+/**
+ * Everything the rooms index shows, in one query: each room's outline and
+ * finishes, its layouts (status, lint counts, size) and the layout to open
+ * first.
+ */
 export async function doListRooms(ctx: QueryCtx) {
   const rooms = await ctx.db.query("rooms").withIndex("by_name").take(100)
-  return rooms.map((room) => ({
-    _id: room._id,
-    name: room.name,
-    corners: room.shell.corners,
-    featureCount: room.features.length,
-    updatedAt: room.updatedAt,
-  }))
+  return await Promise.all(
+    rooms.map(async (room) => {
+      const layouts = (
+        await ctx.db
+          .query("layouts")
+          .withIndex("by_room", (q) => q.eq("roomId", room._id))
+          .take(MAX_LAYOUTS_PER_ROOM)
+      ).map((layout) => ({
+        _id: layout._id,
+        name: layout.name,
+        status: layout.status,
+        revision: layout.revision,
+        lintCounts: layout.lint.counts,
+        placementCount: layout.placements.length,
+        updatedAt: layout.updatedAt,
+      }))
+      return {
+        _id: room._id,
+        name: room.name,
+        ceilingHeight: room.ceilingHeight,
+        corners: room.shell.corners,
+        featureCount: room.features.length,
+        finishes: room.finishes,
+        updatedAt: room.updatedAt,
+        layouts,
+        bestLayoutId: bestLayout(layouts)?._id ?? null,
+      }
+    })
+  )
 }
 
 export async function doGetRoom(ctx: QueryCtx, args: { roomId: Id<"rooms"> }) {

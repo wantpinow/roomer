@@ -255,6 +255,37 @@ export async function scheduleAssetRelint(
   )
 }
 
+/** Most promising first: favourite, then candidate, then draft. */
+const STATUS_RANK: Record<Doc<"layouts">["status"], number> = {
+  favourite: 0,
+  candidate: 1,
+  draft: 2,
+  archived: 3,
+}
+
+/**
+ * The layout to show first for a room: the most promising status
+ * (favourite > candidate > draft), then the fewest lint errors, then the
+ * fewest warnings, then the most recently changed. Archived layouts are never
+ * picked; null when there is nothing else.
+ */
+export function bestLayout<
+  L extends Pick<Doc<"layouts">, "status" | "updatedAt"> & {
+    lintCounts: LintCounts
+  },
+>(layouts: readonly L[]): L | null {
+  const ranked = layouts
+    .filter((layout) => layout.status !== "archived")
+    .sort(
+      (a, b) =>
+        STATUS_RANK[a.status] - STATUS_RANK[b.status] ||
+        a.lintCounts.error - b.lintCounts.error ||
+        a.lintCounts.warning - b.lintCounts.warning ||
+        b.updatedAt - a.updatedAt
+    )
+  return ranked[0] ?? null
+}
+
 export type LayoutPrice = {
   /** Sum of the priced items' prices. */
   amount: number

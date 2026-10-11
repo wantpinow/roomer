@@ -10,12 +10,14 @@ import type { BeamFeature, Camera } from "@roomer/core/schema"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { api } from "../convex/_generated/api"
+import { doUpdateLayout } from "../convex/layouts"
 import type { Id } from "../convex/_generated/dataModel"
 import {
   doAddReferencePhotos,
   doApplyShellChanges,
   doCreateRoom,
   doGetRoom,
+  doListRooms,
   doRemoveCamera,
   doSetShell,
   doUpsertCamera,
@@ -651,6 +653,43 @@ describe("doAddReferencePhotos", () => {
       "NOT_FOUND",
       "There's no uploaded file"
     )
+  })
+})
+
+describe("doListRooms", () => {
+  it("summarises each room with its layouts and the one to open first", async () => {
+    const t = createTestConvex()
+    const roomId = await createLivingRoom(t)
+    const draft = await createLayout(t, roomId, "Draft")
+    const candidate = await createLayout(t, roomId, "Candidate")
+    await t.run(async (ctx) =>
+      doUpdateLayout(ctx, { layoutId: candidate, status: "candidate" })
+    )
+    const [row] = await t.run(async (ctx) => doListRooms(ctx))
+    expect(row).toMatchObject({
+      _id: roomId,
+      name: "Living room",
+      ceilingHeight: LIVING_ROOM_CEILING_HEIGHT,
+      corners: LIVING_ROOM_CORNERS,
+      featureCount: LIVING_ROOM_FEATURES.length,
+      finishes: LIVING_ROOM_FINISHES,
+      bestLayoutId: candidate,
+    })
+    expect(
+      row?.layouts.map((l) => [l._id, l.name, l.status, l.placementCount])
+    ).toEqual([
+      [draft, "Draft", "draft", 0],
+      [candidate, "Candidate", "candidate", 0],
+    ])
+    const stored = await t.run(async (ctx) => ctx.db.get(draft))
+    expect(row?.layouts[0]?.lintCounts).toEqual(stored?.lint.counts)
+  })
+
+  it("has no best layout for a room without layouts", async () => {
+    const t = createTestConvex()
+    await createLivingRoom(t)
+    const [row] = await t.run(async (ctx) => doListRooms(ctx))
+    expect(row).toMatchObject({ layouts: [], bestLayoutId: null })
   })
 })
 

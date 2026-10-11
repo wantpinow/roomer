@@ -5,6 +5,7 @@ import { api } from "../convex/_generated/api"
 import type { Id } from "../convex/_generated/dataModel"
 import { doUpdateAsset } from "../convex/assets"
 import {
+  bestLayout,
   doApplyChanges,
   doCreateLayout,
   doGetLayout,
@@ -604,6 +605,50 @@ describe("doListLayouts", () => {
       }),
       expect.objectContaining({ _id: other, placementCount: 0 }),
     ])
+  })
+})
+
+describe("bestLayout", () => {
+  type Row = Parameters<typeof bestLayout>[0][number] & { name: string }
+  const row = (
+    name: string,
+    status: Row["status"],
+    error = 0,
+    warning = 0,
+    updatedAt = 0
+  ): Row => ({
+    name,
+    status,
+    updatedAt,
+    lintCounts: { error, warning, info: 0 },
+  })
+
+  it("prefers favourite over candidate over draft, whatever the lint says", () => {
+    expect(
+      bestLayout([
+        row("draft", "draft"),
+        row("candidate", "candidate", 3),
+        row("favourite", "favourite", 5),
+      ])?.name
+    ).toBe("favourite")
+  })
+
+  it("then the fewest errors, then the fewest warnings, then the newest", () => {
+    expect(
+      bestLayout([row("a", "draft", 2), row("b", "draft", 1, 9)])?.name
+    ).toBe("b")
+    expect(
+      bestLayout([row("a", "draft", 1, 3), row("b", "draft", 1, 2)])?.name
+    ).toBe("b")
+    expect(
+      bestLayout([row("old", "draft", 0, 0, 1), row("new", "draft", 0, 0, 2)])
+        ?.name
+    ).toBe("new")
+  })
+
+  it("never picks an archived layout", () => {
+    expect(bestLayout([row("gone", "archived")])).toBeNull()
+    expect(bestLayout([])).toBeNull()
   })
 })
 
