@@ -271,6 +271,50 @@ export async function doGetAssetByKey(ctx: QueryCtx, args: { key: string }) {
   return asset ? await assetDetail(ctx, asset) : null
 }
 
+/**
+ * Which layouts place an asset, and how many times each. Refs say which
+ * layouts; counting the layout's own placements keeps the number exact
+ * without a second counter to maintain.
+ */
+export async function doAssetUsage(
+  ctx: QueryCtx,
+  args: { assetId: Id<"assets"> }
+): Promise<{
+  layouts: {
+    layoutId: Id<"layouts">
+    layoutName: string
+    roomId: Id<"rooms">
+    count: number
+  }[]
+}> {
+  const refs = await ctx.db
+    .query("layoutAssetRefs")
+    .withIndex("by_asset", (q) => q.eq("assetId", args.assetId))
+    .take(1000)
+  const layouts = await Promise.all(
+    [...new Set(refs.map((ref) => ref.layoutId))].map((id) => ctx.db.get(id))
+  )
+  return {
+    layouts: layouts
+      .flatMap((layout) =>
+        layout
+          ? [
+              {
+                layoutId: layout._id,
+                layoutName: layout.name,
+                roomId: layout.roomId,
+                count: layout.placements.filter(
+                  (p) => p.assetId === args.assetId
+                ).length,
+              },
+            ]
+          : []
+      )
+      .filter((usage) => usage.count > 0)
+      .sort((a, b) => a.layoutName.localeCompare(b.layoutName)),
+  }
+}
+
 export type CreateAssetArgs = Infer<typeof vAssetSpec> & {
   key?: string
   source?: AssetSource
@@ -662,6 +706,13 @@ export const getByKey = appQuery({
   args: { key: v.string() },
   handler: async (ctx, args) => {
     return await doGetAssetByKey(ctx, args)
+  },
+})
+
+export const usage = appQuery({
+  args: { assetId: v.id("assets") },
+  handler: async (ctx, args) => {
+    return await doAssetUsage(ctx, args)
   },
 })
 

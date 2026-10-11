@@ -220,6 +220,62 @@ describe("doUpdateAsset", () => {
   })
 })
 
+describe("doAssetUsage", () => {
+  it("lists each layout placing the asset with how many times", async () => {
+    const t = createTestConvex()
+    const roomId = await createLivingRoom(t)
+    const chair = await createTestAsset(t, "diningChair")
+    await createTestAsset(t, "rug")
+    const dining = await createLayout(t, roomId, "Dining")
+    const cosy = await createLayout(t, roomId, "Cosy")
+    await createLayout(t, roomId, "Empty")
+    const add = (x: number) =>
+      ({
+        op: "add",
+        asset: "test-dining-chair",
+        position: { mode: "at", x, z: 5000 },
+      }) as const
+    await t.run(async (ctx) =>
+      doApplyChanges(ctx, {
+        layoutId: dining,
+        actor: "agent",
+        ops: [add(800), add(1400), add(2000)],
+      })
+    )
+    await t.run(async (ctx) =>
+      doApplyChanges(ctx, {
+        layoutId: cosy,
+        actor: "agent",
+        ops: [
+          add(1000),
+          {
+            op: "add",
+            asset: "test-rug",
+            position: { mode: "at", x: 1500, z: 3000 },
+          },
+        ],
+      })
+    )
+    const usage = await t.query(api.assets.usage, { assetId: chair })
+    expect(usage).toEqual({
+      layouts: [
+        { layoutId: cosy, layoutName: "Cosy", roomId, count: 1 },
+        { layoutId: dining, layoutName: "Dining", roomId, count: 3 },
+      ],
+    })
+    await t.run(async (ctx) =>
+      doApplyChanges(ctx, {
+        layoutId: cosy,
+        actor: "user",
+        ops: [{ op: "remove", id: "test-dining-chair" }],
+      })
+    )
+    expect(
+      (await t.query(api.assets.usage, { assetId: chair })).layouts
+    ).toEqual([{ layoutId: dining, layoutName: "Dining", roomId, count: 3 }])
+  })
+})
+
 describe("doSetImages", () => {
   it("makes the first photo primary when none is chosen", async () => {
     const t = createTestConvex()
