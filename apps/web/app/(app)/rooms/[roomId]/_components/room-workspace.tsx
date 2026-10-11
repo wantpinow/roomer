@@ -253,7 +253,10 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
                   trailing={
                     layout ? (
                       <>
-                        <span className="font-mono tabular-nums">
+                        <span
+                          data-revision={layout.revision}
+                          className="font-mono tabular-nums"
+                        >
                           r{layout.revision}
                         </span>
                         {lint ? <LintCounts counts={lint.counts} /> : null}

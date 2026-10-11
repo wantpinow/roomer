@@ -372,6 +372,9 @@ export function PlanView({
                 <g
                   key={f.id}
                   data-hit-id={f.id}
+                  data-selected={isSelected || undefined}
+                  data-highlighted={isHighlighted || undefined}
+                  data-hovered={isHovered || undefined}
                   className={cn(
                     editable && f.mount !== "ceiling" && "cursor-grab",
                     dragging === f.id && "cursor-grabbing"
