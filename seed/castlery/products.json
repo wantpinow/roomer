@@ -1,0 +1,1880 @@
+{
+  "retrievedAt": "2026-10-11",
+  "source": "https://www.castlery.com/uk",
+  "styleNotes": "Castlery's look is warm, relaxed modern with mid-century and organic-modern roots: soft rounded silhouettes (pill/racetrack tops, drum pedestals, barrel chairs, puffy boucle sofas) balanced by clean, low, horizontal lines. The palette is layered neutrals: chalk, ivory, oat and sand upholstery against warm wood (chestnut-stained and natural oak, walnut, light ash), with earthy accents of caramel, ginger/terracotta, rust and olive/sage, plus small touches of brushed brass and black. Texture does most of the work: nubby boucle, basketweave and linen-look weaves, vertical tambour/fluted oak, white Carrara marble and honed travertine, woven paper cord, raffia/jute shades, and chunky wool, knotted or flat-woven jute rugs. Rooms are styled sparingly with sculptural off-white ceramics and lamps, olive trees or leafy branches in terracotta planters, stacked books, a terracotta or rust cushion, and one bold abstract artwork. Photography uses soft, bright natural daylight from large windows behind sheer linen curtains, with gentle long shadows on warm-white limewash or plaster walls and honey-toned oak (often herringbone) floors. Compositions are airy and uncluttered, shot at eye level or a soft three-quarter angle.",
+  "chaiseOrientationNote": "Castlery's \"Left Facing\" (orientation=left_facing) means the chaise is on the LEFT when you stand in front of the sofa looking at it. When you sit on the sofa, the chaise is on your RIGHT. This is the standard \"LAF / left-arm-facing\" retail convention; \"Right Facing\" is the mirror image. Evidence: (1) the left_facing variant's clean front cutout (Auburn-Performance-Left-Chaise-Sectional-Sofa-Front_...jpg) shows the chaise projecting toward the camera on the viewer's left, and the right_facing variant's matching Front image shows it on the viewer's right. (2) The left_facing dimension drawing (Auburn-Performance-Left-Chaise-Sectional-Sofa-Dim) puts the chaise at the left in front elevation, with the 204.5cm sofa-only section measured on the right of the 309.5cm overall width. (3) Castlery's own orientation swatch icon for this option, ChaiseSectionalSofaLeftFacing.png, is a plan view with the back along the top edge and the chaise module extending toward the viewer on the left. (4) The 3/4 angle cutout and the main lifestyle photo for left_facing also show the chaise on the viewer's left. (5) The variant and image names use \"Left Facing Chaise Sofa\" / \"Left-Chaise\". No explicit written definition appears in the product copy, FAQ or size guide served on the page, so this rests on the images and icon above, which all agree.",
+  "products": [
+    {
+      "key": "harper-dining-table-220-chestnut-oak",
+      "slug": "harper-dining-table",
+      "name": "Harper Dining Table",
+      "variant": "Chestnut Oak, 2.2m",
+      "url": "https://www.castlery.com/uk/products/harper-dining-table?color_option=chestnut_oak&length=2_2m",
+      "category": "table",
+      "role": "dining-table",
+      "mount": "floor",
+      "dims": {
+        "w": 2200,
+        "d": 1050,
+        "h": 760
+      },
+      "detailDims": {
+        "topThickness": 47,
+        "pedestalHeight": 710,
+        "pedestalGap": 500,
+        "pedestalDiameterApprox": 480
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 1299,
+        "currency": "GBP"
+      },
+      "description": "Long racetrack (stadium-shaped) dining table in chestnut-stained oak veneer, its smooth top resting on two drum pedestals clad in vertical tambour slats. Warm mid-brown oak with soft curved ends and a mid-century feel.",
+      "geometryNotes": "Top: stadium/pill shape 2200x1050x47mm, short ends fully rounded (radius = 525mm), top surface at 760mm. Base: two separate cylindrical pedestals (vertical oak slats/tambour), ~480mm diameter (inferred from 52x52cm leg boxes and drawing), 710mm tall, placed symmetrically along the long axis with a 500mm gap between them (Castlery: \"leg to leg distance at 45cm height: 50cm\"), so centres sit ~490mm either side of the table centre. No apron, no corner legs. Castlery says it seats 6-8. Also sold in Natural (light oak) colour. Note: 1050mm deep, which is over the ~1m target for this room.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1724838501/crusader/variants/40550245/Harper-Dining-Table-220cm-Chestnut-Front-1724838499.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1724838501/crusader/variants/40550245/Harper-Dining-Table-220cm-Chestnut-Angle-1724838499.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1725265286/crusader/variants/40550245/Harper-Dining-Table-220cm-Chestnut-Campaign-Square-Set_1-1725265284.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "40550245",
+      "castleryVariantName": "Harper Dining Table 220cm, Chestnut",
+      "sourceDimensions": "W220 x D105 x H76cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1753090746/crusader/variants/T40550244/Harper-Dining-Table-220cm-Chestnut-Dim-1753090745.jpg"
+    },
+    {
+      "key": "harper-dining-table-180-chestnut-oak",
+      "slug": "harper-dining-table",
+      "name": "Harper Dining Table",
+      "variant": "Chestnut Oak, 1.8m",
+      "url": "https://www.castlery.com/uk/products/harper-dining-table?color_option=chestnut_oak&length=1_8m",
+      "category": "table",
+      "role": "dining-table",
+      "mount": "floor",
+      "dims": {
+        "w": 1800,
+        "d": 950,
+        "h": 760
+      },
+      "detailDims": {
+        "topThickness": 47,
+        "pedestalHeight": 710,
+        "pedestalWidthApprox": 1000,
+        "pedestalDepthApprox": 420
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 1199,
+        "currency": "GBP"
+      },
+      "description": "Racetrack (stadium-shaped) dining table in chestnut-stained oak veneer on a single elongated pedestal wrapped in vertical tambour slats. Warm mid-brown oak with soft curved ends and a mid-century feel.",
+      "geometryNotes": "Top: stadium/pill shape 1800x950x47mm, short ends fully rounded (radius = 475mm), top surface at 760mm. Base: one central pedestal with the same stadium plan, ~1000x420mm (inferred from the dimension drawing and the 117x54x81cm leg box), 710mm tall, clad in vertical oak slats. No apron or corner legs, so chairs fit anywhere around it. Castlery says it seats 4-6. Also sold in Natural (light oak) colour. Only Harper lengths: 180cm and 220cm.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1724838425/crusader/variants/40550244/Harper-Dining-Table-180cm-Chestnut-Front-1724838423.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1724838425/crusader/variants/40550244/Harper-Dining-Table-180cm-Chestnut-Angle-1724838423.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1725265209/crusader/variants/40550244/Harper-Dining-Table-180cm-Chestnut-Square-Set_1_1-1725265206.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "40550244",
+      "castleryVariantName": "Harper Dining Table 180cm, Chestnut",
+      "sourceDimensions": "W180 x D95 x H76cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1753090746/crusader/variants/T40550244/Harper-Dining-Table-180cm-Chestnut-Dim-1753090745.jpg"
+    },
+    {
+      "key": "auburn-chaise-sofa-left-facing-chalk-boucle",
+      "slug": "auburn-performance-fabric-chaise-sofa",
+      "name": "Auburn Performance Fabric Chaise Sofa",
+      "variant": "Left Facing, Chalk Boucle",
+      "url": "https://www.castlery.com/uk/products/auburn-performance-fabric-chaise-sofa?orientation=left_facing&material=chalk_boucle",
+      "category": "sofa",
+      "role": "chaise-sofa",
+      "mount": "floor",
+      "dims": {
+        "w": 3095,
+        "d": 1660,
+        "h": 765
+      },
+      "detailDims": {
+        "sofaSectionDepth": 915,
+        "chaiseDepth": 1660,
+        "chaiseWidthApprox": 1050,
+        "sofaSectionWidth": 2045,
+        "seatHeight": 425,
+        "seatDepth": 620,
+        "chaiseSeatDepth": 1400,
+        "armHeight": 560,
+        "armWidthApprox": 170,
+        "backrestHeight": 380,
+        "legHeight": 30,
+        "seatableWidth": 2760,
+        "pillowSize": 500
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 2547,
+        "currency": "GBP"
+      },
+      "description": "Low, softly rounded modular chaise sofa covered in chalk-white performance boucle, with a puffy rounded back and tight-back armrests that curve around the ends. The base is a plump, sculpted block on hidden feet; two square boucle pillows come with it.",
+      "geometryNotes": "L-shape. As seen from the FRONT, the chaise is on the LEFT. Overall 3095mm wide x 765mm tall; depth is 915mm for the two-seat back section and 1660mm at the chaise. The chaise module is ~1050mm wide (309.5 - 204.5cm, from Castlery drawing) and the 2-seat section is 2045mm wide. Block-out: (1) base box from the floor to the seat at 425mm, with rounded vertical edges (radius ~150mm); (2) a rounded back bolster ~250mm thick running along the whole back up to 765mm; (3) a curved tight-back arm at the right end (arm height 560mm, ~170mm wide) and the back wrapping around the left rear corner behind the chaise. There is no arm along the chaise's outer front. Seat cushions: 2 on the sofa section and 1 long chaise cushion (seat depth 620mm on the sofa, 1400mm on the chaise). Back: 3 fixed segments. Legs are 30mm hidden plastic glides, so it reads as a plinth sitting on the floor. Placed on the long wall it leaves ~1320mm clear in front of the chaise in the 2.98m room.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1691053192/crusader/variants/AS-000382-CB4001/Auburn-Performance-Left-Chaise-Sectional-Sofa-Front_-1691053190.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1691053192/crusader/variants/AS-000382-CB4001/Auburn-Performance-Left-Chaise-Sectional-Sofa-Angle_-1691053189.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1692600842/crusader/variants/AS-000382-CB4001/Auburn-Performance-Left-Chaise-Sectional-Sofa-Square-Set_2-1692600839.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "AS-000382-CB4001",
+      "castleryVariantName": "Auburn Left Facing Chaise Sofa, Performance Chalk Bouclé",
+      "sourceDimensions": "W309.5 x D91.5/166 x H76.5cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1691054198/crusader/variants/TAS-000382/Auburn-Performance-Left-Chaise-Sectional-Sofa-Dim-1691054196.jpg"
+    },
+    {
+      "key": "auburn-chaise-sofa-right-facing-chalk-boucle",
+      "slug": "auburn-performance-fabric-chaise-sofa",
+      "name": "Auburn Performance Fabric Chaise Sofa",
+      "variant": "Right Facing, Chalk Boucle",
+      "url": "https://www.castlery.com/uk/products/auburn-performance-fabric-chaise-sofa?orientation=right_facing&material=chalk_boucle",
+      "category": "sofa",
+      "role": "chaise-sofa",
+      "mount": "floor",
+      "dims": {
+        "w": 3095,
+        "d": 1660,
+        "h": 765
+      },
+      "detailDims": {
+        "sofaSectionDepth": 915,
+        "chaiseDepth": 1660,
+        "chaiseWidthApprox": 1050,
+        "sofaSectionWidth": 2045,
+        "seatHeight": 425,
+        "seatDepth": 620,
+        "chaiseSeatDepth": 1400,
+        "armHeight": 560,
+        "armWidthApprox": 170,
+        "backrestHeight": 380,
+        "legHeight": 30,
+        "seatableWidth": 2760,
+        "pillowSize": 500
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 2547,
+        "currency": "GBP"
+      },
+      "description": "Low, softly rounded modular chaise sofa covered in chalk-white performance boucle, with a puffy rounded back and tight-back armrests that curve around the ends. The base is a plump, sculpted block on hidden feet; two square boucle pillows come with it.",
+      "geometryNotes": "Mirror image of the left-facing version. As seen from the FRONT, the chaise is on the RIGHT. Overall 3095 x 1660 (at the chaise) / 915 (sofa section) x 765mm. Chaise ~1050mm wide at the right end; the 2-seat section is 2045mm wide at the left, with a curved tight-back arm (560mm high, ~170mm wide) at the left end and the back wrapping around the right rear corner. Seat height 425mm; seat depth 620mm on the sofa and 1400mm on the chaise. 3 seat cushions (2 + chaise), 3 fixed back segments, 2 x 500mm square pillows. Sits on 30mm hidden glides.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1691054075/crusader/variants/AS-000383-CB4001/Auburn-Performance-Right-Chaise-Sectional-Sofa-Front_-1691054072.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1691054074/crusader/variants/AS-000383-CB4001/Auburn-Performance-Right-Chaise-Sectional-Sofa-Angle_-1691054072.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1692600877/crusader/variants/AS-000383-CB4001/Auburn-Performance-Right-Chaise-Sectional-Sofa-Square-Set_2-1692600874.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "AS-000383-CB4001",
+      "castleryVariantName": "Auburn Right Facing Chaise Sofa, Performance Chalk Bouclé",
+      "sourceDimensions": "W309.5 x D91.5/166 x H76.5cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1691054198/crusader/variants/TAS-000382/Auburn-Performance_-Right-Chaise-Sectional-Sofa-Dim-1691054196.jpg"
+    },
+    {
+      "key": "auburn-3-seater-sofa-chalk-boucle",
+      "slug": "auburn-performance-fabric-3-seater-sofa",
+      "name": "Auburn Performance Fabric 3 Seater Sofa",
+      "variant": "Chalk Boucle",
+      "url": "https://www.castlery.com/uk/products/auburn-performance-fabric-3-seater-sofa?material=chalk_boucle",
+      "category": "sofa",
+      "role": "sofa",
+      "mount": "floor",
+      "dims": {
+        "w": 2310,
+        "d": 915,
+        "h": 765
+      },
+      "detailDims": {
+        "seatHeight": 425,
+        "seatDepth": 620,
+        "armHeight": 560,
+        "armWidthApprox": 255,
+        "backrestHeight": 380,
+        "legHeight": 30,
+        "seatableWidth": 1800,
+        "pillowSize": 500
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 1698,
+        "currency": "GBP"
+      },
+      "description": "Curvy, low-slung 3-seater in chalk-white performance boucle. Its rounded back flows into tight-back armrests that bulge out at each end, and it sits almost on the floor on hidden feet.",
+      "geometryNotes": "Two mirror-image modules (~1155mm wide each) joined in the centre. Block-out: rounded base box from the floor to 425mm seat height; rounded back roll ~250mm thick up to 765mm; at each end the arm/back curves forward as a fat rounded arm (~255mm wide, from (231-180)/2) up to 560mm, flaring slightly outward. 2 seat cushions, 2 fixed back segments, 2 x 500mm square pillows. 30mm hidden glides, so treat it as a plinth. Same family and fabric as the Auburn chaise sofa.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1683792727/crusader/variants/T50441131-CB4001/Auburn-Performance-Boucle-3-Seater-Sofa-Chalk-Front-1683792724.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1683792727/crusader/variants/T50441131-CB4001/Auburn-Performance-Boucle-3-Seater-Sofa-Chalk-Angle-1683792724.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1683794517/crusader/variants/T50441131-CB4001/Auburn-Performance-Boucle-3-Seater-Sofa-Chalk-Square-Set_1-1683794515.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "AS-000305-CB4001",
+      "castleryVariantName": "Auburn Performance Bouclé 3 Seater Sofa, Chalk",
+      "sourceDimensions": "W231 x D91.5 x H76.5cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1684397294/crusader/variants/T50441131/Auburn-Performance-Boucle-3-Seater-Sofa-Chalk-Dim-1684397292.jpg"
+    },
+    {
+      "key": "owen-ii-3-seater-sofa-cream-blonde-oak",
+      "slug": "owen-ii-3-seater-sofa",
+      "name": "Owen II 3 Seater Sofa",
+      "variant": "Basketweave Cream, Blonde Oak legs",
+      "url": "https://www.castlery.com/uk/products/owen-ii-3-seater-sofa?material=basketweave_cream&leg_color=blonde_oak",
+      "category": "sofa",
+      "role": "sofa",
+      "mount": "floor",
+      "dims": {
+        "w": 2050,
+        "d": 995,
+        "h": 790
+      },
+      "detailDims": {
+        "seatHeight": 470,
+        "seatDepth": 610,
+        "armHeight": 665,
+        "armWidthApprox": 95,
+        "backrestHeight": 400,
+        "legHeight": 155,
+        "seatableWidth": 1860
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 1399,
+        "currency": "GBP"
+      },
+      "description": "Tailored, slim-track-arm 3-seater in a nubby cream basketweave fabric with plump loose cushions. It is raised on a slender blonde-oak base frame and legs, which gives it a light, airy profile.",
+      "geometryNotes": "Upholstered box body 2050x995mm with thin, square track arms (~95mm wide, top at 665mm) and a back the same height as the arms at the rear, plus loose back cushions up to 790mm. Body underside sits ~155mm off the floor on a blonde-oak frame: a thin wooden rail around the base perimeter with 4 square corner legs plus 1 centre support. Seat top at 470mm, seat depth 610mm. 2 seat cushions, 2 loose back cushions, and 2 small lumbar pillows (520x180x300).",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1789356568/pim/converting/1789356568441/Owen-3-Seater-Sofa-Basketweave-Cream-Blonde-Oak-Front.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1789356570/pim/converting/1789356568518/Owen-3-Seater-Sofa-Basketweave-Cream-Blonde-Oak-Angle.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1787740419/pim/converting/1787740416850/Owen-3-Seater-Sofa-Cream-Blonde-Oak-Set_1.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "AS-001251-BW4003-NA",
+      "castleryVariantName": "Owen II 3 Seater Sofa, (Basketweave) Cream (Blonde Oak Leg)",
+      "sourceDimensions": "W205 x D99.5 x H79cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1789374476/pim/converting/1789374476865/Owen-3-Seater-Sofa-Basketweave-Cream-Blonde-Oak-Dim.jpg"
+    },
+    {
+      "key": "madison-2-seater-sofa-bisque",
+      "slug": "madison-2-seater-sofa",
+      "name": "Madison 2 Seater Sofa",
+      "variant": "Amalfi Bisque",
+      "url": "https://www.castlery.com/uk/products/madison-2-seater-sofa?material=bisque",
+      "category": "sofa",
+      "role": "sofa",
+      "mount": "floor",
+      "dims": {
+        "w": 1730,
+        "d": 970,
+        "h": 870
+      },
+      "detailDims": {
+        "seatHeight": 470,
+        "seatDepth": 610,
+        "armHeight": 690,
+        "armWidthApprox": 130,
+        "backrestHeight": 390,
+        "legHeight": 170,
+        "seatableWidth": 1470,
+        "bolsterDiameter": 170,
+        "bolsterLength": 560
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 999,
+        "currency": "GBP"
+      },
+      "description": "Compact mid-century loveseat in pale oatmeal \"bisque\" woven fabric, with a single biscuit-tufted bench seat, two loose back cushions and round bolsters. It stands on tapered walnut-stained legs.",
+      "geometryNotes": "Boxy body 1730x970 with square track arms (~130mm wide, top at 690mm). Base box from 170mm to 470mm seat height. Single bench seat cushion with grid tufting, 2 loose back cushions up to 870mm, and 2 cylindrical bolsters (170mm diameter x 560mm) against the arms. 4 tapered round walnut-stained rubberwood legs, 170mm tall, near the corners. The smallest sofa here, a good fit for a tight TV zone.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1745287810/crusader/variants/50441008-AM4001/Madison-2-Seater-Sofa-Amalfi-Bisque-Front-1745287807.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1747031552/crusader/variants/50441008-AM4001/Madison-2-Seater-Sofa-Amalfi-Bisque-Angle-1747031550.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1747895250/crusader/variants/50441008-AM4001/Madison-2-Seater-Sofa-Bisque-Square-Set_1-1747895247.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "50441008-AM4001",
+      "castleryVariantName": "Madison 2 Seater Sofa, (Amalfi) Bisque",
+      "sourceDimensions": "W173 x D97 x H87cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1748399989/crusader/variants/T50441008/Madison-2-Seater-Sofa-Amalfi-Bisque-Dim-1748399988.jpg"
+    },
+    {
+      "key": "wayne-armchair-opal-beige",
+      "slug": "wayne-armchair",
+      "name": "Wayne Armchair",
+      "variant": "Opal Beige",
+      "url": "https://www.castlery.com/uk/products/wayne-armchair?material=opal_beige",
+      "category": "chair",
+      "role": "accent-chair",
+      "mount": "floor",
+      "dims": {
+        "w": 860,
+        "d": 890,
+        "h": 850
+      },
+      "detailDims": {
+        "seatHeight": 470,
+        "seatDepth": 580,
+        "armHeight": 610,
+        "legHeight": 220,
+        "backrestHeight": 390,
+        "seatableWidth": 780
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 699,
+        "currency": "GBP"
+      },
+      "description": "Retro Scandinavian lounge chair with a walnut-stained rubberwood frame whose curved back and arm rail is filled with vertical spindles. Loose oatmeal linen-blend seat and back cushions sit in it, and it stands on slim black steel legs.",
+      "geometryNotes": "A shallow wooden tray seat frame 860x890 at ~250mm with a cushion on top (seat at 470mm). A continuous U-shaped wooden rail runs around the sides and back at 610mm (arm height), filled with ~8 vertical round spindles per side and across the back. A loose back cushion leans against the back rail up to 850mm. 4 thin black powder-coated steel legs, 220mm, at the corners, slightly inset.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1626937068/crusader/variants/54000018-BW4002/Wayne-Armchair-Farbic-Opal-Beige-Front.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1626937068/crusader/variants/54000018-BW4002/Wayne-Armchair-Farbic-Opal-Beige-Angle.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1626937121/crusader/variants/54000018-BW4002/Wayne-Armchair-Opal-Beige-Lifestyle-Crop.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "54000018-BW4002",
+      "castleryVariantName": "Wayne Armchair, Opal Beige",
+      "sourceDimensions": "W86 x D89 x H85cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1655217867/crusader/variants/54000018-BW4002/Wayne-Armchair-Farbic-Opal-Beige-Dim-1655217864.jpg"
+    },
+    {
+      "key": "arlo-armchair-sand",
+      "slug": "arlo-armchair",
+      "name": "Arlo Armchair",
+      "variant": "Georgia Sand",
+      "url": "https://www.castlery.com/uk/products/arlo-armchair?material=georgia_sand&quantity=single",
+      "category": "chair",
+      "role": "accent-chair",
+      "mount": "floor",
+      "dims": {
+        "w": 760,
+        "d": 920,
+        "h": 775
+      },
+      "detailDims": {
+        "seatHeight": 420,
+        "seatDepth": 550,
+        "armHeight": 550,
+        "legHeight": 125,
+        "backrestHeight": 410,
+        "seatableWidth": 610
+      },
+      "soldAs": "single (set of 2 also sold)",
+      "price": {
+        "amount": 799,
+        "currency": "GBP"
+      },
+      "description": "Sculptural lounge chair with a chunky, rounded solid-rubberwood frame in chestnut stain, wrapping a cushioned seat and back in flecked sand/oatmeal textured boucle-like fabric.",
+      "geometryNotes": "Two side frames, each a thick rounded \"tube\" (~70mm diameter, inferred) bent into a continuous U: front leg, armrest at 550mm, and back leg. They are joined by a low rear stretcher. Between the frames sit a thick upholstered seat cushion (top at 420mm, 550mm deep) and a rounded, slightly reclined back pad up to 775mm. Seat underside is ~125mm off the floor.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1745375378/crusader/variants/PB-001612-GE4001/Arlo-Armchair-Front-1745375375.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1745375378/crusader/variants/PB-001612-GE4001/Arlo-Armchair-Angle-1745375375.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1747618247/crusader/variants/PB-001612-GE4001/Arlo-Armchair-Square-Set_2-1747618245.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "54000223-GE4001",
+      "castleryVariantName": "Arlo Armchair, (Georgia) Sand",
+      "sourceDimensions": "W76 x D92 x H77.5cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1749197456/crusader/variants/T54000223/Arlo-Armchair-Dim-1749197456.jpg"
+    },
+    {
+      "key": "avery-swivel-armchair-ginger-boucle",
+      "slug": "avery-performance-boucle-swivel-armchair",
+      "name": "Avery Performance Bouclé Swivel Armchair",
+      "variant": "Performance Boucle Ginger",
+      "url": "https://www.castlery.com/uk/products/avery-performance-boucle-swivel-armchair?material=performance_ginger&quantity=single",
+      "category": "chair",
+      "role": "accent-chair",
+      "mount": "floor",
+      "dims": {
+        "w": 805,
+        "d": 805,
+        "h": 750
+      },
+      "detailDims": {
+        "seatHeight": 450,
+        "seatDepth": 570,
+        "armHeight": 610,
+        "baseHeight": 50,
+        "backrestHeight": 300,
+        "seatableWidth": 650
+      },
+      "soldAs": "single (set of 2 also sold)",
+      "price": {
+        "amount": 549,
+        "currency": "GBP"
+      },
+      "description": "Rounded barrel swivel chair upholstered all over in ginger/terracotta performance boucle, with a curved back that flows into the arms and a small lumbar pillow. A warm accent piece.",
+      "geometryNotes": "Tub/barrel shape: roughly a cylinder 805mm in diameter with a curved back-and-arm wall that is 750mm high at the back and steps down to 610mm at the arms. The front is open to a thick round seat cushion (top at 450mm, 570mm deep). It sits on a recessed 50mm round swivel plinth. 1 lumbar cushion (500x250x100).",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1760175481/crusader/variants/50441021-IN4003/Avery-Swivel-Armchair-Ginger-Front-1760175481.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1760175480/crusader/variants/50441021-IN4003/Avery-Swivel-Armchair-Ginger-Angle-1760175480.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1760175628/crusader/variants/50441021-IN4003/Avery-Swivel-Armchair_-Set-Of-2-Square-Set_1-1760175627.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "50441021-IN4003",
+      "castleryVariantName": "Avery Swivel Armchair, (Performance Boucle) Ginger",
+      "sourceDimensions": "W80.5 x D80.5 x H75cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1755502585/crusader/variants/T50441021/Avery-Swivel-Armchair-Performance-Infinity-Boucle-Ginger_-Dim-1755502584.jpg"
+    },
+    {
+      "key": "albie-travertine-round-coffee-table-90",
+      "slug": "albie-travertine-round-coffee-table",
+      "name": "Albie Travertine Round Coffee Table",
+      "variant": "90cm, Travertine / Blond Oak",
+      "url": "https://www.castlery.com/uk/products/albie-travertine-round-coffee-table?length=0_9m",
+      "category": "table",
+      "role": "coffee-table",
+      "mount": "floor",
+      "dims": {
+        "w": 984,
+        "d": 984,
+        "h": 355
+      },
+      "detailDims": {
+        "topDiameter": 900,
+        "topThickness": 30,
+        "legHeight": 350,
+        "legDiameterApprox": 150
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 449,
+        "currency": "GBP",
+        "listAmount": 699
+      },
+      "description": "Round coffee table with a honed beige travertine top cradled by four chunky cylindrical legs in blond-oak finish solid wood. Earthy and organic.",
+      "geometryNotes": "Round stone top 900mm in diameter x 30mm, top surface at 355mm. 4 solid-wood cylinder legs (~150mm diameter, inferred), 350mm tall, spaced at 90 degrees. Each leg is centred on the edge of the top so it sticks out past the rim; that is why the overall width is 984mm. Nothing joins the legs below the top.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1710320225/crusader/variants/AS-000434/Albie-Travertine-Round-Coffee-Table-Front-1710320223.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1710320225/crusader/variants/AS-000434/Albie-Travertine-Round-Coffee-Table-Angle_2-1710320223.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1710320279/crusader/variants/AS-000434/Albie-Round-Coffee-Table-Square-Set_1-1710320277.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "AS-000434",
+      "castleryVariantName": "Albie Round Coffee Table, 90cm",
+      "sourceDimensions": "W98.4 x D98.4 x H35.5cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1710925077/crusader/variants/TAS-000434/Albie-Travertine-Round-Coffee-Table-Dim-1710925076.jpg"
+    },
+    {
+      "key": "harper-marble-rectangular-coffee-table-chestnut",
+      "slug": "harper-marble-rectangular-coffee-table",
+      "name": "Harper Marble Rectangular Coffee Table",
+      "variant": "Chestnut",
+      "url": "https://www.castlery.com/uk/products/harper-marble-rectangular-coffee-table?color_option=chestnut_oak",
+      "category": "table",
+      "role": "coffee-table",
+      "mount": "floor",
+      "dims": {
+        "w": 1200,
+        "d": 600,
+        "h": 380
+      },
+      "detailDims": {
+        "topThickness": 18,
+        "pedestalDiameterApprox": 330,
+        "pedestalCentreOffsetApprox": 270
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 899,
+        "currency": "GBP"
+      },
+      "description": "Racetrack coffee table with a white Carrara marble top with soft grey veining, set on two drum pedestals clad in chestnut-stained oak tambour slats. It matches the Harper dining table.",
+      "geometryNotes": "Top: stadium/pill-shaped marble slab 1200x600x18mm on a thin wooden lip, with the top surface at 380mm. Two cylindrical tambour pedestals (~330mm diameter, inferred from the drawing), centred ~270mm either side of the middle along the long axis, about 350mm tall.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1741077857/crusader/variants/40550279/Harper-Marble-Rectangular-Coffee-Table_-_Chestnut-Front-1741077855.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1741077857/crusader/variants/40550279/Harper-Marble-Rectangular-Coffee-Table_-_Chestnut-Angle-1741077855.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1741595640/crusader/variants/40550279/Harper-Marble-Rectangular-Coffee-Table_-_Chestnut-Square-Set_2-1741595638.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "40550279",
+      "castleryVariantName": "Harper Marble Rectangular Coffee Table, Chestnut",
+      "sourceDimensions": "W120 x D60 x H38cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1740725479/crusader/variants/T40550279/Harper-Marble-Rectangular-Coffee-Table_-_Chestnut-Dim-1740725477.jpg"
+    },
+    {
+      "key": "mori-coffee-table-natural",
+      "slug": "mori-coffee-table",
+      "name": "Mori Coffee Table",
+      "variant": "Natural Oak",
+      "url": "https://www.castlery.com/uk/products/mori-coffee-table?color_option=natural_oak",
+      "category": "table",
+      "role": "coffee-table",
+      "mount": "floor",
+      "dims": {
+        "w": 1200,
+        "d": 600,
+        "h": 313
+      },
+      "detailDims": {
+        "topThickness": 44,
+        "legHeight": 270,
+        "legInsetApprox": 200,
+        "legThicknessApprox": 60
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 369,
+        "currency": "GBP"
+      },
+      "description": "Low, minimalist slab coffee table in natural brushed oak veneer. A thick rectangular top sits on two slab legs, with lap-joint details showing through the top.",
+      "geometryNotes": "Top: rectangular slab 1200x600x44mm, top surface at 313mm. 2 vertical slab legs running front to back (~60mm thick, full 600mm depth, 270mm tall), each inset ~200mm from the ends (inferred from photo). Small darker lap-joint squares show on the top surface above the legs.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1691390692/crusader/variants/54000129/Mori-Coffee-Table-Front-1691390690.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1691390692/crusader/variants/54000129/Mori-Coffee-Table-Angle_1-1691390690.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1691743776/crusader/variants/54000129/Mori-Coffee-Table-Square-Set_1-1691743773.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "54000129",
+      "castleryVariantName": "Mori Coffee Table, Natural",
+      "sourceDimensions": "W120 x D60 x H31.3cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1691390964/crusader/variants/T54000129/Mori-Coffee-Table-Dim-1691390962.jpg"
+    },
+    {
+      "key": "harper-marble-side-table-chestnut",
+      "slug": "harper-marble-side-table",
+      "name": "Harper Marble Side Table",
+      "variant": "Chestnut",
+      "url": "https://www.castlery.com/uk/products/harper-marble-side-table?color_option=chestnut_oak",
+      "category": "table",
+      "role": "side-table",
+      "mount": "floor",
+      "dims": {
+        "w": 400,
+        "d": 400,
+        "h": 550
+      },
+      "detailDims": {
+        "topThickness": 18,
+        "topDiameter": 400
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 399,
+        "currency": "GBP"
+      },
+      "description": "Drum side table: a cylinder of chestnut-stained oak tambour slats capped with a white Carrara marble disc top.",
+      "geometryNotes": "Solid cylinder 400mm in diameter x 532mm, plus an 18mm marble disc of the same diameter on top (total 550mm). The vertical slat texture wraps the whole drum. A small recessed metal base is not visible.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1740018494/crusader/variants/40550278/Harper-Marble-Side-Table_-_Chestnut-Front-1740018492.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1742179133/crusader/variants/40550278/Harper-Marble-Side-Table-Square-Set_1-1742179132.jpg",
+          "kind": "lifestyle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1741595287/crusader/variants/40550278/Jaron-Sofa-_Harper-Coffee-Tables-Living-Room-Campaign-Set_26-1741595285.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "40550278",
+      "castleryVariantName": "Harper Marble Side Table, Chestnut",
+      "sourceDimensions": "W40 x D40 x H55cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1741769238/crusader/variants/T40550278/Harper-Marble-Side-Table_-_Chestnut-Dim-1741769236.jpg"
+    },
+    {
+      "key": "mori-c-side-table-natural",
+      "slug": "mori-c-side-table",
+      "name": "Mori C-Side Table",
+      "variant": "Natural Oak",
+      "url": "https://www.castlery.com/uk/products/mori-c-side-table?color_option=natural_oak",
+      "category": "table",
+      "role": "side-table",
+      "mount": "floor",
+      "dims": {
+        "w": 500,
+        "d": 350,
+        "h": 490
+      },
+      "detailDims": {
+        "topThickness": 28
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 209,
+        "currency": "GBP"
+      },
+      "description": "Compact C-shaped side table in natural brushed oak veneer that slides under a sofa arm or seat. Simple flat planes with lap-joint details.",
+      "geometryNotes": "C-shape in side elevation: a top slab 500x350x28mm at 490mm and a matching base plate (~25mm) on the floor. They are joined by two vertical square posts (~50mm, inferred) standing side by side ~150mm apart, centred on one long (back) edge. The opposite long side is open, so the base can slide under a sofa with the top over the seat or arm.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1691391293/crusader/variants/54000148/Mori-C-Side-Table-Front-1691391291.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1691391293/crusader/variants/54000148/Mori-C-Side-Table-Angle-1691391291.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1691748193/crusader/variants/54000148/Mori-C-Side-Table-Square-Set_5-1691748190.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "54000148",
+      "castleryVariantName": "Mori C-Side Table, Natural",
+      "sourceDimensions": "W50 x D35 x H49cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1697011280/crusader/variants/T54000148/Mori-C-Side-Table-Dim-1697011278.jpg"
+    },
+    {
+      "key": "harper-tv-stand-150-chestnut",
+      "slug": "harper-tv-stand",
+      "name": "Harper TV Stand",
+      "variant": "150cm, Chestnut",
+      "url": "https://www.castlery.com/uk/products/harper-tv-stand?color_option=chestnut_oak&leg_color=gold&length=1_5m&variant=curved_oval",
+      "category": "media",
+      "role": "tv-console",
+      "mount": "floor",
+      "dims": {
+        "w": 1500,
+        "d": 500,
+        "h": 660
+      },
+      "detailDims": {
+        "legHeight": 170,
+        "bodyHeight": 490,
+        "legSpacingFront": 1000,
+        "legSpacingEnd": 330,
+        "shelfHeight": 210
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 899,
+        "currency": "GBP"
+      },
+      "description": "Pill-shaped media console in chestnut-stained oak veneer, with curved tambour (vertical slat) sliding doors, slim brass bar handles and slender brass legs. It matches the Harper dining table and sideboard.",
+      "geometryNotes": "Cabinet body 1500x500 x 490mm tall with fully rounded short ends and a gently curved (kidney-like) front, raised on 4 thin round brass legs 170mm tall. Leg spacing is ~1000mm along the front and ~330mm front to back. This reads Castlery's field \"Leg room clearance: Front side 100cm; End side 33cm\" as distances between legs. Tambour slats cover the front and ends; 2 vertical brass bar handles sit at the centre. Inside: 4 compartments (480x370x210mm each). For TVs up to 60\". A 200cm size is also sold (see alternativeSizes).",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1756453887/crusader/variants/40550347/Harper-TV-Console-150cm-Chestnut-Front_1-1756453885.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1756453887/crusader/variants/40550347/Harper-TV-Console-150cm-Chestnut-Angle-1756453885.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1711942386/crusader/variants/40550227/Harper-Curved-TV-Console-Square-Set-1711942383.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "40550347",
+      "castleryVariantName": "Harper TV Stand 150cm, Chestnut",
+      "sourceDimensions": "W150 x D50 x H66cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1756721072/crusader/variants/T41360025/Harper-TV-Console-150cm-Chestnut-Dim-1756721071.jpg",
+      "alternativeSizes": [
+        {
+          "variant": "Harper Curved TV Stand, Brass Leg",
+          "url": "https://www.castlery.com/uk/products/harper-tv-stand?color_option=chestnut_oak&leg_color=gold&length=2_0m&variant=curved_oval",
+          "sku": "40550227",
+          "dims": {
+            "w": 2000,
+            "d": 500,
+            "h": 660
+          },
+          "sourceDimensions": "W200 x D50 x H66cm",
+          "price": {
+            "amount": 1099,
+            "currency": "GBP"
+          },
+          "note": "Castlery names this size \"Harper Curved TV Stand, Brass Leg\"; 4 compartments 710mm wide, shelf 200mm."
+        }
+      ]
+    },
+    {
+      "key": "nico-tv-stand-150",
+      "slug": "nico-tv-stand",
+      "name": "Nico TV Stand",
+      "variant": "150cm",
+      "url": "https://www.castlery.com/uk/products/nico-tv-stand?length=1_5m",
+      "category": "media",
+      "role": "tv-console",
+      "mount": "floor",
+      "dims": {
+        "w": 1500,
+        "d": 450,
+        "h": 600
+      },
+      "detailDims": {
+        "legHeight": 165,
+        "bodyHeight": 435,
+        "shelfHeight": 190
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 699,
+        "currency": "GBP"
+      },
+      "description": "Solid American oak media console in a rich reddish-brown finish, with softly rounded \"pebble\" corners, two flush doors, a central open niche over a drawer, and two slab sled legs.",
+      "geometryNotes": "Rounded-corner box 1500x450 x 435mm tall (corner radius ~60mm), on 2 slab legs 165mm tall running front to back, inset ~150mm from each end (inferred). Front: a left door and a right door (each ~445mm wide), and between them an open niche (530x190mm) above a drawer. There is a cable hole in the niche. For TVs up to 60\". A 200cm size is also sold.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1783324204/pim/converting/1783324204235/Nico-TV-Console-150cm-Front.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1783324205/pim/converting/1783324204087/Nico-TV-Console-150cm-Angle.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1785395168/pim/converting/1785395165077/Nico-TV-Console-150cm-Set_1.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "40550400",
+      "castleryVariantName": "Nico TV Stand, 150cm",
+      "sourceDimensions": "W150 x D45 x H60cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1784712255/pim/converting/1784712256053/Nico-TV-Console-150cm-Dim.jpg",
+      "alternativeSizes": [
+        {
+          "variant": "Nico TV Stand, 200cm",
+          "url": "https://www.castlery.com/uk/products/nico-tv-stand?length=2_0m",
+          "sku": "40550401",
+          "dims": {
+            "w": 2000,
+            "d": 450,
+            "h": 600
+          },
+          "sourceDimensions": "W200 x D45 x H60cm",
+          "price": {
+            "amount": 899,
+            "currency": "GBP"
+          },
+          "note": "Recommended TV 60\" and under (150cm); 200cm size for larger TVs."
+        }
+      ]
+    },
+    {
+      "key": "harper-round-dining-table-120-chestnut",
+      "slug": "harper-round-dining-table",
+      "name": "Harper Round Dining Table",
+      "variant": "120cm, Chestnut",
+      "url": "https://www.castlery.com/uk/products/harper-round-dining-table?color_option=chestnut_oak&length=1_2m",
+      "category": "table",
+      "role": "dining-table",
+      "mount": "floor",
+      "dims": {
+        "w": 1200,
+        "d": 1200,
+        "h": 760
+      },
+      "detailDims": {
+        "topThickness": 47,
+        "pedestalHeight": 710,
+        "pedestalDiameterApprox": 550
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 899,
+        "currency": "GBP"
+      },
+      "description": "Round dining table in chestnut-stained oak veneer on a single drum pedestal clad in vertical tambour slats. It is the compact round version of the Harper table.",
+      "geometryNotes": "Round top 1200mm in diameter x 47mm, top surface at 760mm. One central cylindrical tambour pedestal ~550mm in diameter (inferred from drawing), 710mm tall. No legs at the edge. Seats 4. A 150cm size (seats 6) is also sold.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1724838057/crusader/variants/40550242/Harper-Round-Dining-Table-120cm-Chestnut-Front-1724838055.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1725264945/crusader/variants/40550242/Harper-Round-Dining-Table-Chestnut-With-Elliot-L-Shape-Banquette-With-Arm-Dining-Chair-Leg-Slate-Metal-Square-Set_1-1725264943.jpg",
+          "kind": "lifestyle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1725264595/crusader/variants/40550242/Harper-Round-Dining-Table-Chestnut-Square-Det_1-1725264592.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "40550242",
+      "castleryVariantName": "Harper Round Dining Table 120cm, Chestnut",
+      "sourceDimensions": "W120 x D120 x H76cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1725503300/crusader/variants/T40550242/Harper-Round-Dining-Table-120cm-Chestnut-Dim__1_-1725503299.jpg",
+      "alternativeSizes": [
+        {
+          "variant": "Harper Round Dining Table 150cm, Chestnut",
+          "url": "https://www.castlery.com/uk/products/harper-round-dining-table?color_option=chestnut_oak&length=1_5m",
+          "sku": "40550243",
+          "dims": {
+            "w": 1500,
+            "d": 1500,
+            "h": 760
+          },
+          "sourceDimensions": "W150 x D150 x H76cm",
+          "price": {
+            "amount": 1199,
+            "currency": "GBP"
+          },
+          "note": "Sits 6; too big for a 2.98m-wide room once chairs are added."
+        }
+      ]
+    },
+    {
+      "key": "vincent-dining-table-180-oak",
+      "slug": "vincent-dining-table-oak",
+      "name": "Vincent Dining Table, Oak",
+      "variant": "180cm, Oak",
+      "url": "https://www.castlery.com/uk/products/vincent-dining-table-oak?length=1_8m",
+      "category": "table",
+      "role": "dining-table",
+      "mount": "floor",
+      "dims": {
+        "w": 1800,
+        "d": 900,
+        "h": 760
+      },
+      "detailDims": {
+        "topThickness": 40,
+        "legToLegLongSide": 1435,
+        "legToLegShortSide": 600
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 999,
+        "currency": "GBP"
+      },
+      "description": "Slim, light Scandinavian dining table in solid oak with a clear lacquer. A soft rounded-rectangle top sits on four gently splayed, tapered round legs.",
+      "geometryNotes": "Top: rectangle 1800x900x40mm with generously rounded corners and a softened, bevelled underside edge, top surface at 760mm. 4 tapered round legs (~50mm at the top narrowing to ~35mm, inferred) splay slightly outward. They attach under the top via a metal brace, with no visible apron. Castlery leg-to-leg spacing: 1435mm along the length and 600mm across. Seats 6. Also sold at 150cm (seats 4) and 220cm.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1705909251/crusader/variants/41960027/Vincent-Dining-Table-Oak-180cm-Front-1705909249.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1705909251/crusader/variants/41960027/Vincent-Dining-Table-Oak-180cm-Angle-1705909249.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1705909251/crusader/variants/41960027/Vincent-Dining-Table-Oak-180cm-Side-1705909249.jpg",
+          "kind": "cutout-side"
+        }
+      ],
+      "sku": "41960027",
+      "castleryVariantName": "Vincent Dining Table 180cm, Oak",
+      "sourceDimensions": "W180 x D90 x H76cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1736477600/crusader/variants/T41960014/Vincent-Dining-Table-Oak-180cm-Dim-1736477598.jpg",
+      "alternativeSizes": [
+        {
+          "variant": "Vincent Dining Table 150cm, Oak",
+          "url": "https://www.castlery.com/uk/products/vincent-dining-table-oak?length=1_5m",
+          "sku": "41960029",
+          "dims": {
+            "w": 1500,
+            "d": 800,
+            "h": 760
+          },
+          "sourceDimensions": "W150 x D80 x H76cm",
+          "price": {
+            "amount": 899,
+            "currency": "GBP"
+          },
+          "note": "Sits 4; leg-to-leg long side 1075mm, short side 540mm."
+        },
+        {
+          "variant": "Vincent Dining Table 220cm, Oak",
+          "url": "https://www.castlery.com/uk/products/vincent-dining-table-oak?length=2_2m",
+          "sku": "41960025",
+          "dims": {
+            "w": 2200,
+            "d": 1050,
+            "h": 760
+          },
+          "sourceDimensions": "W220 x D105 x H76cm",
+          "price": {
+            "amount": 1199,
+            "currency": "GBP"
+          },
+          "note": "Sits 8; 1050mm deep (exceeds the ~1m depth target)."
+        }
+      ]
+    },
+    {
+      "key": "anya-dining-chair-chestnut",
+      "slug": "anya-dining-chair",
+      "name": "Anya Dining Chair",
+      "variant": "Chestnut",
+      "url": "https://www.castlery.com/uk/products/anya-dining-chair?color_option=chestnut_oak",
+      "category": "chair",
+      "role": "dining-chair",
+      "mount": "floor",
+      "dims": {
+        "w": 510,
+        "d": 540,
+        "h": 820
+      },
+      "detailDims": {
+        "seatHeight": 450,
+        "seatDepth": 470,
+        "seatableWidth": 500
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 239,
+        "currency": "GBP"
+      },
+      "description": "Chunky, stackable-look dining chair in chestnut-stained solid ash, with square legs, a flat wooden seat and a curved rounded-rectangle backrest panel.",
+      "geometryNotes": "4 square-section solid ash legs (~40mm). The seat panel (~20mm) sits between the legs at 450mm, with rails under it. The rear legs continue up as 2 posts to a curved, rounded-rectangle backrest panel (~200mm tall) whose top is at 820mm. All wood, no upholstery.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1746613257/crusader/variants/41960039/Anya-Dining-Chair-Chestnut-Front-1746613255.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1747100496/crusader/variants/41960039/Anya-Dining-Chair-Chestnut-Angle-1747100494.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1747623930/crusader/variants/41960039/Tribeca-Round-Dining-Table-With-2-Anya-Dining-Chair-Chestnut-Square-Set_1_4-1747623929.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "41960039",
+      "castleryVariantName": "Anya Dining Chair, Chestnut",
+      "sourceDimensions": "W51 x D54 x H82cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1748480932/crusader/variants/T41960038/Anya-Dining-Chair-Chestnut-Dim-1748480931.jpg"
+    },
+    {
+      "key": "austen-dining-chair-walnut",
+      "slug": "austen-chair-walnut-stain",
+      "name": "Austen Chair, Walnut Stain",
+      "variant": "Walnut Stain",
+      "url": "https://www.castlery.com/uk/products/austen-chair-walnut-stain?wood=walnut",
+      "category": "chair",
+      "role": "dining-chair",
+      "mount": "floor",
+      "dims": {
+        "w": 560,
+        "d": 570,
+        "h": 765
+      },
+      "detailDims": {
+        "seatHeight": 450,
+        "seatDepth": 470,
+        "seatableWidth": 470,
+        "backrestHeight": 340
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 219,
+        "currency": "GBP"
+      },
+      "description": "Mid-century dining chair in walnut-stained rubberwood with a curved bentwood back rail and a hand-woven natural paper-cord seat. Inspired by Danish design.",
+      "geometryNotes": "4 slim tapered round legs. The rear legs rise to support a curved bentwood back rail (~60mm tall) that wraps around the back at 765mm. A paper-cord seat frame sits at 450mm. Thin side stretchers run between the front and back legs. The back is open below the rail.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1666341643/crusader/variants/54000076-WA/Austen-Chair-Walnut-Front-1666341642.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1666341644/crusader/variants/54000076-WA/Austen-Chair-Walnut-Angle-1666341642.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1666341509/crusader/variants/54000076-WA/Austen-Chair-Walnut-Square-Set_5-1666341501.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "54000076-WA",
+      "castleryVariantName": "Austen Chair, Walnut Stain",
+      "sourceDimensions": "W56 x D57 x H76.5cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1666343465/crusader/variants/T54000024/Austen-Chair-Walnut-Dim-1666343463.jpg"
+    },
+    {
+      "key": "vincent-dining-chair-oak-creamy-white",
+      "slug": "vincent-chair-oak",
+      "name": "Vincent Chair, Oak",
+      "variant": "Oak, Performance Twill Creamy White",
+      "url": "https://www.castlery.com/uk/products/vincent-chair-oak?material=twill_performance_creamy_white&wood=oak",
+      "category": "chair",
+      "role": "dining-chair",
+      "mount": "floor",
+      "dims": {
+        "w": 487,
+        "d": 595,
+        "h": 820
+      },
+      "detailDims": {
+        "seatHeight": 476,
+        "seatDepth": 430,
+        "seatableWidth": 490
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 209,
+        "currency": "GBP"
+      },
+      "description": "Light, slender dining chair in solid white oak with a curved plank backrest and an upholstered creamy-white seat pad. It matches the Vincent table.",
+      "geometryNotes": "4 slim tapered solid-oak legs; the rear legs continue up as 2 posts to a curved oak plank backrest (~180mm tall), top at 820mm. A cushioned seat pad (~60mm) sits on the frame with its top at 476mm.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1768897028/crusader/variants/41960031-PT4001/Vincent-Dining-Chair-Performance-Creamy-White-Oak-Front-1768897026.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1768897028/crusader/variants/41960031-PT4001/Vincent-Dining-Chair-Performance-Creamy-White-Oak-Angle-1768897026.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1768903531/crusader/variants/41960031-PT4001/Vincent-Dining-Chair-Performance-Creamy-White-Oak-Set_1-1768903528.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "41960031-PT4001",
+      "castleryVariantName": "Vincent Dining Chair, (Performance Twill) Creamy White (Oak)",
+      "sourceDimensions": "W48.7 x D59.5 x H82cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1774925441/crusader/variants/T41960031/Vincent-Dining-Chair-Performance-Creamy-White-Oak-Dim-1774925440.jpg"
+    },
+    {
+      "key": "nico-dining-bench-150",
+      "slug": "nico-dining-bench",
+      "name": "Nico Dining Bench",
+      "variant": "150cm",
+      "url": "https://www.castlery.com/uk/products/nico-dining-bench?length=1_5m",
+      "category": "chair",
+      "role": "dining-bench",
+      "mount": "floor",
+      "dims": {
+        "w": 1500,
+        "d": 400,
+        "h": 450
+      },
+      "detailDims": {
+        "seatHeight": 450,
+        "legHeight": 409,
+        "topThicknessApprox": 41
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 429,
+        "currency": "GBP"
+      },
+      "description": "Backless dining bench in solid American oak with a dark chestnut lacquer. It has a pebble-shaped top with rounded corners and chunky slab legs.",
+      "geometryNotes": "Top: rounded-rectangle slab 1500x400x~41mm (thickness inferred from the Nico console/side table), top surface at 450mm. Legs: 2 slab legs at each end (4 total, ~409mm tall), set front and back, about 120mm wide with rounded outer faces, inset ~100mm from the ends. Also sold in 120cm and 180cm; 150cm suits one long side of the 180cm Harper/Vincent tables.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1779961026/pim/converting/1779961026584/Nico-Dining-Bench-150cm-Front.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1779961021/pim/converting/1779961017206/Nico-Dining-Bench-150cm-Angle.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1784626068/pim/converting/1784626067788/Nico-Dining-Table-220cm-With-Bench-Set_1.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "41960055",
+      "castleryVariantName": "Nico Dining Bench, 150cm",
+      "sourceDimensions": "W150 x D40 x H45cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1783324670/pim/converting/1783324669686/Nico-Dining-Bench-150cm-Dim.jpg",
+      "alternativeSizes": [
+        {
+          "variant": "Nico Dining Bench, 120cm",
+          "url": "https://www.castlery.com/uk/products/nico-dining-bench?length=1_2m",
+          "sku": "41960054",
+          "dims": {
+            "w": 1200,
+            "d": 400,
+            "h": 450
+          },
+          "sourceDimensions": "W120 x D40 x H45cm",
+          "price": {
+            "amount": 329,
+            "currency": "GBP"
+          }
+        },
+        {
+          "variant": "Nico Dining Bench, 180cm",
+          "url": "https://www.castlery.com/uk/products/nico-dining-bench?length=1_8m",
+          "sku": "41960056",
+          "dims": {
+            "w": 1800,
+            "d": 400,
+            "h": 450
+          },
+          "sourceDimensions": "W180 x D40 x H45cm",
+          "price": {
+            "amount": 499,
+            "currency": "GBP"
+          }
+        }
+      ]
+    },
+    {
+      "key": "harper-curved-sideboard-chestnut",
+      "slug": "harper-sideboard",
+      "name": "Harper Sideboard",
+      "variant": "Chestnut, Brass Legs",
+      "url": "https://www.castlery.com/uk/products/harper-sideboard?color_option=chestnut_oak&leg_color=gold&variant=curved_oval",
+      "category": "storage",
+      "role": "sideboard",
+      "mount": "floor",
+      "dims": {
+        "w": 1800,
+        "d": 500,
+        "h": 800
+      },
+      "detailDims": {
+        "legHeight": 170,
+        "bodyHeight": 630,
+        "shelfHeight": 275
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 1099,
+        "currency": "GBP"
+      },
+      "description": "Curvy pill-shaped sideboard in chestnut-stained oak veneer, with sliding tambour slat doors, a central pair of long brass bar handles and slim brass legs. It matches the Harper table and TV stand.",
+      "geometryNotes": "Cabinet body 1800x500 x 630mm tall with fully rounded short ends and a gently curved front, on slim round brass legs 170mm tall (2 near each end plus a centre support, per photo). Tambour slats cover the front and ends. Interior: 4 compartments, each ~620mm long x 275mm high. Anchor to the wall with the anti-topple kit.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1701922295/crusader/variants/40550228/Harper-Curved-Sideboard-Front_-1701922293.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1701922295/crusader/variants/40550228/Harper-Curved-Sideboard-Angle-1701922293.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1718587381/crusader/variants/40550228/Harper_Sideboard-With-Luna-Small-Wall-Mirror-Square-Set_1-1718587379.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "40550329",
+      "castleryVariantName": "Harper Curved Sideboard, Chestnut",
+      "sourceDimensions": "W180 x D50 x H80cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1706004438/crusader/variants/T41360026/Harper-Curved-Sideboard-Dim_-1706004436.jpg"
+    },
+    {
+      "key": "ashen-wood-sideboard-180",
+      "slug": "ashen-wood-sideboard",
+      "name": "Ashen Wood Sideboard",
+      "variant": "180cm, natural ash veneer",
+      "url": "https://www.castlery.com/uk/products/ashen-wood-sideboard?length=1_8m",
+      "category": "storage",
+      "role": "sideboard",
+      "mount": "floor",
+      "dims": {
+        "w": 1800,
+        "d": 480,
+        "h": 780
+      },
+      "detailDims": {
+        "legHeight": 130,
+        "bodyHeight": 650,
+        "shelfHeight": 260
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 1199,
+        "currency": "GBP"
+      },
+      "description": "Light natural ash-veneer sideboard with four panelled doors divided by slim reeded vertical battens, rounded corner posts and short curved solid-ash legs. Calm and Japandi-leaning.",
+      "geometryNotes": "Rectangular cabinet 1800x480 x 650mm tall on short rounded solid-ash legs (130mm) at the corners plus a centre leg. The vertical corner posts are rounded. Front: 4 push-to-open doors (each ~430mm wide) with raised frame-and-panel and vertical batten detailing. Interior: 4 cupboards of 810x330x260mm with adjustable shelves.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1758524240/crusader/variants/40280056/Ashen-Wood-Sideboard_-Front-1758524240.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1758524193/crusader/variants/40280056/Ashen-Wood-Sideboard_-Angle-1758524192.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1758524187/crusader/variants/40280056/Ashen-Wood-Sideboard_-Side-1758524187.jpg",
+          "kind": "cutout-side"
+        }
+      ],
+      "sku": "40280056",
+      "castleryVariantName": "Ashen Wood Sideboard, 180cm",
+      "sourceDimensions": "W180 x D48 x H78cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1756283236/crusader/variants/T40280056/Ashen-Papercord-Sideboard_-Dim-1756283236.jpg"
+    },
+    {
+      "key": "harper-small-sideboard-with-shelving-unit-chestnut",
+      "slug": "harper-small-sideboard-with-small-shelving-unit",
+      "name": "Harper Small Sideboard with Small Shelving Unit",
+      "variant": "Chestnut (sideboard 140cm + small shelving unit)",
+      "url": "https://www.castlery.com/uk/products/harper-small-sideboard-with-small-shelving-unit?color_option=chestnut_oak",
+      "category": "storage",
+      "role": "sideboard-with-hutch",
+      "mount": "floor",
+      "dims": {
+        "w": 1400,
+        "d": 500,
+        "h": 1970
+      },
+      "detailDims": {
+        "sideboardHeight": 800,
+        "sideboardDepth": 500,
+        "hutchWidth": 1330,
+        "hutchDepth": 420,
+        "hutchHeight": 1170,
+        "sideboardShelfHeight": 280,
+        "hutchShelfSpacing": 350
+      },
+      "soldAs": "set of 2 pieces",
+      "price": {
+        "amount": 1398,
+        "currency": "GBP"
+      },
+      "description": "Two-piece Harper storage wall in chestnut oak: a pill-shaped tambour-door sideboard on brass legs, topped by an open shelving unit with rounded, cantilevered shelves. Good for books, plants and dining ware.",
+      "geometryNotes": "Lower piece: Harper Small Sideboard 1400x500x800mm, a rounded-end cabinet with sliding tambour doors and 2 vertical brass bar handles, on 4 slim brass legs (~170mm). Inside are 2x2 cubbies with a shelf at 280mm. Upper piece: the Harper Small Shelving Unit (hutch) 1330x420x1170mm stands on the sideboard top. It has 2 vertical side frames and 3 stadium-shaped shelves (350mm spacing) whose rounded ends cantilever past the frames. Total height 1970mm. The hutch alone (£499) is not designed as a free-standing floor bookcase.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1746780603/crusader/variants/AS-000761/Harper-Small-Sideboard-With-Hutch-140cm-Chestnut-Front_1-1746780600.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1746780603/crusader/variants/AS-000761/Harper-Small-Sideboard-With-Hutch-140cm-Chestnut-Angle-1746780600.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1747791996/crusader/variants/AS-000761/Harper-Small-Sideboard-With-Hutch-140cm-Chestnut-Set_1-1747791995.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "AS-000761",
+      "castleryVariantName": "Harper Small Sideboard with Small Shelving Unit, Chestnut",
+      "sourceDimensions": "W140 x D50 x H197cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1748398980/crusader/variants/TAS-000761/Harper-Small-Sideboard-With-Hutch-140cm-Chestnut-Dim-1748398979.jpg"
+    },
+    {
+      "key": "posey-shelving-unit-natural",
+      "slug": "posey-shelving-unit",
+      "name": "Posey Shelving Unit",
+      "variant": "Natural Oak",
+      "url": "https://www.castlery.com/uk/products/posey-shelving-unit?color_option=light_oak",
+      "category": "storage",
+      "role": "bookcase",
+      "mount": "floor",
+      "dims": {
+        "w": 1600,
+        "d": 400,
+        "h": 1800
+      },
+      "detailDims": {
+        "shelfSpacing": 415
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 899,
+        "currency": "GBP"
+      },
+      "description": "Open bookcase in natural oak veneer with five stadium-shaped shelves with rounded ends, separated by staggered vertical panel dividers. Airy, curvy and gallery-like.",
+      "geometryNotes": "5 horizontal shelves, each 1600x400mm with fully rounded short ends (~25mm thick), spaced ~415mm apart. Between levels, vertical oak panels (~250-300mm wide) alternate between 2 outer panels on one level and 1 centre panel on the next. Open back. Anchor to the wall (anti-tip kit included).",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1723716725/crusader/variants/40550261/Posey-Shelf-Front-1723716723.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1723716725/crusader/variants/40550261/Posey-Shelf-Angle-1723716723.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1723716824/crusader/variants/40550261/Posey-Shelf-Square-Set_1-1723716822.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "40550319",
+      "castleryVariantName": "Posey Shelving Unit",
+      "sourceDimensions": "W160 x D40 x H180cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1725505339/crusader/variants/T40550261/Posey-Shelf-Dim-1725505337.jpg"
+    },
+    {
+      "key": "cora-wool-rug-caramel-229x274",
+      "slug": "cora-wool-area-rug",
+      "name": "Cora Wool Area Rug",
+      "variant": "Caramel, 229 x 274cm",
+      "url": "https://www.castlery.com/uk/products/cora-wool-area-rug?color_option=caramel&size=229x274cm",
+      "category": "rug",
+      "role": "rug",
+      "mount": "floor-covering",
+      "dims": {
+        "w": 2290,
+        "d": 2740,
+        "h": 18
+      },
+      "detailDims": {
+        "pileHeight": 12
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 579,
+        "currency": "GBP",
+        "listAmount": 649
+      },
+      "description": "Soft, loom-knotted wool-blend rug in warm caramel/toffee with a subtle tonal striation and a dense nubby knot pile.",
+      "geometryNotes": "Flat rectangle 2290x2740mm, 18mm thick (pile 12-13mm). Castlery quotes it as W229 x L274. Sizes: 153x244 / 229x274 / 274x366cm. 229x274 suits the lounge zone in a 2.98m-wide room; 274x366 would leave only ~120mm either side.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1713855936/crusader/variants/44230029/Cora-Area-Rug-7.5__x_9_-Caramel-1713855933.jpg",
+          "kind": "cutout-top"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1717669020/crusader/variants/44230029/Cora-Area-Rug-Caramel-Square-Set_1-1717669020.jpg",
+          "kind": "lifestyle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1713855938/crusader/variants/44230029/Cora-Area-Rug-Caramel-Square-Det_3-1713855935.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "44230029",
+      "castleryVariantName": "Cora Area Rug, Caramel, 229 x 274cm",
+      "sourceDimensions": "W229 x L274 x H1.8cm",
+      "alternativeSizes": [
+        {
+          "variant": "Cora Area Rug, Caramel, 153 x 244cm",
+          "url": "https://www.castlery.com/uk/products/cora-wool-area-rug?color_option=caramel&size=153x244cm",
+          "sku": "44230028",
+          "dims": {
+            "w": 1530,
+            "d": 2440,
+            "h": 18
+          },
+          "sourceDimensions": "W153 x L244 x H1.8cm",
+          "price": {
+            "amount": 399,
+            "currency": "GBP"
+          }
+        },
+        {
+          "variant": "Cora Area Rug, Caramel, 274 x 366cm",
+          "url": "https://www.castlery.com/uk/products/cora-wool-area-rug?color_option=caramel&size=274x366cm",
+          "sku": "44230030",
+          "dims": {
+            "w": 2740,
+            "d": 3660,
+            "h": 18
+          },
+          "sourceDimensions": "W274 x L366 x H1.8cm",
+          "price": {
+            "amount": 999,
+            "currency": "GBP"
+          }
+        }
+      ]
+    },
+    {
+      "key": "jana-jute-rug-229x274",
+      "slug": "jana-jute-area-rug",
+      "name": "Jana Jute Area Rug",
+      "variant": "Natural, 229 x 274cm",
+      "url": "https://www.castlery.com/uk/products/jana-jute-area-rug?size=229x274cm",
+      "category": "rug",
+      "role": "rug",
+      "mount": "floor-covering",
+      "dims": {
+        "w": 2290,
+        "d": 2740,
+        "h": 5
+      },
+      "detailDims": {},
+      "soldAs": "single",
+      "price": {
+        "amount": 559,
+        "currency": "GBP"
+      },
+      "description": "Flat-woven 100% jute rug in natural straw-gold, with a chunky handwoven texture. Earthy and hard-wearing, good under a dining table.",
+      "geometryNotes": "Flat rectangle 2290x2740mm, 5mm thick (flat weave). Sizes: 153x244 / 229x274 / 274x366cm. Under a 1800x950 table with the rug's long side along the table, 229x274 extends ~670mm past each long side and ~470mm past each end.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1765858577/crusader/variants/44230126/Jana-Jute-Area-Rug-229x274cm-Natural-Front_1-1765858574.jpg",
+          "kind": "cutout-top"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1768808563/crusader/variants/44230127/Jana-Jute-Area-Rug-Natural-Set_1-1768808561.jpg",
+          "kind": "lifestyle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1766046774/crusader/variants/44230127/Jana-Jute-Area-Rug-274x366cm-Natural-Det_1-1766046771.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "44230126",
+      "castleryVariantName": "Jana Jute Area Rug, Natural, 229 x 274cm",
+      "sourceDimensions": "W229 x L274 x H0.5cm",
+      "alternativeSizes": [
+        {
+          "variant": "Jana Jute Area Rug, Natural, 153 x 244cm",
+          "url": "https://www.castlery.com/uk/products/jana-jute-area-rug?size=153x244cm",
+          "sku": "44230125",
+          "dims": {
+            "w": 1530,
+            "d": 2440,
+            "h": 5
+          },
+          "sourceDimensions": "W153 x L244 x H0.5cm",
+          "price": {
+            "amount": 359,
+            "currency": "GBP"
+          }
+        },
+        {
+          "variant": "Jana Jute Area Rug, Natural, 274 x 366cm",
+          "url": "https://www.castlery.com/uk/products/jana-jute-area-rug?size=274x366cm",
+          "sku": "44230127",
+          "dims": {
+            "w": 2740,
+            "d": 3660,
+            "h": 5
+          },
+          "sourceDimensions": "W274 x L366 x H0.5cm",
+          "price": {
+            "amount": 859,
+            "currency": "GBP"
+          }
+        }
+      ]
+    },
+    {
+      "key": "inez-wool-rug-beige-153x244",
+      "slug": "inez-wool-area-rug",
+      "name": "Inez Wool Area Rug",
+      "variant": "Beige, 153 x 244cm",
+      "url": "https://www.castlery.com/uk/products/inez-wool-area-rug?color_option=inez_beige&size=153x244cm",
+      "category": "rug",
+      "role": "rug",
+      "mount": "floor-covering",
+      "dims": {
+        "w": 1530,
+        "d": 2440,
+        "h": 25
+      },
+      "detailDims": {},
+      "soldAs": "single",
+      "price": {
+        "amount": 399,
+        "currency": "GBP"
+      },
+      "description": "Chunky hand-woven 100% New Zealand wool rug in ivory/beige with a bobbly, knitted loop texture. Soft and cosy underfoot.",
+      "geometryNotes": "Flat rectangle 1530x2440mm, 25mm thick. Sizes: 153x244 / 229x274 / 274x366cm. The smallest size suits a reading corner or a narrow lounge rug (front legs off).",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1713856317/crusader/variants/44230031/Inez-Area-Rug_-5__x_8_-Beige-1713856314.jpg",
+          "kind": "cutout-top"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1783044330/pim/converting/1783044322803/Inez-Area-Rug-Beige-Square-Set_1.jpg",
+          "kind": "lifestyle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1716289545/crusader/variants/44230031/Inez-Area-Rug_-Beige-Square-Det_6-1716289542.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "44230031",
+      "castleryVariantName": "Inez Area Rug, Beige, 153 x 244cm",
+      "sourceDimensions": "W153 x L244 x H2.5cm",
+      "alternativeSizes": [
+        {
+          "variant": "Inez Area Rug, Beige, 229 x 274cm",
+          "url": "https://www.castlery.com/uk/products/inez-wool-area-rug?color_option=inez_beige&size=229x274cm",
+          "sku": "44230032",
+          "dims": {
+            "w": 2290,
+            "d": 2740,
+            "h": 25
+          },
+          "sourceDimensions": "W229 x L274 x H2.5cm",
+          "price": {
+            "amount": 649,
+            "currency": "GBP"
+          }
+        },
+        {
+          "variant": "Inez Area Rug, Beige, 274 x 366cm",
+          "url": "https://www.castlery.com/uk/products/inez-wool-area-rug?color_option=inez_beige&size=274x366cm",
+          "sku": "44230033",
+          "dims": {
+            "w": 2740,
+            "d": 3660,
+            "h": 25
+          },
+          "sourceDimensions": "W274 x L366 x H2.5cm",
+          "price": {
+            "amount": 999,
+            "currency": "GBP"
+          }
+        }
+      ]
+    },
+    {
+      "key": "blair-large-pendant",
+      "slug": "blair-large-pendant",
+      "name": "Blair Large Pendant",
+      "variant": "61cm diameter",
+      "url": "https://www.castlery.com/uk/products/blair-large-pendant?diameter=0_61m&quantity=single",
+      "category": "lighting",
+      "role": "pendant-light",
+      "mount": "ceiling",
+      "dims": {
+        "w": 610,
+        "d": 610,
+        "h": 2293
+      },
+      "detailDims": {
+        "shadeDiameter": 610,
+        "shadeHeightApprox": 450,
+        "maxCableLength": 1830,
+        "maxOverallDrop": 2293
+      },
+      "soldAs": "single (set of 2 also sold)",
+      "price": {
+        "amount": 209,
+        "currency": "GBP",
+        "listAmount": 299
+      },
+      "description": "Large tiered drum pendant handmade from natural jute and paper raffia in warm straw tones: three stacked open-weave bands with a solid woven middle drum, on a black cord and canopy.",
+      "geometryNotes": "Ceiling canopy (black, ~120mm diameter) with an adjustable cord. Castlery's 2293mm \"height\" is the maximum drop including 1830mm of cord. Shade ~450mm tall (inferred from drawing): a 610mm-diameter woven drum in the middle, flared bands above, and a narrower drum below. With a 2.4m ceiling, shorten the cord so the shade bottom sits ~750mm above the dining table (shade bottom ~1500mm from the floor). It must be hardwired.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1739777413/crusader/variants/PB-001591/Blair-Large-Pendant-Front-1739777411.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1750918546/crusader/variants/PB-001591/Blair-Large-Pendant-Square-Set_1-1750918544.jpg",
+          "kind": "lifestyle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1739777413/crusader/variants/PB-001591/Blair-Large-Pendant-Square-Det_3-1739777411.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "51240023",
+      "castleryVariantName": "Blair Large Pendant",
+      "sourceDimensions": "Φ61 x H229.3cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1741772559/crusader/variants/T51240024/Blair-Large-Pendant-Dim-1741772558.jpg"
+    },
+    {
+      "key": "faro-sculptural-floor-lamp",
+      "slug": "faro-sculptural-floor-lamp",
+      "name": "Faro Sculptural Floor Lamp",
+      "variant": "Standard (sand-textured off-white)",
+      "url": "https://www.castlery.com/uk/products/faro-sculptural-floor-lamp?quantity=single",
+      "category": "lighting",
+      "role": "floor-lamp",
+      "mount": "floor",
+      "dims": {
+        "w": 485,
+        "d": 485,
+        "h": 1690
+      },
+      "detailDims": {
+        "shadeDiameter": 485,
+        "baseDiameter": 250,
+        "baseHeight": 240
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 239,
+        "currency": "GBP"
+      },
+      "description": "Sculptural floor lamp with a stacked bead-and-bicone column in sand-textured off-white resin, on a drum base, topped with a cream fabric coolie (tapered) shade.",
+      "geometryNotes": "Cylinder base 250mm diameter x 240mm. A column of stacked spindle/bicone shapes (~80-120mm diameter) rises to ~1450mm. On top is a truncated-cone shade, 485mm across the bottom, ~200mm across the top and ~240mm tall (shade proportions inferred), with its top at 1690mm.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1697702564/crusader/variants/50230008/Faro-Sculptural-Floor-Lamp_1-1697702562.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1698222153/crusader/variants/50230008/Faro-Sculptural-Floor-Lamp_2-1698222150.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1699871090/crusader/variants/50230008/Faro-Sculptural-Floor-Lamp-Square-Set_2-1699871087.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "52240009",
+      "castleryVariantName": "Faro Sculptural Floor Lamp",
+      "sourceDimensions": "W48.5 x D48.5 x H169",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1698647274/crusader/variants/T50230009/Faro-Sculptural-Floor-Lamp-Dim-1698647273.jpg"
+    },
+    {
+      "key": "faro-table-lamp",
+      "slug": "faro-table-lamp",
+      "name": "Faro Table Lamp",
+      "variant": "53cm",
+      "url": "https://www.castlery.com/uk/products/faro-table-lamp?height=53cm&quantity=single",
+      "category": "lighting",
+      "role": "table-lamp",
+      "mount": "surface",
+      "dims": {
+        "w": 350,
+        "d": 350,
+        "h": 530
+      },
+      "detailDims": {
+        "shadeDiameter": 350
+      },
+      "soldAs": "single (set of 2 also sold)",
+      "price": {
+        "amount": 109,
+        "currency": "GBP"
+      },
+      "description": "Sculptural table lamp with a sand-textured off-white resin base of stacked bicones on a dome foot, under a cream fabric coolie shade. It matches the Faro floor lamp.",
+      "geometryNotes": "Sits on a surface such as a side table, console or sideboard. Dome foot ~180mm diameter; stacked bicone column ~100mm diameter up to ~300mm; truncated-cone shade 350mm across the bottom and ~200mm tall (inferred), with its top at 530mm.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1756370395/crusader/variants/52240024/Faro-Table-Lamp-Front_1-1756370393.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1756370395/crusader/variants/52240024/Faro-Table-Lamp-1756370393.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1760952420/crusader/variants/52240024/Faro-Table-Lamp-Square-Set_1-1760952418.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "52240024",
+      "castleryVariantName": "Faro Table Lamp",
+      "sourceDimensions": "W35 x D35 x H53cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1756795849/crusader/variants/T52240024/Faro-Table-Lamp-Front-Dim-1756795848.jpg"
+    },
+    {
+      "key": "auburn-footstool-chalk-boucle",
+      "slug": "auburn-performance-fabric-footstool",
+      "name": "Auburn Performance Fabric Footstool",
+      "variant": "Chalk Boucle",
+      "url": "https://www.castlery.com/uk/products/auburn-performance-fabric-footstool?material=chalk_boucle",
+      "category": "other",
+      "role": "ottoman",
+      "mount": "floor",
+      "dims": {
+        "w": 910,
+        "d": 665,
+        "h": 415
+      },
+      "detailDims": {
+        "seatHeight": 415,
+        "legHeight": 30
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 349,
+        "currency": "GBP"
+      },
+      "description": "Soft rounded-block footstool in chalk-white performance boucle that matches the Auburn sofas. It can slot against a sofa to form a lounger.",
+      "geometryNotes": "A single upholstered block 910x665 x 415mm with generously rounded edges and corners (radius ~100mm), on 30mm hidden glides. It is Auburn-modular, so it can butt up to the front of an Auburn sofa seat.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1683792677/crusader/variants/50440813-CB4001/Auburn-Performance-Boucle-Ottoman-Chalk-Front-1683792675.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1683792677/crusader/variants/50440813-CB4001/Auburn-Performance-Boucle-Ottoman-Chalk-Angle-1683792675.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1683793782/crusader/variants/50440813-CB4001/Auburn-Performance-Boucle-L-Shape-Sectional-Sofa-Chalk-Square-Det_1-1683793779.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "50440813-CB4001",
+      "castleryVariantName": "Auburn Performance Bouclé Footstool, Chalk",
+      "sourceDimensions": "W91 x D66.5 x H41.5cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1684315582/crusader/variants/T50440813/Auburn-Performance-Boucle-Ottoman-Chalk-Dim-1684315580.jpg"
+    },
+    {
+      "key": "nico-console-table",
+      "slug": "nico-console-table",
+      "name": "Nico Console Table",
+      "variant": "120cm",
+      "url": "https://www.castlery.com/uk/products/nico-console-table",
+      "category": "table",
+      "role": "console-table",
+      "mount": "floor",
+      "dims": {
+        "w": 1200,
+        "d": 380,
+        "h": 820
+      },
+      "detailDims": {
+        "topThickness": 41,
+        "legHeight": 779
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 449,
+        "currency": "GBP"
+      },
+      "description": "Slim console table in solid American oak with a dark chestnut lacquer. It has a rounded \"pebble\" top and three chunky slab legs placed at irregular, sculptural positions.",
+      "geometryNotes": "Top: rounded-rectangle slab 1200x380x41mm, top surface at 820mm. 3 vertical slab legs (~150mm wide x ~180mm deep, 779mm tall): one near each end and one just off-centre (dimensions inferred from drawing). Good behind a sofa or along the entry wall.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1779961021/pim/converting/1779961017237/Nico-Console-Table-120cm-Front.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1779961020/pim/converting/1779961017133/Nico-Console-Table-120cm-Angle.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1785392957/pim/converting/1785392953162/Nico-Console-Table-120cm-Set_1.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "41960057",
+      "castleryVariantName": "Nico Console Table, 120cm",
+      "sourceDimensions": "W120 x D38 x H82cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/upload/c_fit,f_auto,q_auto,w_1200/v1783324773/pim/converting/1783324773308/Nico-Console-Table-120cm-Dim.jpg"
+    },
+    {
+      "key": "faro-round-wall-mirror",
+      "slug": "faro-round-wall-mirror",
+      "name": "Faro Round Wall Mirror",
+      "variant": "75 x 75cm",
+      "url": "https://www.castlery.com/uk/products/faro-round-wall-mirror?size=75x75cm",
+      "category": "decor",
+      "role": "wall-mirror",
+      "mount": "wall",
+      "dims": {
+        "w": 750,
+        "d": 50,
+        "h": 750
+      },
+      "detailDims": {
+        "diameter": 750,
+        "depth": 50
+      },
+      "soldAs": "single",
+      "price": {
+        "amount": 209,
+        "currency": "GBP"
+      },
+      "description": "Round wall mirror with a thick, bobbled bead-like frame in raw off-white resin. Playful and sculptural, a soft counterpoint to all the wood.",
+      "geometryNotes": "A disc 750mm in diameter x 50mm deep hung on a wall. The frame ring is ~80-100mm wide (inferred), made of ~30 rounded beads; the mirror glass is ~560mm in diameter. Here w = diameter across the wall, d = depth off the wall, h = diameter. Hang its centre at ~1500mm, or above the sideboard or console.",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1768984160/crusader/variants/50630036/Faro-Round-Wall-Mirror-Front-1768984158.jpg",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1768984112/crusader/variants/50630036/Faro-Round-Wall-Mirror-Angle-1768984110.jpg",
+          "kind": "cutout-angle"
+        },
+        {
+          "url": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1768984107/crusader/variants/50630036/Faro-Round-Wall-Mirror-Set_1-1768984105.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "sku": "50630036",
+      "castleryVariantName": "Faro Round Wall Mirror",
+      "sourceDimensions": "Dia. 75 x D5cm",
+      "dimensionImage": "https://res.cloudinary.com/castlery/image/private/c_fit,f_auto,q_auto,w_1200/v1768985143/crusader/variants/T50630036/Faro-Round-Wall-Mirror-Dim-1768985142.jpg"
+    }
+  ]
+}
