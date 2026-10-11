@@ -1,0 +1,26 @@
+{
+  "name": "@roomer/e2e",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:headed": "playwright test --headed",
+    "e2e:report": "playwright show-report",
+    "lint": "eslint --max-warnings 0 .",
+    "format": "prettier --write --ignore-path ../../.prettierignore \"**/*.ts\"",
+    "format:check": "prettier --check --ignore-path ../../.prettierignore \"**/*.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@roomer/backend": "workspace:*",
+    "@roomer/eslint-config": "workspace:*",
+    "@roomer/typescript-config": "workspace:*",
+    "@types/node": "^22.20.5",
+    "convex": "1.46.0",
+    "eslint": "9.39.5",
+    "typescript": "5.9.3"
+  }
+}
