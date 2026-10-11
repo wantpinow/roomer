@@ -1,0 +1,7 @@
+{
+  // Editor config for files outside convex/. `pnpm typecheck` uses
+  // convex/tsconfig.json, which already includes tests/ and scripts/.
+  "extends": "./convex/tsconfig.json",
+  "include": ["convex/**/*", "tests/**/*", "scripts/**/*", "*.ts"],
+  "exclude": ["node_modules", "convex/_generated"]
+}

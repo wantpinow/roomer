@@ -1,0 +1,9 @@
+# Written by `convex dev` (anonymous local deployment): CONVEX_DEPLOYMENT + URLs
+.env.local
+
+# e2e Convex deployment: generated credentials + throwaway local database
+.env.e2e
+.convex-e2e/
+
+# Local deployment state (`convex dev` keeps the anonymous backend's data here)
+.convex/
