@@ -22,6 +22,11 @@ function ScrollArea({
         data-slot="scroll-area-viewport"
         className={cn(
           "size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-inset",
+          // Radix wraps content in `display: table; min-width: 100%`, which
+          // grows to the widest child, so long text never truncates and the
+          // list shifts sideways. Every scroll area here scrolls vertically
+          // only, so lay the wrapper out as a block at the viewport's width.
+          "[&>div]:block! [&>div]:min-w-0!",
           viewportClassName
         )}
       >
