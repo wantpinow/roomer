@@ -64,7 +64,8 @@ Editing in the plan:
 Walking:
 
 - [x] Walk mode mounts (spawn at eye height) and Escape returns to the plan — `walk.spec.ts`
-- [x] Walking into furniture stops at its surface and announces the bump — `walk.spec.ts`
+- [x] Walking into furniture stops at its surface; the physics records the bump and the UI shows
+      no "Bumped into …" message — `walk.spec.ts`
 - [x] Items too high to step onto stop you; a jump lands you on top (coffee table) —
       `walk.spec.ts`
 - [x] A six-footer walks under the ceiling beam; jumping under it hits it — `walk.spec.ts`

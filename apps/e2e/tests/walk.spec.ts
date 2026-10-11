@@ -12,13 +12,13 @@ import {
   openWorkspace,
   planView,
   stageCanvas,
-  toast,
   viewMode,
 } from "../fixtures/workspace"
 
 /**
  * Walk mode in the seeded living room, driven through the dev-only
- * `window.__roomerWalk` handle: the walker stops at furniture (and says so),
+ * `window.__roomerWalk` handle: the walker stops at furniture (a bump the
+ * physics reports, though the UI deliberately stays quiet about it),
  * jumps onto a coffee table, and a six-footer walks under the ceiling beam
  * that a jump would hit. Positions come from the seeded layout, so the
  * expectations follow the data rather than hard-coded coordinates.
@@ -93,7 +93,7 @@ test("walk mode mounts and Escape leaves it", async ({ page, livingRoom }) => {
     .toBe(false)
 })
 
-test("walking into the sofa stops at its front and reports the bump", async ({
+test("walking into the sofa stops at its front, quietly", async ({
   page,
   livingRoom,
 }) => {
@@ -113,8 +113,10 @@ test("walking into the sofa stops at its front and reports the bump", async ({
   expect(result.end.grounded).toBe(true)
   expect(result.bumps.map((b) => b.bumped)).toEqual(["sofa"])
   expect(result.bumps[0]).toMatchObject({ kind: "placement", label: sofa.name })
-  // The stage announces it.
-  await expect(toast(page, `Bumped into ${sofa.name}`)).toBeVisible()
+  // Collisions are felt, not announced: let a few frames pass, then check
+  // nothing on the page talks about the bump.
+  await page.waitForTimeout(300)
+  await expect(page.getByText(/Bumped into/)).toHaveCount(0)
 })
 
 test("a jump lands the walker on the coffee table", async ({
