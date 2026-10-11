@@ -1,5 +1,8 @@
+import { LIFT_LARGE_MM, LIFT_MM } from "./elevation"
+
 // Keyboard editing of the selection on the plan:
 //   arrows      nudge 10mm (Shift: 100mm), up = up the page (−z)
+//   Alt+↑ / ↓   raise / lower 10mm (Shift: 100mm)
 //   R / ⇧R      one item: turn 15° clockwise / anticlockwise;
 //               a group: turn 90° / 15° clockwise about its centre
 //   Delete, ⌫   remove
@@ -21,6 +24,8 @@ export interface KeyInput {
 
 export type PlanKeyAction =
   | { kind: "nudge"; dx: number; dz: number }
+  /** Raise (+) or lower (−) by `dy` mm. */
+  | { kind: "lift"; dy: number }
   | { kind: "rotate"; degrees: number }
   | { kind: "remove" }
   | { kind: "deselect" }
@@ -43,6 +48,16 @@ export function planKeyAction(
 ): PlanKeyAction | null {
   if ((event.metaKey || event.ctrlKey) && !event.altKey) {
     return event.key === "a" || event.key === "A" ? { kind: "selectAll" } : null
+  }
+  if (
+    event.altKey &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    (event.key === "ArrowUp" || event.key === "ArrowDown")
+  ) {
+    if (selected === 0) return null
+    const step = event.shiftKey ? LIFT_LARGE_MM : LIFT_MM
+    return { kind: "lift", dy: event.key === "ArrowUp" ? step : -step }
   }
   // Leave other browser and OS shortcuts (Alt+…) alone.
   if (event.metaKey || event.ctrlKey || event.altKey) return null

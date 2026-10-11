@@ -51,6 +51,26 @@ describe("planKeyAction", () => {
     })
   })
 
+  it("raises and lowers with Alt+↑/↓, 100mm with Shift", () => {
+    expect(planKeyAction({ key: "ArrowUp", altKey: true }, 1)).toEqual({
+      kind: "lift",
+      dy: 10,
+    })
+    expect(planKeyAction({ key: "ArrowDown", altKey: true }, 3)).toEqual({
+      kind: "lift",
+      dy: -10,
+    })
+    expect(
+      planKeyAction({ key: "ArrowUp", altKey: true, shiftKey: true }, 1)
+    ).toEqual({ kind: "lift", dy: 100 })
+    expect(
+      planKeyAction({ key: "ArrowDown", altKey: true, shiftKey: true }, 2)
+    ).toEqual({ kind: "lift", dy: -100 })
+    expect(planKeyAction({ key: "ArrowUp", altKey: true }, 0)).toBeNull()
+    // Alt+←/→ stay with the browser.
+    expect(planKeyAction({ key: "ArrowLeft", altKey: true }, 1)).toBeNull()
+  })
+
   it("removes with Delete or Backspace", () => {
     expect(planKeyAction({ key: "Delete" }, 1)).toEqual({ kind: "remove" })
     expect(planKeyAction({ key: "Backspace" }, 2)).toEqual({ kind: "remove" })
@@ -79,7 +99,9 @@ describe("planKeyAction", () => {
   it("leaves other shortcuts and keys alone", () => {
     expect(planKeyAction({ key: "ArrowLeft", metaKey: true }, 1)).toBeNull()
     expect(planKeyAction({ key: "r", ctrlKey: true }, 1)).toBeNull()
-    expect(planKeyAction({ key: "ArrowUp", altKey: true }, 1)).toBeNull()
+    expect(
+      planKeyAction({ key: "ArrowUp", altKey: true, metaKey: true }, 1)
+    ).toBeNull()
     expect(
       planKeyAction({ key: "a", metaKey: true, altKey: true }, 1)
     ).toBeNull()

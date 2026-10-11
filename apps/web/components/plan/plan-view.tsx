@@ -13,6 +13,7 @@ import type {
 import { cn } from "@roomer/ui/lib/utils"
 
 import { SeverityIcon } from "@/components/common/severity-icon"
+import { elevationBadge } from "@/lib/plan-edit/elevation"
 import {
   groupBounds,
   idsInRect,
@@ -63,6 +64,17 @@ export interface PlanGhost {
   snap: SnapTarget
 }
 
+/**
+ * A caption pinned beside some items on the plan — while their height
+ * changes: what they are, how high, and the worst issue it causes.
+ */
+export interface PlanCaption {
+  ids: readonly string[]
+  title: string
+  detail: string
+  issue?: { code: string; message: string; severity: LintSeverity }
+}
+
 /** Placing mode: a ghost follows the pointer and a click puts it down. */
 export interface PlanPlacing {
   assetId: string
@@ -107,6 +119,8 @@ export interface PlanViewProps {
   onKeyAction?: (action: PlanKeyAction) => void
   /** When set, the plan is placing a new item instead of editing. */
   placing?: PlanPlacing | null
+  /** Pinned beside its items (see `PlanCaption`). */
+  caption?: PlanCaption | null
   className?: string
 }
 
@@ -153,8 +167,10 @@ type Gesture =
  * - dragging an item moves it (its centre on the 10mm grid; Alt for free);
  *   dragging any item of a multi-selection moves the whole group by one
  *   snapped offset;
- * - with a selection, the keyboard nudges, turns and removes it (⌘A selects
- *   all, Esc clears);
+ * - with a selection, the keyboard nudges, raises/lowers (Alt+↑/↓), turns
+ *   and removes it (⌘A selects all, Esc clears);
+ * - raised items carry a small "↑ 800" badge, and a caption can be pinned
+ *   beside items (their height while it changes, and the worst issue);
  * - Space+drag or middle-drag pans; scroll pans; ⌃/pinch-scroll zooms.
  *
  * In placing mode a ghost of the new item follows the pointer (or an asset
@@ -184,6 +200,7 @@ export function PlanView({
   onDrop,
   onKeyAction,
   placing = null,
+  caption = null,
   className,
 }: PlanViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -554,6 +571,14 @@ export function PlanView({
       : null
   /** mm per screen pixel right now (0 until measured). */
   const mmPerPx = fit > 0 ? 1 / (fit * viewport.zoom) : 0
+  const elevations = new Map(placements.map((p) => [p.id, p.elevation]))
+  const captionBounds = caption
+    ? groupBounds(
+        footprints
+          .filter((f) => caption.ids.includes(f.id))
+          .map((f) => f.outline)
+      )
+    : null
 
   return (
     <div
@@ -563,7 +588,7 @@ export function PlanView({
       data-placing={placing?.assetId}
       data-selected-count={selectedIds.length || undefined}
       role="application"
-      aria-label="Floor plan. Click an item to select it (Shift+click to add), drag on the floor to select several, drag to move; arrows nudge, R turns, Delete removes, Escape clears. Space+drag pans."
+      aria-label="Floor plan. Click an item to select it (Shift+click to add), drag on the floor to select several, drag to move; arrows nudge, Alt+Up and Alt+Down raise and lower, R turns, Delete removes, Escape clears. Space+drag pans."
       tabIndex={0}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -680,6 +705,24 @@ export function PlanView({
                 </g>
               )
             })}
+            {mmPerPx > 0
+              ? footprints.map((f) => {
+                  const badge =
+                    f.mount === "ceiling"
+                      ? null
+                      : elevationBadge(elevations.get(f.id) ?? 0)
+                  return badge ? (
+                    <ElevationBadge
+                      key={f.id}
+                      id={f.id}
+                      label={badge}
+                      outline={f.outline}
+                      selected={selectedSet.has(f.id)}
+                      mmPerPx={mmPerPx}
+                    />
+                  ) : null
+                })
+              : null}
             {group && mmPerPx > 0 ? (
               <GroupFrame
                 bounds={group}
@@ -700,6 +743,13 @@ export function PlanView({
               />
             ) : null}
             {placing?.ghost ? <GhostShape ghost={placing.ghost} /> : null}
+            {caption && captionBounds && mmPerPx > 0 ? (
+              <ItemCaption
+                caption={caption}
+                bounds={captionBounds}
+                mmPerPx={mmPerPx}
+              />
+            ) : null}
           </svg>
         </div>
       </div>
@@ -769,6 +819,116 @@ function GroupFrame({
           {label}
         </text>
       </g>
+    </g>
+  )
+}
+
+/**
+ * "↑ 800" just above a raised item's top-right corner, so height shows on
+ * the plan; sized in screen pixels whatever the zoom.
+ */
+function ElevationBadge({
+  id,
+  label,
+  outline,
+  selected,
+  mmPerPx,
+}: {
+  id: string
+  label: string
+  outline: readonly Point[]
+  selected: boolean
+  mmPerPx: number
+}) {
+  const right = Math.max(...outline.map(([x]) => x))
+  const top = Math.min(...outline.map(([, z]) => z))
+  const width = 10 + label.length * 5.4
+  return (
+    <g
+      data-slot="plan-elevation"
+      data-id={id}
+      className="pointer-events-none"
+      transform={`translate(${right} ${top}) scale(${mmPerPx})`}
+    >
+      <rect
+        x={-width + 6}
+        y={-17}
+        width={width}
+        height={14}
+        rx={3}
+        className={
+          selected
+            ? "fill-clay-tint stroke-clay/40"
+            : "fill-popover stroke-rule"
+        }
+        strokeWidth={1}
+        vectorEffect="non-scaling-stroke"
+      />
+      <text
+        x={-width / 2 + 6}
+        y={-6.8}
+        textAnchor="middle"
+        fontSize={9}
+        className={cn(
+          "font-mono tabular-nums",
+          selected ? "fill-clay" : "fill-ink-soft"
+        )}
+      >
+        {label}
+      </text>
+    </g>
+  )
+}
+
+/**
+ * The height caption, pinned by the items' top-right corner: the items,
+ * how high, and the worst issue (like the placing ghost's caption).
+ */
+function ItemCaption({
+  caption,
+  bounds,
+  mmPerPx,
+}: {
+  caption: PlanCaption
+  bounds: PlanRect
+  mmPerPx: number
+}) {
+  return (
+    <g
+      className="pointer-events-none"
+      transform={`translate(${bounds.maxX} ${bounds.minZ}) scale(${mmPerPx})`}
+    >
+      <foreignObject x={16} y={-10} width={300} height={160} overflow="visible">
+        <div
+          data-slot="plan-item-caption"
+          data-severity={caption.issue?.severity ?? "none"}
+          className="flex w-fit max-w-72 flex-col gap-0.5 rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs shadow-float"
+        >
+          <span className="truncate font-medium text-foreground">
+            {caption.title}
+          </span>
+          <span className="text-2xs text-muted-foreground">
+            {caption.detail}
+          </span>
+          {caption.issue ? (
+            <span className="flex items-start gap-1.5 pt-0.5 text-2xs leading-snug text-ink-soft">
+              <span className="flex h-4 items-center">
+                <SeverityIcon
+                  severity={caption.issue.severity}
+                  size={8}
+                  label={false}
+                />
+              </span>
+              <span className="line-clamp-2">
+                <span className="font-mono text-muted-foreground">
+                  {caption.issue.code}
+                </span>{" "}
+                {caption.issue.message}
+              </span>
+            </span>
+          ) : null}
+        </div>
+      </foreignObject>
     </g>
   )
 }

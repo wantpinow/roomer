@@ -27,6 +27,7 @@ import {
 import { SeverityIcon } from "@/components/common/severity-icon"
 import {
   PlanView,
+  type PlanCaption,
   type PlanDrag,
   type PlanPlacing,
 } from "@/components/plan/plan-view"
@@ -42,6 +43,7 @@ import { formatNumber } from "@roomer/core/geometry"
 import { Price } from "@/components/common/price"
 import { formatPosition } from "@/lib/format/position"
 import { totalPrice } from "@/lib/format/price"
+import { elevationBadge } from "@/lib/plan-edit/elevation"
 import type { PlanKeyAction } from "@/lib/plan-edit/keyboard"
 import {
   FIT_VIEWPORT,
@@ -97,6 +99,7 @@ export function WorkspaceStage({
   onDrag,
   onDrop,
   onKeyAction,
+  planCaption,
   placing,
   picker,
   pickerOpen,
@@ -123,6 +126,8 @@ export function WorkspaceStage({
   onDrag: (drag: PlanDrag | null) => void
   onDrop: (drag: PlanDrag) => void
   onKeyAction: (action: PlanKeyAction) => void
+  /** Pinned beside items on the plan while their height changes. */
+  planCaption?: PlanCaption | null
   /** Placing a new item (plan mode only). */
   placing: PlanPlacing | null
   /** The add-item picker, docked in the stage while open. */
@@ -211,6 +216,7 @@ export function WorkspaceStage({
         onDrag={onDrag}
         onDrop={onDrop}
         onKeyAction={onKeyAction}
+        caption={planCaption}
         placing={placing}
       />
     )
@@ -354,7 +360,7 @@ export function WorkspaceStage({
         ) : mode === "plan" && selectedPlacements.length > 1 ? (
           <FloatingBar
             data-slot="group-hint"
-            className="gap-2.5 rounded-md py-1.5 pr-1.5 pl-3 text-xs text-ink-soft"
+            className="gap-2.5 rounded-md py-1.5 pr-1.5 pl-3 text-xs whitespace-nowrap text-ink-soft"
           >
             <span className="font-medium text-foreground tabular-nums">
               {selectedPlacements.length} selected
@@ -369,6 +375,9 @@ export function WorkspaceStage({
             <span className="flex items-center gap-1 text-2xs text-muted-foreground">
               <Kbd>←</Kbd>
               <Kbd>→</Kbd> nudge
+            </span>
+            <span className="flex items-center gap-1 text-2xs text-muted-foreground">
+              <Kbd>⌥↑↓</Kbd> height
             </span>
             <span className="flex items-center gap-1 text-2xs text-muted-foreground">
               <Kbd>R</Kbd> turn 90°
@@ -386,13 +395,24 @@ export function WorkspaceStage({
             </Button>
           </FloatingBar>
         ) : mode === "plan" && selected ? (
-          <FloatingBar className="gap-2.5 rounded-md py-1.5 pr-3 pl-3 text-xs text-ink-soft">
+          <FloatingBar
+            data-slot="item-hint"
+            className="gap-2.5 rounded-md py-1.5 pr-3 pl-3 text-xs whitespace-nowrap text-ink-soft"
+          >
             <span className="max-w-48 truncate font-medium text-foreground">
               {labels[selected.id] ?? selected.id}
             </span>
+            {selected.elevation > 0 ? (
+              <span className="font-mono text-2xs text-muted-foreground tabular-nums">
+                {elevationBadge(selected.elevation)}
+              </span>
+            ) : null}
             <span className="flex items-center gap-1 text-2xs text-muted-foreground">
               <Kbd>←</Kbd>
               <Kbd>→</Kbd> nudge
+            </span>
+            <span className="flex items-center gap-1 text-2xs text-muted-foreground">
+              <Kbd>⌥↑↓</Kbd> height
             </span>
             <span className="flex items-center gap-1 text-2xs text-muted-foreground">
               <Kbd>R</Kbd> turn

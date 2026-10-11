@@ -3,7 +3,7 @@
 import { useQuery } from "convex-helpers/react/cache"
 import { ArrowLeftIcon, CompassIcon } from "lucide-react"
 import Link from "next/link"
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import { api } from "@roomer/backend/convex/_generated/api"
 import { toRoomGeometry } from "@roomer/core/geometry"
@@ -16,8 +16,9 @@ import { ActivityFeed } from "@/components/activity/activity-feed"
 import { LintCounts } from "@/components/common/lint-counts"
 import { issueKey } from "@/components/issues/issue-row"
 import { IssueList } from "@/components/issues/issue-list"
+import { ElevationControl } from "@/components/items/elevation-control"
 import { ItemList } from "@/components/items/item-list"
-import type { PlanDrag } from "@/components/plan/plan-view"
+import type { PlanCaption, PlanDrag } from "@/components/plan/plan-view"
 import { Inspector, type InspectorTab } from "@/components/workspace/inspector"
 import { StageCaption } from "@/components/workspace/stage-caption"
 import type { ViewMode } from "@/components/workspace/view-mode-control"
@@ -28,6 +29,16 @@ import { useNow } from "@/hooks/use-now"
 import { useRecentAssets } from "@/hooks/use-recent-assets"
 import { useSafeQuery } from "@/hooks/use-safe-query"
 import { useSearchParam } from "@/hooks/use-search-param"
+import {
+  describeHeight,
+  heightKind,
+  heightSelection,
+  liftOps,
+  setElevationOps,
+  supportSurfaces,
+  withElevation,
+  type PlacedThing,
+} from "@/lib/plan-edit/elevation"
 import type { PlanKeyAction } from "@/lib/plan-edit/keyboard"
 import {
   EMPTY_SELECTION,
@@ -63,6 +74,11 @@ import { LayoutsRail } from "./layouts-rail"
 import { RendersPanel } from "./renders-panel"
 import { useItemPlacing } from "./use-item-placing"
 import { WorkspaceStage } from "./workspace-stage"
+
+/** How long the height caption stays up after a change. */
+const HEIGHT_CAPTION_MS = 2500
+/** "Rest on…" offers at most this many surfaces. */
+const MAX_SUPPORTS = 3
 
 /**
  * /rooms/[roomId]: the live workspace. Everything is a Convex query, so the
@@ -109,6 +125,29 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
   const [selectedIssueKey, setSelectedIssueKey] = useState<string>()
   const [drag, setDrag] = useState<PlanDrag | null>(null)
   const dragRevision = useRef<number | undefined>(undefined)
+  // Items whose height is changing: a live preview while a height is typed,
+  // then a note that keeps their caption (and local lint) up for a moment
+  // after each change.
+  const [heightFocus, setHeightFocus] = useState<{
+    ids: readonly string[]
+    preview?: number
+  } | null>(null)
+  const heightTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  )
+  useEffect(() => () => clearTimeout(heightTimer.current), [])
+  const noteHeight = (ids: readonly string[]) => {
+    clearTimeout(heightTimer.current)
+    setHeightFocus({ ids })
+    heightTimer.current = setTimeout(
+      () => setHeightFocus(null),
+      HEIGHT_CAPTION_MS
+    )
+  }
+  const previewHeight = (ids: readonly string[], elevation: number | null) => {
+    clearTimeout(heightTimer.current)
+    setHeightFocus(elevation === null ? null : { ids, preview: elevation })
+  }
 
   const geometry = useMemo(() => (room ? toRoomGeometry(room) : null), [room])
   const assets = useMemo(
@@ -116,19 +155,24 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
     [layout]
   )
   const serverPlacements = useMemo(() => layout?.placements ?? [], [layout])
-  const placements = useMemo(
-    () =>
-      drag
-        ? withOffsets(serverPlacements, drag.ids, drag.dx, drag.dz)
-        : serverPlacements,
-    [drag, serverPlacements]
-  )
-  // While dragging, lint the preview locally for live feedback; otherwise
-  // show the server's report.
+  const placements = useMemo(() => {
+    if (drag) return withOffsets(serverPlacements, drag.ids, drag.dx, drag.dz)
+    if (heightFocus?.preview !== undefined) {
+      return withElevation(
+        serverPlacements,
+        heightFocus.ids,
+        heightFocus.preview
+      )
+    }
+    return serverPlacements
+  }, [drag, heightFocus, serverPlacements])
+  // While dragging or changing heights, lint locally for live feedback
+  // (including the optimistic result, before the server's report lands);
+  // otherwise show the server's report.
   const lint = useMemo(() => {
-    if (!drag || !geometry) return layout?.lint
+    if ((!drag && !heightFocus) || !geometry) return layout?.lint
     return lintLayout({ room: geometry, placements, assets })
-  }, [drag, geometry, placements, assets, layout?.lint])
+  }, [drag, heightFocus, geometry, placements, assets, layout?.lint])
 
   const labels = useMemo(
     () => entityLabels(layout ?? undefined, room?.features ?? []),
@@ -157,6 +201,32 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
   )
   const selectOnly = (id: string | null) =>
     setSelection(id ? selectionOf([id]) : EMPTY_SELECTION)
+
+  // The selection's height: the inspector's control, Alt+↑/↓.
+  const things = useMemo(
+    () =>
+      serverPlacements.flatMap((placement): PlacedThing[] => {
+        const asset = assets[placement.assetId]
+        return asset
+          ? [{ placement, asset, name: labels[placement.id] ?? placement.id }]
+          : []
+      }),
+    [serverPlacements, assets, labels]
+  )
+  const selectedThings = useMemo(
+    () => things.filter((t) => selection[t.placement.id]),
+    [things, selection]
+  )
+  const height = useMemo(
+    () => heightSelection(selectedThings),
+    [selectedThings]
+  )
+  const supports = useMemo(() => {
+    const [only] = selectedThings
+    if (selectedThings.length !== 1 || !only) return []
+    if (heightKind(only.asset.mount) !== "floor") return []
+    return supportSurfaces(only, things).slice(0, MAX_SUPPORTS)
+  }, [selectedThings, things])
   const selectedIssue: LintIssue | undefined = lint?.issues.find(
     (issue) => issueKey(issue) === selectedIssueKey
   )
@@ -190,6 +260,8 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
 
   const selectLayout = (id: string) => {
     selectOnly(null)
+    clearTimeout(heightTimer.current)
+    setHeightFocus(null)
     setSelectedIssueKey(undefined)
     setHoverIds([])
     setRequestedLayout(id)
@@ -231,6 +303,71 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
     [serverPlacements, assets]
   )
 
+  const heightOps = (ops: ReturnType<typeof liftOps>) => {
+    if (ops.length > 0) {
+      void editor.apply(ops, { expectedRevision: layout?.revision })
+    }
+  }
+  const byIds = (ids: readonly string[]) =>
+    serverPlacements.filter((p) => ids.includes(p.id))
+  /** Raise or lower the selection as one piece (stopping at the floor). */
+  const liftBy = (dy: number) => {
+    if (!height) return
+    noteHeight(height.ids.length > 0 ? height.ids : selected)
+    heightOps(liftOps(byIds(height.ids), dy))
+  }
+  const setHeight = (elevation: number) => {
+    if (!height) return
+    noteHeight(height.ids)
+    heightOps(setElevationOps(byIds(height.ids), elevation))
+  }
+  const putOnFloor = () => {
+    if (!height) return
+    noteHeight(height.ids)
+    heightOps(setElevationOps(byIds(height.raised), 0))
+  }
+  const restOn = (supportId: string) => {
+    const surface = supports.find((s) => s.id === supportId)
+    const [only] = selectedThings
+    if (!surface || !only) return
+    noteHeight([only.placement.id])
+    heightOps(setElevationOps([only.placement], surface.elevation))
+  }
+
+  // Beside the items while their height changes: how high, and the worst
+  // issue it causes (from the local lint).
+  const heightCaption = useMemo<PlanCaption | null>(() => {
+    if (!heightFocus) return null
+    const ids = new Set(heightFocus.ids)
+    const focused = placements.flatMap((placement) => {
+      const asset = assets[placement.assetId]
+      return ids.has(placement.id) && asset ? [{ placement, asset }] : []
+    })
+    const summary = heightSelection(focused)
+    if (!summary) return null
+    const issue = lint?.issues.find((i) =>
+      i.placementIds.some((id) => ids.has(id))
+    )
+    const [first] = focused
+    return {
+      ids: heightFocus.ids,
+      title:
+        focused.length === 1 && first
+          ? (labels[first.placement.id] ?? first.placement.id)
+          : `${focused.length} items`,
+      detail: describeHeight(summary),
+      ...(issue
+        ? {
+            issue: {
+              code: issue.code,
+              message: issue.message,
+              severity: issue.severity,
+            },
+          }
+        : {}),
+    }
+  }, [heightFocus, placements, assets, lint, labels])
+
   const onKeyAction = (action: PlanKeyAction) => {
     if (action.kind === "deselect") {
       selectOnly(null)
@@ -252,6 +389,10 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
           : `${group.length} items`,
         expectedRevision
       )
+      return
+    }
+    if (action.kind === "lift") {
+      liftBy(action.dy)
       return
     }
     if (action.kind === "nudge") {
@@ -356,6 +497,7 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
             onDrag={onDrag}
             onDrop={onDrop}
             onKeyAction={onKeyAction}
+            planCaption={heightCaption}
             placing={mode === "plan" ? placingItem.placing : null}
             pickerOpen={pickerOpen}
             onAddItem={openPicker}
@@ -447,6 +589,26 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
                 }
               }}
               onClearSelection={() => selectOnly(null)}
+              selectionDetails={
+                height ? (
+                  <ElevationControl
+                    key={selected.join(" ")}
+                    kind={height.kind}
+                    value={height.value}
+                    centre={height.centre}
+                    canLower={height.canLower}
+                    canFloor={height.raised.length > 0}
+                    supports={supports}
+                    onLift={liftBy}
+                    onSet={setHeight}
+                    onPreview={(elevation) =>
+                      previewHeight(height.ids, elevation)
+                    }
+                    onFloor={putOnFloor}
+                    onRest={restOn}
+                  />
+                ) : null
+              }
               onHover={(id) => setHoverIds(id ? [id] : [])}
             />
           }
