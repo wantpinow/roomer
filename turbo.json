@@ -1,0 +1,56 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalDependencies": [
+    ".prettierrc",
+    ".prettierignore",
+    "packages/ui/src/styles/globals.css"
+  ],
+  "globalEnv": [
+    "SKIP_ENV_VALIDATION",
+    "NODE_ENV",
+    "CI",
+    "CONVEX_CLOUD_URL",
+    "CONVEX_URL",
+    "AI_GATEWAY_API_KEY",
+    "PHOTOREAL_STUB",
+    "E2E_TESTING",
+    "E2E_TESTING_ENABLED",
+    "E2E_BASE_URL",
+    "E2E_CONVEX_URL",
+    "E2E_CONVEX_PORT",
+    "E2E_CONVEX_SITE_PORT",
+    "E2E_RESET",
+    "E2E_PHOTOREAL_LIVE"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md", "!**/*.yaml", "!**/*.yml"],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md", "!**/*.yaml", "!**/*.yml"]
+    },
+    "format": {
+      "dependsOn": ["^format"],
+      "cache": false
+    },
+    "format:check": {
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md", "!**/*.yaml", "!**/*.yml"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md", "!**/*.yaml", "!**/*.yml"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md", "!**/*.yaml", "!**/*.yml"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "@roomer/eslint-config",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "eslint --max-warnings 0 .",
+    "format": "prettier --write --ignore-path ../../.prettierignore \"**/*.js\"",
+    "format:check": "prettier --check --ignore-path ../../.prettierignore \"**/*.js\"",
+    "test": "vitest run"
+  },
+  "exports": {
+    "./base": "./base.js",
+    "./next-js": "./next.js",
+    "./react-internal": "./react-internal.js",
+    "./rules/*": "./rules/*"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@next/eslint-plugin-next": "16.3.8",
+    "@typescript-eslint/parser": "^8.71.1",
+    "eslint": "9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-only-warn": "^1.2.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-turbo": "2.8.21",
+    "globals": "^17.13.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "4.1.11"
+  }
+}

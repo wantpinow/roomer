@@ -1,13 +1,31 @@
 {
   "name": "roomer",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.0.1",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "format": "turbo format",
+    "format:check": "turbo format:check",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "seed": "pnpm --filter @roomer/backend seed",
+    "e2e": "pnpm --filter @roomer/e2e e2e",
+    "e2e:ui": "pnpm --filter @roomer/e2e e2e:ui",
+    "mcp": "pnpm --filter web mcp"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.11.0"
+  "devDependencies": {
+    "@roomer/eslint-config": "workspace:*",
+    "@roomer/typescript-config": "workspace:*",
+    "prettier": "3.8.5",
+    "prettier-plugin-tailwindcss": "0.7.4",
+    "tsx": "4.23.15",
+    "turbo": "2.8.21",
+    "typescript": "5.9.3"
+  },
+  "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=22"
+  }
 }

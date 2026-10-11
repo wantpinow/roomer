@@ -1,0 +1,10 @@
+{
+  "name": "@roomer/typescript-config",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "format": "prettier --write --ignore-path ../../.prettierignore \"**/*.json\"",
+    "format:check": "prettier --check --ignore-path ../../.prettierignore \"**/*.json\""
+  }
+}
