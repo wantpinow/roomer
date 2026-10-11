@@ -3,7 +3,12 @@ import { formatMm } from "../../geometry/format"
 import { ensureClockwiseOnPlan } from "../../geometry/polygon"
 import { localRectToPlan } from "../../geometry/transform"
 import { dot } from "../../geometry/vec"
-import type { Clearance, LintIssue } from "../../schema"
+import {
+  assetClearanceZones,
+  SIDE_DIRECTIONS,
+  type ClearanceSide,
+} from "../../assets/clearance"
+import type { LintIssue } from "../../schema"
 import {
   makeSolid,
   type LintContext,
@@ -30,16 +35,21 @@ import { penetrations } from "./room"
 // W102: the space an item needs beside it (legroom in front of a sofa, room
 // to pull a chair out or open a sideboard's doors) must be free of other
 // furniture, obstacles and walls, and reachable from a door along a route
-// at least clearanceReachMinMm wide.
+// at least clearanceReachMinMm wide. The zones are the asset's
+// `clearanceZones` when it has them, else strips along its bounding box's
+// `clearance` sides (see assets/clearance.ts).
 
-export type ClearanceSide = keyof Clearance
-
-const SIDES: ClearanceSide[] = ["front", "back", "left", "right"]
+export type { ClearanceSide }
 
 export interface ClearanceZone {
   item: LintItem
   side: ClearanceSide
+  /** The asset's zone name (custom zones only). */
+  name?: string
+  /** How far the zone reaches out from the item, mm. */
   depth: number
+  /** Its size across and out (custom zones only), mm. */
+  size?: { width: number; depth: number }
   solid: Solid
   /** Unit plan direction from the item out into the zone. */
   outward: Point
@@ -47,13 +57,7 @@ export interface ClearanceZone {
 
 /** Outward unit normal of an item side on the plan (handles mirroring). */
 export function sideNormal(item: LintItem, side: ClearanceSide): Point {
-  const local: Record<ClearanceSide, Point> = {
-    front: [0, 1],
-    back: [0, -1],
-    left: [-1, 0],
-    right: [1, 0],
-  }
-  const [lx, lz] = local[side]
+  const [lx, lz] = SIDE_DIRECTIONS[side]
   const origin = item.transform.toPlan(0, 0)
   const tip = item.transform.toPlan(lx, lz)
   return [tip[0] - origin[0], tip[1] - origin[1]]
@@ -62,28 +66,23 @@ export function sideNormal(item: LintItem, side: ClearanceSide): Point {
 export function clearanceZones(ctx: LintContext): ClearanceZone[] {
   const zones: ClearanceZone[] = []
   for (const item of ctx.items) {
-    const clearance = item.asset.clearance
-    if (!clearance || item.covering) continue
-    const { min, max } = item.local
-    for (const side of SIDES) {
-      const depth = clearance[side] ?? 0
-      if (depth <= 0) continue
-      const rect: Record<ClearanceSide, [number, number, number, number]> = {
-        front: [min[0], max[2], max[0], max[2] + depth],
-        back: [min[0], min[2] - depth, max[0], min[2]],
-        left: [min[0] - depth, min[2], min[0], max[2]],
-        right: [max[0], min[2], max[0] + depth, max[2]],
-      }
-      const [x0, z0, x1, z1] = rect[side]
+    if (item.covering) continue
+    for (const zone of assetClearanceZones(item.asset, item.local)) {
+      const [x0, z0, x1, z1] = zone.rect
       const footprint = ensureClockwiseOnPlan(
         localRectToPlan(item.transform, x0, z0, x1, z1)
       )
+      const across =
+        zone.side === "front" || zone.side === "back" ? x1 - x0 : z1 - z0
       zones.push({
         item,
-        side,
-        depth,
+        side: zone.side,
+        ...(zone.custom
+          ? { name: zone.name, size: { width: across, depth: zone.depth } }
+          : {}),
+        depth: zone.depth,
         solid: makeSolid(footprint, 0, ctx.thresholds.walkingHeightMm),
-        outward: sideNormal(item, side),
+        outward: sideNormal(item, zone.side),
       })
     }
   }
@@ -185,7 +184,9 @@ export function lintClearances(
 ): LintIssue[] {
   const issues: LintIssue[] = []
   for (const zone of clearanceZones(ctx)) {
-    const needs = `${zone.item.name} needs ${formatMm(zone.depth)} free at its ${zone.side} (${purpose(zone.item, zone.side)})`
+    const needs = zone.name
+      ? `${zone.item.name} needs its '${zone.name}' zone free (${formatMm(zone.size?.width ?? 0)} wide, ${formatMm(zone.depth)} out at its ${zone.side})`
+      : `${zone.item.name} needs ${formatMm(zone.depth)} free at its ${zone.side} (${purpose(zone.item, zone.side)})`
     const all = zoneBlockers(ctx, zone)
     // An item overlapping this one (E001) is in its clearance too; the
     // overlap error already covers it.
@@ -245,7 +246,7 @@ export function lintClearances(
           code: "W102",
           message: `${needs}, but no route at least ${formatMm(reach)} wide leads there from a door.`,
           placementIds: [zone.item.id],
-          hint: `Open a way in at least ${formatMm(reach)} wide to the ${zone.side} of ${zone.item.name} by moving the items that hem it in.`,
+          hint: `Open a way in at least ${formatMm(reach)} wide to the ${zone.name ? `'${zone.name}' zone` : zone.side} of ${zone.item.name} by moving the items that hem it in.`,
           at: regionsCentre([zone.solid.footprint]),
         })
       )

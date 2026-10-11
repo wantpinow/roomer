@@ -1,4 +1,7 @@
 export * from "./bounds"
 export * from "./collision"
+export * from "./expand"
+export * from "./shapes"
 export * from "./validate"
 export * from "./footprint"
+export * from "./clearance"

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import { assetClearanceZones } from "../../src/assets"
 import type { LayoutOp } from "../../src/schema"
 import {
   boxAsset,
@@ -134,5 +135,98 @@ describe("W102 clearance zone unreachable", () => {
 
   it("is quiet for the realistic layout", () => {
     expect(issuesOf(lintRealistic().report, "W102")).toEqual([])
+  })
+})
+
+describe("W102 with clearanceZones", () => {
+  // A left-facing chaise sofa: a 914-deep back section across the full
+  // width, and a 1,050-wide chaise on its left (local −x) out to the front.
+  const L_SOFA = boxAsset("Chaise sofa", [3096, 1660, 400], {
+    category: "sofa",
+    clearance: { front: 450 },
+    geometry: {
+      kind: "parts",
+      parts: [
+        {
+          shape: "box",
+          name: "back section",
+          position: [0, 200, -373],
+          size: [3096, 400, 914],
+        },
+        {
+          shape: "box",
+          name: "chaise",
+          position: [-1023, 200, 457],
+          size: [1050, 400, 746],
+        },
+      ],
+    },
+  })
+  const LEGROOM: [number, number, number, number] = [-498, 84, 1548, 534]
+  const ZONED = {
+    ...L_SOFA,
+    clearanceZones: [{ name: "legroom", rect: LEGROOM }],
+  }
+  const TABLE = boxAsset("Coffee table", [1000, 600, 400])
+
+  // Sofa facing right (+x) with its back off W6; its chaise runs down the
+  // page. The coffee table stands 450mm in front of the back section.
+  const place = (sofa: typeof L_SOFA, tableX: number) =>
+    lintOps(
+      [
+        {
+          op: "add",
+          id: "sofa",
+          asset: "l-sofa",
+          position: { mode: "at", x: 980, z: 3000, facing: 90 },
+        },
+        {
+          op: "add",
+          id: "table",
+          asset: "table",
+          position: { mode: "at", x: tableX, z: 2500, facing: 90 },
+        },
+      ],
+      { extraAssets: { "l-sofa": sofa, table: TABLE } }
+    )
+
+  it("flags the table when legroom comes from the bounding box", () => {
+    const { report } = place(L_SOFA, 1814)
+    expect(onlyIssue(report, "W102").message).toBe(
+      "Chaise sofa needs 450mm free at its front (legroom), but Coffee table is 304mm into it."
+    )
+  })
+
+  it("is satisfied by legroom zoned in front of the back section only", () => {
+    const { report } = place(ZONED, 1814)
+    expect(issuesOf(report, "W102")).toEqual([])
+  })
+
+  it("names the zone when something is in it", () => {
+    const { report } = place(ZONED, 1714)
+    expect(onlyIssue(report, "W102")).toMatchObject({
+      placementIds: ["sofa", "table"],
+      message:
+        "Chaise sofa needs its 'legroom' zone free (2,046mm wide, 450mm out at its front), but Coffee table is 100mm into it.",
+      hint: expect.stringContaining("Move Coffee table 100mm"),
+    })
+  })
+
+  it("works out which side a zone serves from what it touches", () => {
+    const zones = assetClearanceZones(ZONED)
+    expect(zones).toEqual([
+      {
+        name: "legroom",
+        side: "front",
+        rect: LEGROOM,
+        depth: 450,
+        custom: true,
+      },
+    ])
+    const beside = assetClearanceZones({
+      ...L_SOFA,
+      clearanceZones: [{ name: "side table", rect: [1548, -830, 2048, 84] }],
+    })
+    expect(beside[0]?.side).toBe("right")
   })
 })

@@ -1,7 +1,23 @@
 import { formatMm, formatNumber } from "../geometry/format"
-import { area, isSimplePolygon } from "../geometry/polygon"
-import { DIMS_TOLERANCE_MM, type AssetSpec, type Part } from "../schema"
+import {
+  area,
+  isSimplePolygon,
+  rectPolygon,
+  signedArea,
+} from "../geometry/polygon"
+import { intersect, minWidth } from "../lint/polygons"
+import {
+  DIMS_TOLERANCE_MM,
+  LINT_THRESHOLDS,
+  MAX_EXPANDED_PARTS,
+  type AssetSpec,
+  type ExtrudePart,
+  type Part,
+} from "../schema"
 import { assetLocalBounds, partLocalBounds, type Aabb3 } from "./bounds"
+import { partCollisionShape } from "./collision"
+import { expandedPartCount, expandParts } from "./expand"
+import { cleanProfile, offsetPolygon } from "./shapes"
 
 // Checks an asset's parts against its listed dims and the item-local frame
 // conventions before it is saved. Messages go straight to the agent that
@@ -17,6 +33,19 @@ export interface AssetValidation {
 
 /** How far a floor item's lowest part may float above (or dip below) y 0. */
 export const FLOOR_CONTACT_TOLERANCE_MM = 1
+
+/**
+ * How far a part may dip below y 0 with only a warning: the lowest rim of a
+ * tilted, tapered leg is fiddly to compute by hand, and 3mm is invisible.
+ */
+export const FLOOR_DIP_TOLERANCE_MM = 3
+
+/** Sides of a clearance zone, mm: thinner is no use, bigger is a mistake. */
+export const CLEARANCE_ZONE_MIN_MM = 100
+export const CLEARANCE_ZONE_MAX_MM = 4000
+
+/** A zone further than this from the item's footprint doesn't belong to it. */
+export const CLEARANCE_ZONE_REACH_MM = 50
 
 const AXES = [
   { index: 0, axis: "x", dim: "w", extent: "wide", over: "too wide" },
@@ -48,11 +77,111 @@ function extremePart(
   )
 }
 
+/**
+ * Why a bevel doesn't fit its profile (inset by the bevel, the outline must
+ * keep its shape: still simple, same winding, no edge turned round), or
+ * undefined when it fits.
+ */
+export function bevelProblem(
+  part: Pick<ExtrudePart, "profile" | "depth" | "bevel">
+): string | undefined {
+  const bevel = part.bevel
+  if (bevel === undefined) return undefined
+  if (bevel * 2 > part.depth) {
+    return `its bevel of ${formatMm(bevel)} is more than half its depth (${formatMm(part.depth)}); use at most ${formatMm(Math.floor(part.depth / 2))}`
+  }
+  const profile = cleanProfile(part.profile)
+  if (profile.length < 3 || !isSimplePolygon(profile)) return undefined
+  const inset = offsetPolygon(profile, -bevel)
+  const turned = profile.some((p, i) => {
+    const q = profile[(i + 1) % profile.length]!
+    const a = inset[i]!
+    const b = inset[(i + 1) % inset.length]!
+    return (q[0] - p[0]) * (b[0] - a[0]) + (q[1] - p[1]) * (b[1] - a[1]) <= 0
+  })
+  const flipped =
+    Math.sign(signedArea(inset)) !== Math.sign(signedArea(profile))
+  if (turned || flipped || !isSimplePolygon(inset)) {
+    return `its profile is too narrow somewhere for a bevel of ${formatMm(bevel)} (inset by the bevel, the outline folds over itself); use a bevel under half the profile's narrowest width`
+  }
+  return undefined
+}
+
+function clearanceZoneProblems(asset: AssetSpec, parts: readonly Part[]) {
+  const errors: string[] = []
+  const warnings: string[] = []
+  const zones = asset.clearanceZones ?? []
+  if (zones.length === 0) return { errors, warnings }
+  const tolerance = LINT_THRESHOLDS.overlapToleranceMm
+  // What a zone may not overlap: the parts at walking height (a table top
+  // overhanging legroom is fine above 1m, which nothing is).
+  const shapes = parts
+    .map(partCollisionShape)
+    .filter(
+      (shape) =>
+        shape.footprint.length >= 3 &&
+        shape.y0 < LINT_THRESHOLDS.walkingHeightMm
+    )
+  for (const zone of zones) {
+    const [x0, z0, x1, z1] = zone.rect
+    const label = `Clearance zone '${zone.name}' [${zone.rect.map(n).join(", ")}]`
+    if (x1 <= x0 || z1 <= z0) {
+      errors.push(
+        `${label} is empty: rect is [minX, minZ, maxX, maxZ], so maxX must be more than minX and maxZ more than minZ.`
+      )
+      continue
+    }
+    const width = x1 - x0
+    const depth = z1 - z0
+    if (Math.min(width, depth) < CLEARANCE_ZONE_MIN_MM) {
+      errors.push(
+        `${label} is only ${formatMm(width)} × ${formatMm(depth)}; a zone people use is at least ${formatMm(CLEARANCE_ZONE_MIN_MM)} on each side (legroom is usually 400–600mm deep).`
+      )
+    } else if (Math.max(width, depth) > CLEARANCE_ZONE_MAX_MM) {
+      errors.push(
+        `${label} is ${formatMm(width)} × ${formatMm(depth)}; at most ${formatMm(CLEARANCE_ZONE_MAX_MM)} on a side — keep it to the space the item itself needs.`
+      )
+    }
+    const rect = rectPolygon(x0, z0, x1, z1)
+    const inside = shapes.flatMap((shape) =>
+      intersect(shape.footprint, rect)
+        .filter((region) => minWidth(region) > tolerance)
+        .map((region) => ({ shape, depth: minWidth(region) }))
+    )
+    if (inside.length > 0) {
+      const deepest = inside.reduce((a, b) => (b.depth > a.depth ? b : a))
+      errors.push(
+        `${label} overlaps the item's own part '${deepest.shape.part}' by ${formatMm(Math.round(deepest.depth))}. A zone is free floor beside the item (it may touch it): move its edge to the part's edge.`
+      )
+      continue
+    }
+    const reach = CLEARANCE_ZONE_REACH_MM
+    const near = rectPolygon(x0 - reach, z0 - reach, x1 + reach, z1 + reach)
+    const touches = shapes.some(
+      (shape) => intersect(shape.footprint, near).length > 0
+    )
+    if (!touches) {
+      warnings.push(
+        `${label} doesn't touch the item (it is more than ${formatMm(reach)} from every part). Clearance usually starts right at the item's edge.`
+      )
+    }
+  }
+  return { errors, warnings }
+}
+
 export function validateAsset(asset: AssetSpec): AssetValidation {
   const errors: string[] = []
   const warnings: string[] = []
+  const count = expandedPartCount(asset.geometry.parts)
+  if (count > MAX_EXPANDED_PARTS) {
+    errors.push(
+      `The parts expand to ${n(count)} with their repeats; the most an asset may have is ${MAX_EXPANDED_PARTS}. Use fewer or wider repeated copies (e.g. a slat every 40mm instead of every 25mm).`
+    )
+    return { ok: false, errors, warnings, bounds: assetLocalBounds(asset) }
+  }
   const bounds = assetLocalBounds(asset)
-  const parts: PartBounds[] = asset.geometry.parts.map((part) => ({
+  const expanded = expandParts(asset.geometry.parts)
+  const parts: PartBounds[] = expanded.map((part) => ({
     part,
     bounds: partLocalBounds(part),
   }))
@@ -87,11 +216,17 @@ export function validateAsset(asset: AssetSpec): AssetValidation {
     )
   }
 
-  // Nothing below the floor; floor items stand on it.
+  // Nothing below the floor; floor items stand on it. A dip of a few mm
+  // (the rim of a tilted leg) is only worth a warning.
   for (const { part, bounds: b } of parts) {
-    if (b.min[1] < -FLOOR_CONTACT_TOLERANCE_MM) {
+    const dip = -b.min[1]
+    if (dip > FLOOR_DIP_TOLERANCE_MM) {
       errors.push(
-        `Part '${part.name}' goes ${formatMm(-b.min[1])} below the floor (its bottom is at y ${n(b.min[1])}). Nothing may go below y 0 — raise it by ${formatMm(-b.min[1])}.`
+        `Part '${part.name}' goes ${formatMm(dip)} below the floor (its bottom is at y ${n(b.min[1])}). Nothing may go below y 0 — raise it by ${formatMm(dip)}.`
+      )
+    } else if (dip > FLOOR_CONTACT_TOLERANCE_MM) {
+      warnings.push(
+        `Part '${part.name}' dips ${formatMm(dip)} below the floor (its bottom is at y ${n(b.min[1])}); harmless, but raise it by ${formatMm(Math.ceil(dip))} to sit exactly on y 0.`
       )
     }
   }
@@ -111,26 +246,42 @@ export function validateAsset(asset: AssetSpec): AssetValidation {
     }
   }
 
-  // Shape-specific checks.
+  // Shape-specific checks (once per written part, not per copy).
   for (const part of asset.geometry.parts) {
     switch (part.shape) {
       case "roundedBox": {
-        const limit = Math.min(...part.size) / 2
+        const [w, h, d] = part.size
+        const vertical = part.edges === "vertical"
+        const limit = (vertical ? Math.min(w, d) : Math.min(w, h, d)) / 2
         if (part.radius > limit) {
           errors.push(
-            `Part '${part.name}' has an edge radius of ${formatMm(part.radius)} but its smallest side is ${formatMm(limit * 2)}; the radius can be at most ${formatMm(limit)} (half the smallest side).`
+            vertical
+              ? `Part '${part.name}' has an edge radius of ${formatMm(part.radius)} but it is only ${formatMm(limit * 2)} across (width or depth); with edges 'vertical' the radius can be at most ${formatMm(limit)} (half the smaller of width and depth — exactly that makes a stadium).`
+              : `Part '${part.name}' has an edge radius of ${formatMm(part.radius)} but its smallest side is ${formatMm(limit * 2)}; the radius can be at most ${formatMm(limit)} (half the smallest side).`
           )
         }
         break
       }
-      case "extrude":
-        if (!isSimplePolygon(part.profile)) {
+      case "extrude": {
+        const profile = cleanProfile(part.profile)
+        if (profile.length < 3 || !isSimplePolygon(profile)) {
           errors.push(
             `Part '${part.name}' has a self-intersecting profile (its outline crosses itself). List the profile points in order around the shape, without repeating the first point at the end.`
           )
-        } else if (area(part.profile) === 0) {
+        } else if (area(profile) === 0) {
           errors.push(
             `Part '${part.name}' has a profile with no area (all its points lie on a line).`
+          )
+        } else {
+          const problem = bevelProblem(part)
+          if (problem) errors.push(`Part '${part.name}': ${problem}.`)
+        }
+        break
+      }
+      case "torus":
+        if (part.tube > part.radius) {
+          errors.push(
+            `Part '${part.name}' is a torus whose tube (${formatMm(part.tube)}) is fatter than its ring radius (${formatMm(part.radius)}), so it would pass through its own centre. Make tube at most radius.`
           )
         }
         break
@@ -143,10 +294,15 @@ export function validateAsset(asset: AssetSpec): AssetValidation {
         break
       case "box":
       case "sphere":
+      case "capsule":
       case "lathe":
         break
     }
   }
+
+  const zones = clearanceZoneProblems(asset, expanded)
+  errors.push(...zones.errors)
+  warnings.push(...zones.warnings)
 
   // Unique names make every message above unambiguous.
   const counts = new Map<string, number>()

@@ -87,6 +87,9 @@ export default defineSchema({
     geometry: asset.geometry,
     // Space that must stay free around it (drawers, legroom).
     clearance: asset.clearance,
+    // Exact free-space rectangles (item-local) that replace `clearance` for
+    // lint, e.g. legroom in front of an L-sofa's seats but not its chaise.
+    clearanceZones: asset.clearanceZones,
     // Visual description for the photoreal prompt.
     description: asset.description,
     // Where it's sold, price and how the dims were obtained.

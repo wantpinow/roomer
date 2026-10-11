@@ -7,6 +7,7 @@ import { makeSolid, type LintContext, type LintItem } from "../context"
 import { nudgeText } from "../moves"
 import { boundsCentre, boundsOverlap } from "../polygons"
 import { footprintOverlap, makeIssue } from "../shared"
+import { assetClearanceZones } from "../../assets/clearance"
 import { sideNormal, type ClearanceSide } from "./clearance"
 
 // I203: a narrow gap (awkwardGapMinMm–awkwardGapMaxMm) between two pieces
@@ -54,7 +55,9 @@ function candidate(ctx: LintContext, item: LintItem): boolean {
 }
 
 function hasClearance(item: LintItem, side: ClearanceSide): boolean {
-  return (item.asset.clearance?.[side] ?? 0) > 0
+  return assetClearanceZones(item.asset, item.local).some(
+    (zone) => zone.side === side
+  )
 }
 
 /** Is anything (an item or obstacle) standing in the gap rectangle? */

@@ -7,7 +7,12 @@ import {
   partLocalBounds,
 } from "../../src/assets"
 import { TEST_ASSETS } from "../../src/fixtures"
-import { bounds, signedArea, type Point } from "../../src/geometry"
+import {
+  bounds,
+  containsPoint,
+  signedArea,
+  type Point,
+} from "../../src/geometry"
 import type { ExtrudePart, Part } from "../../src/schema"
 
 const L_PROFILE: [number, number][] = [
@@ -217,6 +222,140 @@ describe("assetCollisionShapes", () => {
       expect(plan.maxZ).toBeCloseTo(exact.max[2], 6)
       expect(Math.min(...shapes.map((s) => s.y0))).toBe(exact.min[1])
       expect(Math.max(...shapes.map((s) => s.y1))).toBe(exact.max[1])
+    }
+  })
+})
+
+// --- part vocabulary v2 ------------------------------------------------------
+
+describe("partCollisionShape: new shapes", () => {
+  const C_WALL: Part = {
+    shape: "lathe",
+    name: "C wall",
+    position: [0, 0, 0],
+    profile: [
+      [300, 0],
+      [400, 0],
+      [400, 700],
+      [300, 700],
+      [300, 0],
+    ],
+    arc: [45, 270],
+  }
+
+  it("draws a capsule from above as its round ends' hull", () => {
+    const upright = partCollisionShape({
+      shape: "capsule",
+      name: "post",
+      position: [0, 400, 0],
+      radius: 50,
+      length: 700,
+    })
+    expect(bounds(upright.footprint)).toEqual({
+      minX: -50,
+      minZ: -50,
+      maxX: 50,
+      maxZ: 50,
+    })
+    expect([upright.y0, upright.y1]).toEqual([0, 800])
+    const lying = partCollisionShape({
+      shape: "capsule",
+      name: "bolster",
+      position: [0, 100, 0],
+      radius: 100,
+      length: 600,
+      rotation: [0, 0, 90],
+    })
+    const b = bounds(lying.footprint)
+    expect(b.minX).toBeCloseTo(-400)
+    expect(b.maxX).toBeCloseTo(400)
+    expect(b.minZ).toBeCloseTo(-100)
+    expect(b.maxZ).toBeCloseTo(100)
+    // A stadium: less than the rectangle by most of a circle's corners.
+    const area = Math.abs(signedArea(lying.footprint))
+    expect(area).toBeLessThan(800 * 200)
+    expect(area).toBeGreaterThan(600 * 200 + Math.PI * 100 * 100 - 1000)
+  })
+
+  it("covers a flat torus out to radius + tube", () => {
+    const ring = partCollisionShape({
+      shape: "torus",
+      name: "rim",
+      position: [0, 700, 0],
+      radius: 360,
+      tube: 45,
+    })
+    expect(bounds(ring.footprint)).toEqual({
+      minX: -405,
+      minZ: -405,
+      maxX: 405,
+      maxZ: 405,
+    })
+    expect([ring.y0, ring.y1]).toEqual([655, 745])
+  })
+
+  it("leaves the open side of a partial revolve out of its footprint", () => {
+    const wall = partCollisionShape(C_WALL)
+    expect(containsPoint(wall.footprint, [0, 350])).toBe(false)
+    expect(containsPoint(wall.footprint, [0, -350])).toBe(true)
+    expect(containsPoint(wall.footprint, [350, 0])).toBe(true)
+    // An annulus: the middle is free too.
+    expect(containsPoint(wall.footprint, [0, 0])).toBe(false)
+    const rim = partCollisionShape({
+      shape: "torus",
+      name: "rim",
+      position: [0, 700, 0],
+      radius: 350,
+      tube: 50,
+      arc: 270,
+      rotation: [0, 45, 0],
+    })
+    expect(containsPoint(rim.footprint, [0, 350])).toBe(false)
+    expect(containsPoint(rim.footprint, [0, -350])).toBe(true)
+  })
+
+  it("never pokes past the part's bounds", () => {
+    const parts: Part[] = [
+      C_WALL,
+      { ...C_WALL, rotation: [0, 30, 0] },
+      { ...C_WALL, rotation: [70, 0, 10] },
+      {
+        shape: "torus",
+        name: "tilted rim",
+        position: [0, 500, 0],
+        radius: 300,
+        tube: 40,
+        arc: 200,
+        rotation: [30, 20, 0],
+      },
+      {
+        shape: "capsule",
+        name: "tilted bolster",
+        position: [0, 300, 0],
+        radius: 60,
+        length: 400,
+        rotation: [20, 45, 60],
+      },
+      {
+        shape: "roundedBox",
+        name: "slab",
+        position: [0, 20, 0],
+        size: [1200, 40, 600],
+        radius: 300,
+        edges: "vertical",
+      },
+    ]
+    for (const part of parts) {
+      const exact = partLocalBounds(part)
+      const box = bounds(partCollisionShape(part).footprint)
+      expect(box.minX).toBeGreaterThanOrEqual(exact.min[0] - 1e-6)
+      expect(box.maxX).toBeLessThanOrEqual(exact.max[0] + 1e-6)
+      expect(box.minZ).toBeGreaterThanOrEqual(exact.min[2] - 1e-6)
+      expect(box.maxZ).toBeLessThanOrEqual(exact.max[2] + 1e-6)
+      // …and still covers most of it (the hull reaches the extremes).
+      expect(box.maxX - box.minX).toBeGreaterThan(
+        0.9 * (exact.max[0] - exact.min[0])
+      )
     }
   })
 })
