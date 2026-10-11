@@ -118,9 +118,22 @@ function describeConvexPlainError(message: string): DescribedError {
   return { code: "INVALID_INPUT", message: detail }
 }
 
+/** ["ops", 0, "feature", "hinge"] → "ops[0].feature.hinge". */
+export function issuePath(path: readonly PropertyKey[]): string {
+  return path.reduce<string>(
+    (out, part) =>
+      typeof part === "number"
+        ? `${out}[${part}]`
+        : out
+          ? `${out}.${String(part)}`
+          : String(part),
+    ""
+  )
+}
+
 function zodIssues(error: ZodError): { path: string; message: string }[] {
   return error.issues.map((issue) => ({
-    path: issue.path.map(String).join("."),
+    path: issuePath(issue.path),
     message: issue.message,
   }))
 }
@@ -158,9 +171,15 @@ export function describeError(error: unknown): DescribedError {
   }
   if (error instanceof ZodError) {
     const issues = zodIssues(error)
+    const lines = issues.map((i) =>
+      i.path ? `${i.path}: ${i.message}` : i.message
+    )
     return {
       code: "INVALID_INPUT",
-      message: `Invalid input: ${issues.map((i) => (i.path ? `${i.path}: ${i.message}` : i.message)).join("; ")}`,
+      message:
+        lines.length === 1
+          ? `Invalid input: ${lines[0]}`
+          : `Invalid input (${lines.length} problems):\n${lines.map((line) => `- ${line}`).join("\n")}`,
       issues,
     }
   }

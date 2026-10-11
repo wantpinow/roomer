@@ -123,6 +123,27 @@ describe("describeError", () => {
     expect(described.issues?.[0]?.path).toBe("a")
     expect(describeError("boom").code).toBe("INTERNAL")
   })
+
+  it("names zod fields like ops[0].feature.hinge and lists several one per line", () => {
+    const schema = z.object({
+      ops: z.array(z.object({ id: z.string(), at: z.number() })),
+    })
+    const error = schema.safeParse({
+      ops: [{ id: "a", at: 1 }, { id: 2 }],
+    }).error
+    const described = describeError(error)
+    expect(described.issues?.map((i) => i.path)).toEqual([
+      "ops[1].id",
+      "ops[1].at",
+    ])
+    expect(described.message).toBe(
+      [
+        "Invalid input (2 problems):",
+        "- ops[1].id: Invalid input: expected string, received number",
+        "- ops[1].at: Invalid input: expected number, received undefined",
+      ].join("\n")
+    )
+  })
 })
 
 describe("formatError", () => {
