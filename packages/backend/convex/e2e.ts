@@ -61,6 +61,12 @@ export function assertE2E() {
  */
 export const RESETTABLE_TABLES = [
   "healthchecks",
+  "renders",
+  "layoutEvents",
+  "layoutAssetRefs",
+  "layouts",
+  "assets",
+  "rooms",
 ] as const satisfies readonly TableNames[]
 
 type UnlistedTable = Exclude<TableNames, (typeof RESETTABLE_TABLES)[number]>
