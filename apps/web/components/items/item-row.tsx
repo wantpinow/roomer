@@ -7,6 +7,7 @@ import { Dims } from "@/components/common/dimension"
 import { ImageFrame } from "@/components/common/image-frame"
 import { Price } from "@/components/common/price"
 import { formatPosition, type ItemPosition } from "@/lib/format/position"
+import { elevationBadge } from "@/lib/plan-edit/elevation"
 
 /** One placed item, joined with the bits of its asset the list shows. */
 export interface PlacedItem {
@@ -89,6 +90,12 @@ export function ItemRow({
         </span>
         <span className="truncate font-mono text-2xs text-muted-foreground">
           {formatPosition(item.position, placement)}
+          {placement.elevation > 0 ? (
+            <span data-slot="item-elevation">
+              {" · "}
+              {elevationBadge(placement.elevation)}
+            </span>
+          ) : null}
         </span>
       </span>
     </button>

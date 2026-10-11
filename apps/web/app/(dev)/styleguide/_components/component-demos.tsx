@@ -11,6 +11,7 @@ import { RelativeTime } from "@/components/common/relative-time"
 import { RoomStats } from "@/components/common/room-stats"
 import { SeverityIcon } from "@/components/common/severity-icon"
 import { IssueList } from "@/components/issues/issue-list"
+import { ElevationControl } from "@/components/items/elevation-control"
 import { ItemList } from "@/components/items/item-list"
 import { LayoutList } from "@/components/layouts/layout-list"
 import { LayoutStatusChip } from "@/components/layouts/layout-status-chip"
@@ -156,6 +157,73 @@ export function ItemsDemo() {
           />
         </div>
       </Specimen>
+      <Specimen
+        label="One selected"
+        note="height off the floor, with a surface to rest on"
+        width={INSPECTOR}
+      >
+        <div className="max-h-[560px] overflow-auto">
+          <ItemList
+            items={ITEMS}
+            selectedIds={["floor-lamp"]}
+            onClearSelection={() => undefined}
+            selectionDetails={<HeightSpecimen />}
+          />
+        </div>
+      </Specimen>
+      <div className="flex flex-col gap-6">
+        <Specimen
+          label="Height"
+          note="a group at several heights"
+          width={INSPECTOR}
+        >
+          <div className="bg-clay-tint p-4">
+            <ElevationControl
+              kind="floor"
+              value="mixed"
+              canLower={false}
+              canFloor
+              onLift={() => undefined}
+              onSet={() => undefined}
+              onFloor={() => undefined}
+              onRest={() => undefined}
+            />
+          </div>
+        </Specimen>
+        <Specimen label="Height" note="on a wall" width={INSPECTOR}>
+          <div className="bg-clay-tint p-4">
+            <ElevationControl
+              kind="wall"
+              value={680}
+              centre={1100}
+              canLower
+              canFloor={false}
+              onLift={() => undefined}
+              onSet={() => undefined}
+              onFloor={() => undefined}
+              onRest={() => undefined}
+            />
+          </div>
+        </Specimen>
+        <Specimen
+          label="Height"
+          note="hangs from the ceiling"
+          width={INSPECTOR}
+        >
+          <div className="bg-clay-tint p-4">
+            <ElevationControl
+              kind="ceiling"
+              value={1550}
+              canLower={false}
+              canFloor={false}
+              onLift={() => undefined}
+              onSet={() => undefined}
+              onFloor={() => undefined}
+              onRest={() => undefined}
+            />
+          </div>
+        </Specimen>
+      </div>
       <div className="flex flex-col gap-6">
         <Specimen label="Empty" width={INSPECTOR}>
           <ItemList items={[]} />
@@ -165,6 +233,32 @@ export function ItemsDemo() {
         </Specimen>
       </div>
     </div>
+  )
+}
+
+/** A working height control: steppers, typing, the floor and a sideboard. */
+function HeightSpecimen() {
+  const [value, setValue] = useState(0)
+  const top = 800
+  return (
+    <ElevationControl
+      kind="floor"
+      value={value}
+      canLower={value > 0}
+      canFloor={value > 0}
+      supports={[
+        {
+          id: "sideboard",
+          name: "Harper Sideboard",
+          top,
+          current: value === top,
+        },
+      ]}
+      onLift={(dy) => setValue((v) => Math.max(0, v + dy))}
+      onSet={setValue}
+      onFloor={() => setValue(0)}
+      onRest={() => setValue(top)}
+    />
   )
 }
 

@@ -14,15 +14,17 @@ import { ItemRow, type PlacedItem } from "./item-row"
 
 /**
  * The layout's furniture, with a footer that totals the price (GBP) and
- * counts the pieces. With several selected, a bar above the list says how
- * many and what they cost, with a Clear. Click selects a row, Shift+click
- * toggles it. `items === undefined` means loading.
+ * counts the pieces. With a selection, a bar above the list names it (or
+ * says how many and what they cost), with a Clear and the selection's
+ * details (its height). Click selects a row, Shift+click toggles it.
+ * `items === undefined` means loading.
  */
 export function ItemList({
   items,
   selectedIds = [],
   onSelect,
   onClearSelection,
+  selectionDetails,
   onHover,
   className,
 }: {
@@ -30,6 +32,8 @@ export function ItemList({
   selectedIds?: readonly string[]
   onSelect?: (placementId: string, options: { toggle: boolean }) => void
   onClearSelection?: () => void
+  /** Shown under the selection bar (e.g. the height control). */
+  selectionDetails?: React.ReactNode
   onHover?: (placementId: string | null) => void
   className?: string
 }) {
@@ -64,34 +68,46 @@ export function ItemList({
 
   return (
     <div data-slot="item-list" className={cn("flex flex-col", className)}>
-      {picked.length > 1 ? (
+      {picked.length > 0 ? (
         <div
           data-slot="item-selection"
-          className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-clay-tint/70 py-2 pr-2 pl-5 text-xs text-ink-soft backdrop-blur-none"
+          data-count={picked.length}
+          className="sticky top-0 z-10 flex flex-col gap-3 border-b border-border bg-clay-tint py-2 pr-2 pl-5 text-xs text-ink-soft"
         >
-          <span className="font-medium text-foreground tabular-nums">
-            {picked.length} selected
-          </span>
-          {pickedTotal.priced > 0 ? (
-            <>
-              <span aria-hidden className="text-faint">
-                ·
+          <div className="flex items-center gap-2">
+            {picked.length === 1 ? (
+              <span className="truncate font-medium text-foreground">
+                {picked[0]!.placement.label ?? picked[0]!.asset.name}
               </span>
-              <Price
-                amount={pickedTotal.total}
-                currency={pickedTotal.currency}
-              />
-            </>
-          ) : null}
-          {onClearSelection ? (
-            <Button
-              variant="ghost"
-              size="xs"
-              className="ml-auto"
-              onClick={onClearSelection}
-            >
-              Clear
-            </Button>
+            ) : (
+              <span className="font-medium text-foreground tabular-nums">
+                {picked.length} selected
+              </span>
+            )}
+            {picked.length > 1 && pickedTotal.priced > 0 ? (
+              <>
+                <span aria-hidden className="text-faint">
+                  ·
+                </span>
+                <Price
+                  amount={pickedTotal.total}
+                  currency={pickedTotal.currency}
+                />
+              </>
+            ) : null}
+            {onClearSelection ? (
+              <Button
+                variant="ghost"
+                size="xs"
+                className="ml-auto"
+                onClick={onClearSelection}
+              >
+                Clear
+              </Button>
+            ) : null}
+          </div>
+          {selectionDetails ? (
+            <div className="pr-3 pb-1.5">{selectionDetails}</div>
           ) : null}
         </div>
       ) : null}
