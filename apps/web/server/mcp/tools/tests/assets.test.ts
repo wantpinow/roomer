@@ -6,6 +6,8 @@ import {
   assetDetail,
   fakeDeps,
   imagesOf,
+  LAYOUT_ID,
+  ROOM_ID,
   SOFA_ID,
   storageId,
   TABLE_ID,
@@ -14,6 +16,7 @@ import {
 import {
   addAssetImages,
   createAsset,
+  deleteAsset,
   getAsset,
   previewAsset,
   searchAssets,
@@ -172,7 +175,141 @@ describe("create_asset", () => {
       'Created asset "Mori Coffee Table" — key castlery-mori-coffee-table'
     )
     expect(text).toContain("matches the listed dims")
-    expect(text).toContain("Preview images, in order: 1. front")
+    expect(text).toContain("Images, in order: 1. front")
+    expect(result.structuredContent).toMatchObject({
+      imageNames: [
+        "castlery-mori-coffee-table-front",
+        "castlery-mori-coffee-table-side",
+        "castlery-mori-coffee-table-top",
+        "castlery-mori-coffee-table-iso",
+      ],
+    })
+  })
+
+  it("adds a comparison sheet when the saved photos come back", async () => {
+    const deps = fakeDeps()
+    deps.api.assets.get.mockResolvedValueOnce(assetDetail(TABLE_ID))
+    const result = await createAsset.call(
+      { spec: MORI, imageUrls: ["https://x.test/front.jpg"] },
+      deps
+    )
+    expect(imagesOf(result)).toBe(5)
+    expect(textOf(result)).toContain("5. comparison sheet")
+  })
+
+  it("returns only top and iso (and the sheet) for a rug", async () => {
+    const deps = fakeDeps()
+    const result = await createAsset.call(
+      {
+        spec: {
+          ...MORI,
+          name: "Flat rug",
+          category: "rug",
+          mount: "floor-covering",
+          dims: { w: 1200, d: 600, h: 10 },
+          geometry: {
+            kind: "parts",
+            parts: [
+              {
+                shape: "box",
+                name: "rug",
+                position: [0, 5, 0],
+                size: [1200, 10, 600],
+              },
+            ],
+          },
+        },
+      },
+      deps
+    )
+    expect(imagesOf(result)).toBe(2)
+    expect(textOf(result)).toContain("1. top (plan")
+    // All four are still stored for the library.
+    expect(
+      deps.api.assets.setPreviews.mock.calls[0]?.[0].previews
+    ).toHaveLength(4)
+  })
+
+  it("validates and renders without saving on a dry run", async () => {
+    const deps = fakeDeps()
+    const result = await createAsset.call(
+      {
+        spec: MORI,
+        imageUrls: ["https://x.test/front.webp"],
+        dryRun: true,
+      },
+      deps
+    )
+    expect(result.isError).toBeUndefined()
+    expect(deps.api.assets.create).not.toHaveBeenCalled()
+    expect(deps.api.files.upload).not.toHaveBeenCalled()
+    expect(deps.api.assets.setPreviews).not.toHaveBeenCalled()
+    expect(deps.api.assets.addImagesFromUrls).not.toHaveBeenCalled()
+    expect(deps.api.files.download).toHaveBeenCalledWith(
+      "https://x.test/front.webp"
+    )
+    // Previews plus the sheet built from the (downloaded, not stored) photo.
+    expect(imagesOf(result)).toBe(5)
+    const text = textOf(result)
+    expect(text).toContain(
+      'Dry run — nothing was saved. "Mori Coffee Table" is valid and would be created as key mori-coffee-table.'
+    )
+    expect(text).toContain("matches the listed dims")
+    expect(result.structuredContent).toMatchObject({
+      dryRun: true,
+      key: "mori-coffee-table",
+    })
+  })
+
+  it("lists every problem on its own line in a failed dry run", async () => {
+    const deps = fakeDeps()
+    const result = await createAsset.call(
+      { spec: { ...MORI, dims: { w: 1300, d: 600, h: 400 } }, dryRun: true },
+      deps
+    )
+    expect(result.isError).toBe(true)
+    const lines = textOf(result).split("\n")
+    expect(lines[0]).toBe(
+      "Error INVALID_INPUT: The model doesn't match its listing: 2 problems (dry run — nothing was saved)."
+    )
+    expect(lines[1]).toMatch(/^- Parts span 1,200mm wide/)
+    expect(lines[2]).toMatch(/^- Parts span 313mm high/)
+    expect(deps.renderer.renderAssetPreviews).not.toHaveBeenCalled()
+  })
+
+  it("says a dry run's key is taken, as the real create would", async () => {
+    const deps = fakeDeps()
+    const result = await createAsset.call(
+      { key: "generic-sofa", spec: MORI, dryRun: true },
+      deps
+    )
+    expect(result.isError).toBe(true)
+    expect(textOf(result)).toContain(
+      "Error CONFLICT: An asset with key 'generic-sofa' already exists"
+    )
+  })
+
+  it("puts several backend problems on separate lines", async () => {
+    const deps = fakeDeps()
+    deps.api.assets.create.mockRejectedValueOnce(
+      new ConvexError({
+        code: "INVALID_INPUT",
+        message:
+          "The model doesn't match its listing: 2 problems. geometry: A is wrong. geometry: B is wrong.",
+        issues: [
+          { path: "geometry", message: "A is wrong." },
+          { path: "geometry", message: "B is wrong." },
+        ],
+      })
+    )
+    const result = await createAsset.call({ spec: MORI }, deps)
+    expect(textOf(result)).toBe(
+      [
+        "Error INVALID_INPUT: The model doesn't match its listing: 2 problems.",
+        "- geometry: A is wrong.",
+        "- geometry: B is wrong.",
+      ].join("\n")
+    )
   })
 
   it("returns the backend's validation errors verbatim", async () => {
@@ -255,8 +392,26 @@ describe("update_asset", () => {
       assetId: TABLE_ID,
       geometry: COFFEE_TABLE.geometry,
     })
-    expect(imagesOf(result)).toBe(4)
-    expect(textOf(result)).toContain("Re-linting the layout that uses it.")
+    // Four previews plus the comparison sheet (the table has a photo).
+    expect(imagesOf(result)).toBe(5)
+    expect(result.structuredContent).toMatchObject({
+      imageNames: [
+        "generic-coffee-table-front",
+        "generic-coffee-table-side",
+        "generic-coffee-table-top",
+        "generic-coffee-table-iso",
+        "generic-coffee-table-comparison",
+      ],
+    })
+    expect(deps.api.files.download).toHaveBeenCalledWith(
+      "http://127.0.0.1:3210/api/storage/table"
+    )
+    const text = textOf(result)
+    expect(text).toContain("Re-linting the layout that uses it.")
+    expect(text).toContain(
+      "5. comparison sheet: the product photo beside the clay front and iso"
+    )
+    expect(text).toContain("Top and iso carry an orientation marker")
   })
 
   it("skips previews for a non-visual change and needs at least one field", async () => {
@@ -273,6 +428,131 @@ describe("update_asset", () => {
     )
     expect(empty.isError).toBe(true)
     expect(textOf(empty)).toContain("Pass at least one field to change")
+  })
+})
+
+describe("update_asset dry run", () => {
+  it("renders the merged spec with the stored photos, saving nothing", async () => {
+    const deps = fakeDeps()
+    const result = await updateAsset.call(
+      {
+        asset: "generic-coffee-table",
+        spec: { description: "Oak" },
+        dryRun: true,
+      },
+      deps
+    )
+    expect(result.isError).toBeUndefined()
+    expect(deps.api.assets.update).not.toHaveBeenCalled()
+    expect(deps.api.assets.setPreviews).not.toHaveBeenCalled()
+    expect(deps.renderer.renderAssetPreviews).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Generic coffee table",
+        description: "Oak",
+      }),
+      ["front", "side", "top", "iso"]
+    )
+    expect(imagesOf(result)).toBe(5)
+    expect(textOf(result)).toContain(
+      'Dry run — nothing was saved. The change to "Generic coffee table" (generic-coffee-table: description) is valid.'
+    )
+  })
+
+  it("reports what the change would break", async () => {
+    const deps = fakeDeps()
+    const result = await updateAsset.call(
+      {
+        asset: "generic-coffee-table",
+        spec: { dims: { w: 2000, d: 600, h: 400 } },
+        dryRun: true,
+      },
+      deps
+    )
+    expect(result.isError).toBe(true)
+    expect(textOf(result)).toContain("(dry run — nothing was saved)")
+  })
+})
+
+describe("delete_asset", () => {
+  function custom() {
+    return { ...assetDetail(TABLE_ID), source: "custom" as const }
+  }
+
+  it("deletes a custom asset no layout uses", async () => {
+    const deps = fakeDeps()
+    deps.api.assets.getByKey.mockResolvedValueOnce(custom())
+    const result = await deleteAsset.call(
+      { asset: "generic-coffee-table" },
+      deps
+    )
+    expect(result.isError).toBeUndefined()
+    expect(deps.api.assets.remove).toHaveBeenCalledWith({ assetId: TABLE_ID })
+    expect(textOf(result)).toBe(
+      'Deleted "Generic coffee table" (generic-coffee-table) and its previews.'
+    )
+  })
+
+  it("refuses library assets", async () => {
+    const deps = fakeDeps()
+    const result = await deleteAsset.call({ asset: "generic-sofa" }, deps)
+    expect(result.isError).toBe(true)
+    expect(textOf(result)).toContain("is a library asset")
+    expect(deps.api.assets.remove).not.toHaveBeenCalled()
+  })
+
+  it("names every layout that still places it", async () => {
+    const deps = fakeDeps()
+    deps.api.assets.getByKey.mockResolvedValueOnce(custom())
+    deps.api.assets.usage.mockResolvedValueOnce({
+      layouts: [
+        {
+          layoutId: LAYOUT_ID,
+          layoutName: "Starter",
+          roomId: ROOM_ID,
+          count: 2,
+        },
+      ],
+    })
+    const result = await deleteAsset.call(
+      { asset: "generic-coffee-table" },
+      deps
+    )
+    expect(result.isError).toBe(true)
+    expect(textOf(result)).toBe(
+      [
+        "Error CONFLICT: Generic coffee table (generic-coffee-table) wasn't deleted: it is placed in 1 layout:",
+        `- 'Starter' (layout ${LAYOUT_ID}): 2 placements`,
+        "Remove it there or swap it for another asset (apply_changes remove / swap), then delete it.",
+      ].join("\n")
+    )
+    expect(deps.api.assets.remove).not.toHaveBeenCalled()
+  })
+})
+
+describe("get_asset photos", () => {
+  it("returns the stored photos as images on request", async () => {
+    const deps = fakeDeps()
+    const result = await getAsset.call(
+      { asset: "generic-coffee-table", includePhotos: true },
+      deps
+    )
+    expect(imagesOf(result)).toBe(1)
+    expect(result.structuredContent).toMatchObject({
+      imageNames: ["generic-coffee-table-photo-1"],
+    })
+    expect(textOf(result)).toContain(
+      "Images, in order: generic-coffee-table-photo-1."
+    )
+  })
+
+  it("says when there are none", async () => {
+    const deps = fakeDeps()
+    const result = await getAsset.call(
+      { asset: "generic-sofa", includePhotos: true },
+      deps
+    )
+    expect(imagesOf(result)).toBe(0)
+    expect(textOf(result)).toContain("It has no product photos to return.")
   })
 })
 

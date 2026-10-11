@@ -407,6 +407,7 @@ export function fakeApi(): FakeApi {
         const id = Object.entries(SPECS).find(([, s]) => s.key === key)?.[0]
         return id ? assetDetail(id as Id<"assets">) : null
       }),
+      usage: vi.fn(async () => ({ layouts: [] })),
       create: vi.fn(async (args) => ({
         assetId: SOFA_ID,
         key: args.key ?? "new-asset",
@@ -422,6 +423,7 @@ export function fakeApi(): FakeApi {
         relintedLayouts: 1,
       })),
       setPreviews: vi.fn(async (args) => ({ previews: args.previews })),
+      remove: vi.fn(async () => null),
       addImagesFromUrls: vi.fn(async (args) => ({
         results: args.urls.map((url, i) => ({
           url,

@@ -45,7 +45,12 @@ const REFERENCES: [string, Union, string, readonly string[]][] = [
   ["features", zFeatureInput, FEATURE_REFERENCE, ["id", "label", "assumed"]],
   ["measurements", zShellMeasurements, MEASUREMENTS_REFERENCE, []],
   ["shell ops", zShellOp, SHELL_OPS_REFERENCE, []],
-  ["parts", zPart, PART_REFERENCE, ["name", "position", "rotation", "tone"]],
+  [
+    "parts",
+    zPart,
+    PART_REFERENCE,
+    ["name", "position", "rotation", "tone", "repeat"],
+  ],
   ["layout ops", zLayoutOp, LAYOUT_OPS_REFERENCE, []],
   ["positions", zPlacementPosition, LAYOUT_OPS_REFERENCE, []],
 ]

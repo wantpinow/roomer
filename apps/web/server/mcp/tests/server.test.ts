@@ -31,6 +31,7 @@ const CONTRACT = [
   "update_asset",
   "preview_asset",
   "add_asset_images",
+  "delete_asset",
   "list_layouts",
   "get_layout",
   "create_layout",

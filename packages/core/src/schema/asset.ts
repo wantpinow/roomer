@@ -232,7 +232,7 @@ export const zClearanceZone = z
     rect: z
       .tuple([zMm, zMm, zMm, zMm])
       .describe(
-        "[minX, minZ, maxX, maxZ] in item-local mm (+z = front, +x = the item's right); beside the footprint, touching it at most"
+        "[minX, minZ, maxX, maxZ], item-local mm, beside the item (may touch it)"
       ),
   })
   .describe("A named rectangle of floor that must stay free")
@@ -263,7 +263,7 @@ export const zAssetSpec = z.object({
     .max(8)
     .optional()
     .describe(
-      "Exact free-space rectangles; when given they replace `clearance` for lint (W102). Use them when the bounding box's sides are the wrong place, e.g. legroom in front of an L-sofa's seats but not its chaise"
+      "Exact free-floor rectangles; replace `clearance` for lint (e.g. legroom in front of an L-sofa's seats, not its chaise)"
     ),
   description: z
     .string()

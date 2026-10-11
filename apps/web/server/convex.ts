@@ -39,9 +39,11 @@ export interface RoomerApi {
     search: Call<typeof api.assets.search>
     get: Call<typeof api.assets.get>
     getByKey: Call<typeof api.assets.getByKey>
+    usage: Call<typeof api.assets.usage>
     create: Call<typeof api.assets.create>
     update: Call<typeof api.assets.update>
     setPreviews: Call<typeof api.assets.setPreviews>
+    remove: Call<typeof api.assets.remove>
     addImagesFromUrls: Call<typeof api.assets.addImagesFromUrls>
   }
   layouts: {
@@ -119,9 +121,11 @@ export function createRoomerApi(
       search: (args) => client.query(api.assets.search, args),
       get: (args) => client.query(api.assets.get, args),
       getByKey: (args) => client.query(api.assets.getByKey, args),
+      usage: (args) => client.query(api.assets.usage, args),
       create: (args) => client.mutation(api.assets.create, args),
       update: (args) => client.mutation(api.assets.update, args),
       setPreviews: (args) => client.mutation(api.assets.setPreviews, args),
+      remove: (args) => client.mutation(api.assets.remove, args),
       addImagesFromUrls: (args) =>
         client.action(api.assets.addImagesFromUrls, args),
     },

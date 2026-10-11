@@ -499,6 +499,17 @@ export function assetList(
   ].join("\n")
 }
 
+/**
+ * A bound as sent: whole mm, or to 0.1mm when a part sits on a half
+ * millimetre (a 5mm rug centred at y 2 spans −0.5…4.5, not 0…5).
+ */
+function exact(value: number): string {
+  const tenths = Math.round(value * 10) / 10
+  return Number.isInteger(tenths)
+    ? formatNumber(tenths)
+    : formatNumber(tenths, 1)
+}
+
 /** The parts' bounding box against the listed dims. */
 export function boundsLine(
   bounds: { min: readonly number[]; max: readonly number[] },
@@ -514,7 +525,7 @@ export function boundsLine(
     off.length === 0
       ? "matches the listed dims"
       : `listed ${dims(listed)}; differs in ${off.join(", ")} (allowed ±10mm)`
-  return `Parts' bounding box: ${dims(size)} — x ${n(x0)}…${n(x1)}, y ${n(y0)}…${n(y1)}, z ${n(z0)}…${n(z1)}; ${match}.`
+  return `Parts' bounding box: ${dims(size)} — x ${exact(x0)}…${exact(x1)}, y ${exact(y0)}…${exact(y1)}, z ${exact(z0)}…${exact(z1)}; ${match}.`
 }
 
 function partShapes(parts: AssetDetail["geometry"]["parts"]): string {

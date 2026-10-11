@@ -190,9 +190,26 @@ export function describeError(error: unknown): DescribedError {
   }
 }
 
+/**
+ * The backend appends every issue to its summary on one line ("…: 3
+ * problems. geometry: … geometry: …"); several read better one per line.
+ */
+function messageLines(described: DescribedError): string[] {
+  const issues = described.issues ?? []
+  const text = (issue: { path: string; message: string }) =>
+    issue.path ? `${issue.path}: ${issue.message}` : issue.message
+  const details = issues.map(text).join(" ")
+  if (issues.length < 2 || !described.message.endsWith(` ${details}`)) {
+    return [described.message]
+  }
+  const summary = described.message.slice(0, -details.length - 1)
+  return [summary, ...issues.map((issue) => `- ${text(issue)}`)]
+}
+
 /** The agent-facing text for a described error. */
 export function formatError(described: DescribedError): string {
-  const lines = [`Error ${described.code}: ${described.message}`]
+  const [first, ...rest] = messageLines(described)
+  const lines = [`Error ${described.code}: ${first}`, ...rest]
   if (described.opIndex !== undefined || described.code === "INVALID_OP") {
     const at =
       described.opIndex === undefined

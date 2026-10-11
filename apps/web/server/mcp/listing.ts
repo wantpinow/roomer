@@ -75,14 +75,28 @@ export const zListedShellOp = looseUnion(
 // --- asset parts ------------------------------------------------------------
 
 export const PART_REFERENCE = [
-  "Parts by shape (mm). Every part: name, position [x,y,z] (its centre), rotation? [x°,y°,z°] (X→Y→Z), tone?: light|mid|dark.",
+  "Parts (mm). Every part: name, position [x,y,z] (its centre), rotation? [x°,y°,z°], tone?: light|mid|dark, repeat?: {count: 2–64, step: [dx,dy,dz]} (copy i at position + i×step, named '<name> #i+1'; ≤ 400 parts in all).",
+  "Rotation: three.js Euler XYZ (turns about z, then y, then x), right-handed (+ = counter-clockwise seen from the axis's + end): [0,90,0] turns the front (+z) to face +x; [90,0,0] tips +y to +z; [0,0,90] tips +y to −x. Arc angles: 0° = +z (front), towards +x.",
   ...unionReference(zPart, {
-    omit: ["name", "position", "rotation", "tone"],
+    omit: ["name", "position", "rotation", "tone", "repeat"],
     hints: {
       size: "[w,h,d]",
+      "roundedBox.edges":
+        "all|vertical (vertical: only the 4 upright edges — a flat rounded-rect slab; radius ≤ min(w,d)/2; = d/2 → stadium)",
+      "cylinder.height": "along local y",
+      "capsule.length":
+        "straight middle along y; total height = length + 2·radius",
+      "torus.radius": "to the tube's middle; flat in x–z",
+      "torus.arc": "degrees from +z towards +x (default 360; ends capped)",
       "extrude.profile":
-        "[[u,v],…] (axis y: plan (x,z); x: side (z,y); z: front (x,y))",
-      "lathe.profile": "[[radius,y],…] revolved around y",
+        "[[u,v],…] closed outline relative to position, any winding (axis y: u = +x, v = +z front; x: u = +z front, v = +y; z: u = +x, v = +y)",
+      "extrude.depth": "centred on position along the axis",
+      "extrude.bevel":
+        "rounds both end faces' edges; size unchanged; ≤ depth/2",
+      "lathe.profile":
+        "[[radius ≥ 0, y],…] relative to position, an open line revolved round y (end at radius 0 to close; repeat the first point for a hollow ring)",
+      "lathe.arc":
+        "[start°, length°] ([45,270] = a C open at the front; ends capped)",
     },
   }),
 ].join("\n")
