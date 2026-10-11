@@ -1,0 +1,18 @@
+{
+  "extends": "@roomer/typescript-config/react-library.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@roomer/ui/*": ["./src/*"]
+    },
+    // Only ever read by a bundler (Next's), so resolve like one: no `.js`
+    // suffixes on relative imports.
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": ["."],
+  "exclude": ["node_modules", "dist"]
+}
