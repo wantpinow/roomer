@@ -32,6 +32,11 @@ export const zInlineCamera = zCamera
       .describe(
         `Vertical field of view in degrees; default ${DEFAULT_CAMERA_FOV}`
       ),
+    name: zCamera.shape.name
+      .optional()
+      .describe(
+        'What to call this viewpoint on the render record, e.g. "Walk photo 14:05"; default "Inline camera"'
+      ),
   })
   .describe(
     "An ad-hoc camera: position and target [x, y, z] in room mm (y = height, eye ≈ 1,500), vertical fov in degrees, optional projection"
@@ -85,7 +90,7 @@ export const INLINE_CAMERA_ID = "inline"
 export function inlineCamera(input: InlineCamera): Camera {
   return {
     id: INLINE_CAMERA_ID,
-    name: "Inline camera",
+    name: input.name ?? "Inline camera",
     position: input.position,
     target: input.target,
     fov: input.fov ?? DEFAULT_CAMERA_FOV,

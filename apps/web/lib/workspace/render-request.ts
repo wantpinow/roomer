@@ -1,4 +1,4 @@
-import type { PhotorealModel, RenderQuality } from "@roomer/core/schema"
+import type { Camera, PhotorealModel, RenderQuality } from "@roomer/core/schema"
 
 // UI actions that run server-side pipelines: POST to the web app's route
 // handlers, which create the pending records and work in the background.
@@ -6,8 +6,15 @@ import type { PhotorealModel, RenderQuality } from "@roomer/core/schema"
 // `assets.get`) fill in.
 
 export interface PhotorealRequest {
-  /** Id of one of the room's cameras. */
-  camera: string
+  /**
+   * Id of one of the room's cameras, or an inline viewpoint (e.g. a photo
+   * taken in walk mode) with an optional name for the render record.
+   */
+  camera:
+    | string
+    | (Pick<Camera, "position" | "target" | "fov" | "projection"> & {
+        name?: string
+      })
   model?: PhotorealModel
   quality?: RenderQuality
   size?: { width: number; height: number }

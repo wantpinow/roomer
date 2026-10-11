@@ -59,6 +59,24 @@ describe("resolveView", () => {
     )
   })
 
+  it("names an inline camera when asked (walk photos)", () => {
+    const camera = inlineCamera({
+      name: "Walk photo 14:05",
+      position: [1550, 1711, 300],
+      target: [1550, 1700, 1300],
+      fov: 70,
+      projection: "rectilinear",
+    })
+    expect(camera).toEqual({
+      id: "inline",
+      name: "Walk photo 14:05",
+      position: [1550, 1711, 300],
+      target: [1550, 1700, 1300],
+      fov: 70,
+      projection: "rectilinear",
+    })
+  })
+
   it("keeps an inline camera's fov", () => {
     expect(
       inlineCamera({ position: [0, 0, 0], target: [1, 0, 0], fov: 40 }).fov

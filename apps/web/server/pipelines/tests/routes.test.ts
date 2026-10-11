@@ -69,6 +69,30 @@ describe("startRenderRoute", () => {
     expect(deps.api.renders.complete).toHaveBeenCalled()
   })
 
+  it("renders an inline, named camera (a walk photo) at the asked size", async () => {
+    const deps = fakeDeps()
+    const camera = {
+      name: "Walk photo 14:05",
+      position: [1550, 1711, 300],
+      target: [1550, 1700, 1300],
+      fov: 70,
+      projection: "rectilinear",
+    }
+    const response = await startRenderRoute(
+      deps,
+      LAYOUT_ID,
+      post({ camera, quality: "medium", size: { width: 1536, height: 1024 } }),
+      () => undefined
+    )
+    expect(response.status).toBe(202)
+    expect(deps.api.renders.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        quality: "medium",
+        view: { id: "inline", ...camera },
+      })
+    )
+  })
+
   it("keeps a failed render out of the response and logs it", async () => {
     const deps = fakeDeps()
     const log = vi.spyOn(console, "error").mockImplementation(() => undefined)
