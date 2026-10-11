@@ -14,13 +14,17 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "2.3.1",
     "@playwright/test": "1.63.0",
     "@roomer/backend": "workspace:*",
+    "@roomer/core": "workspace:*",
     "@roomer/eslint-config": "workspace:*",
     "@roomer/typescript-config": "workspace:*",
     "@types/node": "^22.20.5",
+    "@types/pngjs": "^6.0.5",
     "convex": "1.46.0",
     "eslint": "9.39.5",
+    "pngjs": "7.0.0",
     "typescript": "5.9.3"
   }
 }

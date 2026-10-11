@@ -9,8 +9,10 @@
  */
 import { test as base } from "@playwright/test"
 
+import { resetAndSeed, type SeedResult } from "./convex"
+
 export { expect } from "@playwright/test"
-export { convex } from "./convex"
+export { api, convex, resetAndSeed, type SeedResult } from "./convex"
 
 /**
  * Dev-server and browser noise that says nothing about the product. Keep this
@@ -34,6 +36,12 @@ export interface ConsoleGuard {
 
 interface Fixtures {
   consoleErrors: ConsoleGuard
+  /**
+   * A wiped backend with the living room, the generic library and the
+   * "Starter" layout seeded through the trapdoor — every spec's clean slate.
+   * Ask for it and the test owns the database for its duration.
+   */
+  livingRoom: SeedResult
 }
 
 export const test = base.extend<Fixtures>({
@@ -80,4 +88,9 @@ export const test = base.extend<Fixtures>({
     },
     { auto: true },
   ],
+
+  // eslint-disable-next-line no-empty-pattern -- Playwright fixtures must destructure
+  livingRoom: async ({}, use) => {
+    await use(await resetAndSeed())
+  },
 })

@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3000",
-    "dev:e2e": "E2E_TESTING=true PHOTOREAL_STUB=1 NEXT_PUBLIC_CONVEX_URL=http://127.0.0.1:3220 next dev --port 3100",
+    "dev:e2e": "E2E_TESTING=true PHOTOREAL_STUB=1 NEXT_PUBLIC_CONVEX_URL=http://127.0.0.1:3220 CONVEX_URL=http://127.0.0.1:3220 RENDER_BASE_URL=http://localhost:3100 next dev --port 3100",
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0 .",
