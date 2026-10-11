@@ -43,6 +43,11 @@ export interface RoomSceneProps {
   interactive?: boolean
   /** Cheaper post-processing for interactive use. */
   fast?: boolean
+  /**
+   * The parent drives the camera (e.g. the first-person walk): the scene
+   * neither installs a camera for `scene.view` nor adds orbit controls.
+   */
+  externalCamera?: boolean
 }
 
 /** Depth range (metres) covering the shell from the camera's point of view. */
@@ -82,6 +87,7 @@ export function RoomScene({
   onHighlight,
   interactive = false,
   fast = false,
+  externalCamera = false,
 }: RoomSceneProps) {
   const { room, placements, assets, view, pass } = scene
   const aspect = useThree((state) => state.size.width / state.size.height)
@@ -133,8 +139,8 @@ export function RoomScene({
   return (
     <>
       <primitive attach="background" object={materials.background} />
-      <SceneCamera setup={setup.camera} />
-      {interactive ? (
+      {externalCamera ? null : <SceneCamera setup={setup.camera} />}
+      {interactive && !externalCamera ? (
         <OrbitControls
           makeDefault
           target={setup.camera.target}
