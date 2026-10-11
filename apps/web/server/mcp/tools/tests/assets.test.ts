@@ -201,6 +201,34 @@ describe("create_asset", () => {
     expect(textOf(result)).toContain("Photos: none yet")
   })
 
+  it("names the exact field of a bad part", async () => {
+    const deps = fakeDeps()
+    const result = await createAsset.call(
+      {
+        spec: {
+          ...MORI,
+          geometry: {
+            kind: "parts",
+            parts: [
+              MORI.geometry.parts[0],
+              { shape: "box", name: "leg", position: [0, 135, 0] },
+              { shape: "cone", name: "lamp", position: [0, 0, 0] },
+            ],
+          },
+        },
+      },
+      deps
+    )
+    expect(textOf(result)).toBe(
+      [
+        "Error INVALID_INPUT: Invalid input (2 problems):",
+        "- spec.geometry.parts[1].size: Invalid input: expected tuple, received undefined",
+        "- spec.geometry.parts[2].shape: Invalid discriminator value. Expected 'box' | 'roundedBox' | 'cylinder' | 'sphere' | 'extrude' | 'lathe'",
+      ].join("\n")
+    )
+    expect(deps.api.assets.create).not.toHaveBeenCalled()
+  })
+
   it("rejects a spec the schema refuses before calling the backend", async () => {
     const deps = fakeDeps()
     const result = await createAsset.call(

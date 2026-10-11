@@ -23,11 +23,8 @@ export function zConvexId<Table extends TableNames>(
     .transform((value) => value as Id<Table>)
 }
 
-export const zRoomId = zConvexId("rooms", "Room id (from get_overview)")
-export const zLayoutId = zConvexId(
-  "layouts",
-  "Layout id (from get_overview or list_layouts)"
-)
+export const zRoomId = zConvexId("rooms", "Room id")
+export const zLayoutId = zConvexId("layouts", "Layout id")
 
 export const zAssetRef = z
   .string()

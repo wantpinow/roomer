@@ -18,7 +18,13 @@ export interface ToolDefinition<Schema extends z.ZodType> {
   name: string
   title: string
   description: string
+  /** What arguments are validated with (core's schemas, in full). */
   inputSchema: Schema
+  /**
+   * What tools/list shows, when it differs: a compact stand-in for big
+   * unions, whose fields the description lists (see compact.ts).
+   */
+  listedSchema?: z.ZodType
   annotations?: ToolAnnotations
   handler(args: z.output<Schema>, deps: ToolDeps): Promise<ToolResult>
 }
@@ -28,6 +34,8 @@ export interface RoomerTool {
   title: string
   description: string
   inputSchema: z.ZodType
+  /** The schema tools/list advertises (defaults to inputSchema). */
+  listedSchema: z.ZodType
   annotations?: ToolAnnotations
   /** Validate `args`, run the handler, map failures to an error result. */
   call(args: unknown, deps: ToolDeps): Promise<ToolResult>
@@ -36,9 +44,10 @@ export interface RoomerTool {
 export function defineTool<Schema extends z.ZodType>(
   definition: ToolDefinition<Schema>
 ): RoomerTool {
-  const { handler, ...meta } = definition
+  const { handler, listedSchema, ...meta } = definition
   return {
     ...meta,
+    listedSchema: listedSchema ?? definition.inputSchema,
     async call(args, deps) {
       try {
         const parsed = definition.inputSchema.parse(args ?? {})
@@ -50,16 +59,20 @@ export function defineTool<Schema extends z.ZodType>(
   }
 }
 
+// Annotations say only what differs from MCP's defaults (not read-only,
+// destructive, not idempotent, open world): destructive/idempotent hints are
+// ignored for read-only tools, and every tool stays on this machine unless
+// it downloads from the web (openWorld).
+
 export const READ_ONLY: ToolAnnotations = {
   readOnlyHint: true,
-  destructiveHint: false,
-  idempotentHint: true,
   openWorldHint: false,
 }
 
 export const WRITES: ToolAnnotations = {
-  readOnlyHint: false,
   destructiveHint: false,
-  idempotentHint: false,
   openWorldHint: false,
 }
+
+/** Writes that also fetch from the web (product and room photos, models). */
+export const WRITES_WEB: ToolAnnotations = { destructiveHint: false }

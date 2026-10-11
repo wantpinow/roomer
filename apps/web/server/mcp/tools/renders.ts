@@ -14,10 +14,11 @@ import {
 } from "../../pipelines/photoreal"
 import { zViewCamera } from "../../pipelines/views"
 import { duration, renderList } from "../format"
+import { zListedViewCamera } from "../listing"
 import { loadLayout } from "../lookup"
 import { toolResult } from "../result"
 import { zLayoutId } from "../schemas"
-import { defineTool, READ_ONLY, WRITES, type RoomerTool } from "../tool"
+import { defineTool, READ_ONLY, type RoomerTool, WRITES_WEB } from "../tool"
 
 function percent(fraction: number): string {
   return `${(fraction * 100).toFixed(fraction < 0.01 ? 1 : 0)}%`
@@ -67,32 +68,35 @@ export function photorealText(
   return lines.join("\n")
 }
 
+const zRenderPhotorealArgs = z.object({
+  layoutId: zLayoutId,
+  camera: zViewCamera.describe(
+    "A saved camera id (list_cameras) or an inline { position, target, fov, projection? } in room mm"
+  ),
+  model: zPhotorealModel.optional(),
+  quality: zRenderQuality.optional(),
+  size: zRenderSize
+    .optional()
+    .describe(
+      `Output size in px; default ${DEFAULT_PHOTOREAL_SIZE.width}×${DEFAULT_PHOTOREAL_SIZE.height}`
+    ),
+  extraPrompt: z
+    .string()
+    .trim()
+    .max(1000)
+    .optional()
+    .describe(
+      "Extra direction for the image model, e.g. 'late afternoon light'"
+    ),
+})
+
 export const renderPhotoreal = defineTool({
   name: "render_photoreal",
   title: "Photoreal render",
-  description: `Render a layout photorealistically: clay + id passes from a camera are sent with the items' product photos to an image model, and the result is stored as a render of the current revision. Waits for the image — typically 30–120s. camera: a saved camera id or an inline { position, target, fov, projection? } (not "top"/"orbit"); frame it with render_view first. model defaults to ${DEFAULT_PHOTOREAL_MODEL} (precise); openai/gpt-image-2.5-flare is faster; "stub" is free and instant (a tinted clay pass, for testing the flow). quality defaults to ${DEFAULT_PHOTOREAL_QUALITY} — use "low" for quick looks; real renders cost money, so render only what the human wants to see.`,
-  inputSchema: z.object({
-    layoutId: zLayoutId,
-    camera: zViewCamera.describe(
-      "A saved camera id (list_cameras) or an inline { position, target, fov, projection? } in room mm"
-    ),
-    model: zPhotorealModel.optional(),
-    quality: zRenderQuality.optional(),
-    size: zRenderSize
-      .optional()
-      .describe(
-        `Output size in px; default ${DEFAULT_PHOTOREAL_SIZE.width}×${DEFAULT_PHOTOREAL_SIZE.height}`
-      ),
-    extraPrompt: z
-      .string()
-      .trim()
-      .max(1000)
-      .optional()
-      .describe(
-        "Extra direction for the image model, e.g. 'late afternoon light'"
-      ),
-  }),
-  annotations: { ...WRITES, openWorldHint: true },
+  description: `Photoreal render of a layout: its clay and id passes and the items' product photos go to an image model; the result is stored as a render of the current revision. Takes 30–120s. camera: a saved camera id or an inline camera (not top/orbit) — frame it with render_view first. model: ${DEFAULT_PHOTOREAL_MODEL} by default (precise); openai/gpt-image-2.5-flare is faster; stub is free and instant (a tinted clay pass, for testing). quality: ${DEFAULT_PHOTOREAL_QUALITY} by default — use low for quick looks; real renders cost money.`,
+  inputSchema: zRenderPhotorealArgs,
+  listedSchema: zRenderPhotorealArgs.extend({ camera: zListedViewCamera }),
+  annotations: WRITES_WEB,
   async handler(args, deps) {
     const size = args.size ?? DEFAULT_PHOTOREAL_SIZE
     const started = await startPhotoreal(deps, {
@@ -125,7 +129,7 @@ export const listRenders = defineTool({
   name: "list_renders",
   title: "List renders",
   description:
-    "A layout's render history, newest first: render id, kind, model and quality, status (or why it failed), camera, the layout revision it shows (flagged when the layout has changed since), duration and image URL.",
+    "A layout's renders, newest first: id, kind, model and quality, status (or error), camera, revision shown (flagged if outdated), duration and image URL.",
   inputSchema: z.object({
     layoutId: zLayoutId,
     limit: z.number().int().min(1).max(100).optional().describe("Default 20"),

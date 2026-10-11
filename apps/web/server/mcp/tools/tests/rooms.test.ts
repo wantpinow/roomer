@@ -117,6 +117,39 @@ describe("create_room", () => {
   })
 })
 
+describe("create_room validation", () => {
+  it("names the exact field of a bad feature or outline", async () => {
+    const deps = fakeDeps()
+    const result = await createRoom.call(
+      {
+        name: "Study",
+        ceilingHeight: 2400,
+        measurements: { kind: "rectangle", width: 3000 },
+        features: [
+          {
+            type: "window",
+            wall: "W1",
+            offset: 0,
+            width: 900,
+            bottom: 800,
+            height: 1200,
+          },
+        ],
+      },
+      deps
+    )
+    expect(result.isError).toBe(true)
+    expect(textOf(result)).toBe(
+      [
+        "Error INVALID_INPUT: Invalid input (2 problems):",
+        "- measurements.depth: Invalid input: expected number, received undefined",
+        '- features[0].opens: Invalid option: expected one of "in"|"out"|"sash"|"fixed"',
+      ].join("\n")
+    )
+    expect(deps.api.rooms.create).not.toHaveBeenCalled()
+  })
+})
+
 describe("set_room_shell", () => {
   it("reports the solve, the walls and any dropped features", async () => {
     const deps = fakeDeps()
@@ -169,6 +202,27 @@ describe("apply_shell_changes", () => {
     )
     expect(textOf(result)).toContain("- Added socket S5 on W6")
     expect(textOf(result)).toContain("Features (")
+  })
+
+  it("lists the valid feature types and ops when given unknown ones", async () => {
+    const deps = fakeDeps()
+    const result = await applyShellChanges.call(
+      {
+        roomId: ROOM_ID,
+        ops: [
+          { op: "addFeature", feature: { type: "fireplace", x: 1, z: 2 } },
+          { op: "teleport" },
+        ],
+      },
+      deps
+    )
+    const text = textOf(result)
+    expect(text).toContain(
+      "- ops[0].feature.type: Invalid discriminator value."
+    )
+    expect(text).toContain("'door' | 'window'")
+    expect(text).toContain("- ops[1].op: Invalid discriminator value.")
+    expect(deps.api.rooms.applyShellChanges).not.toHaveBeenCalled()
   })
 
   it("says nothing was applied when an op fails", async () => {

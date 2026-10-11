@@ -23,7 +23,7 @@ export function registerRoomerTools(
       {
         title: tool.title,
         description: tool.description,
-        inputSchema: forMcp(tool.inputSchema),
+        inputSchema: forMcp(tool.listedSchema),
         ...(tool.annotations ? { annotations: tool.annotations } : {}),
       },
       (args) => tool.call(args, deps())

@@ -13,6 +13,7 @@ import {
 } from "../../pipelines/views"
 import { DEFAULT_PLAN_MAX_SIDE } from "../../render/plan-png"
 import { cameraLine, idLegend } from "../format"
+import { zListedOrbit, zListedViewCamera } from "../listing"
 import { loadLayout, loadRoom } from "../lookup"
 import { toolResult } from "../result"
 import { zLayoutId, zRoomId } from "../schemas"
@@ -26,7 +27,7 @@ export const renderPlanTool = defineTool({
   name: "render_plan",
   title: "Render floor plan",
   description:
-    "The floor plan as a PNG — fast and precise, the main way to check your work. With layoutId: room + furniture footprints + lint issues outlined; with roomId: just the room (walls, doors with swings, windows, radiators, sockets, fittings, dimensions). x points right, z down the page, C1 at the top-left (0, 0). highlight emphasises placement ids; svg: true also returns the SVG source.",
+    "The floor plan PNG \u2014 fast, precise, the main way to check your work. layoutId: room + furniture + lint outlines; roomId: just the room. x right, z down, C1 top-left at (0, 0). highlight emphasises placement ids; svg: true adds the SVG source.",
   inputSchema: z
     .object({
       layoutId: zLayoutId.optional(),
@@ -81,22 +82,26 @@ export const renderPlanTool = defineTool({
   },
 })
 
+const zRenderViewArgs = z.object({
+  layoutId: zLayoutId,
+  camera: zViewCamera,
+  orbit: zOrbit.optional(),
+  pass: z.enum(["clay", "id", "both"]).optional().describe("Default clay"),
+  width: zPixels.optional().describe(`px, default ${DEFAULT_VIEW_SIZE.width}`),
+  height: zPixels
+    .optional()
+    .describe(`px, default ${DEFAULT_VIEW_SIZE.height}`),
+})
+
 export const renderView = defineTool({
   name: "render_view",
   title: "Render 3D view",
   description:
-    'Render a layout in 3D from a camera and return the PNG(s). camera: a saved camera id (list_cameras), "top" (orthographic plan view, walls cut at 1.2m), "orbit" (3/4 dollhouse view from outside; set orbit.azimuth/elevation) or an inline { position, target, fov, projection? } in room mm. pass: "clay" (grey shaded model, default), "id" (one flat colour per item, with the colour legend and each item\'s share of the frame — shows what the camera actually sees) or "both". Default 1280×853 px.',
-  inputSchema: z.object({
-    layoutId: zLayoutId,
-    camera: zViewCamera,
-    orbit: zOrbit.optional(),
-    pass: z.enum(["clay", "id", "both"]).optional().describe("Default clay"),
-    width: zPixels
-      .optional()
-      .describe(`px, default ${DEFAULT_VIEW_SIZE.width}`),
-    height: zPixels
-      .optional()
-      .describe(`px, default ${DEFAULT_VIEW_SIZE.height}`),
+    'Render a layout in 3D. camera: a saved camera id, "top" (plan view, walls cut at 1.2m), "orbit" (3/4 dollhouse view; see orbit) or an inline camera. pass: clay (default), id (a flat colour per item, with the legend and each item\'s share of the frame) or both. Default 1280\u00d7853 px.',
+  inputSchema: zRenderViewArgs,
+  listedSchema: zRenderViewArgs.extend({
+    camera: zListedViewCamera,
+    orbit: zListedOrbit.optional(),
   }),
   annotations: READ_ONLY,
   async handler(args, deps) {

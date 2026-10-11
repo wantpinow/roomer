@@ -17,6 +17,15 @@ import {
   solveReport,
   wallLine,
 } from "../format"
+import {
+  FEATURE_REFERENCE,
+  MEASUREMENTS_REFERENCE,
+  SHELL_OPS_REFERENCE,
+  zListedCamera,
+  zListedMeasurements,
+  zListedNewRoom,
+  zListedShellOp,
+} from "../listing"
 import { loadRoom } from "../lookup"
 import { toolError, toolResult } from "../result"
 import { zIncludePlan, zRoomId } from "../schemas"
@@ -26,6 +35,7 @@ import {
   WRITES,
   type RoomerTool,
   type ToolDeps,
+  WRITES_WEB,
 } from "../tool"
 
 const MAX_SHELL_OPS = 100
@@ -35,6 +45,20 @@ async function roomPlan(room: RoomDetail, include: boolean): Promise<Buffer[]> {
   return include ? [(await renderPlan({ room })).png] : []
 }
 
+const zIncludePlanByDefault = zIncludePlan.describe(
+  "Return the plan PNG (default true)"
+)
+
+const zSetShellArgs = z.object({
+  roomId: zRoomId,
+  measurements: zShellMeasurements,
+  dropInvalidFeatures: z
+    .boolean()
+    .optional()
+    .describe("Remove features that don't fit the new outline"),
+  includePlan: zIncludePlanByDefault,
+})
+
 const PLAN_NOTE =
   "The plan PNG follows: x right, z down the page, C1 at (0, 0)."
 
@@ -42,7 +66,7 @@ export const getRoom = defineTool({
   name: "get_room",
   title: "Get room",
   description:
-    "A room's fixed parts: corners (x, z mm), walls (id, corners, length, which way each faces), features grouped by kind (doors with hinge/swing, windows with sill height, radiators, obstacles, sockets, ceiling fittings) with positions along their wall, saved cameras, finishes, skirting, ceiling height and the outline solver's report. includePlan adds the floor plan PNG.",
+    "A room's walls (id, length, which way each faces), corners, features by kind with positions along their wall, cameras, finishes, skirting, ceiling height and solver report. includePlan adds the plan PNG.",
   inputSchema: z.object({ roomId: zRoomId, includePlan: zIncludePlan }),
   annotations: READ_ONLY,
   async handler({ roomId, includePlan = false }, { api }) {
@@ -60,10 +84,14 @@ export const getRoom = defineTool({
 export const createRoom = defineTool({
   name: "create_room",
   title: "Create room",
-  description:
-    "Create a room from its measurements (rectangle, walk, quad or polygon — whole mm), ceiling height, optional skirting, features and finishes. Corners are solved clockwise from C1 at (0, 0); walls Wi run Ci → Ci+1. Returns the solved outline, corner angles, residual error, wall ids and the plan PNG (includePlan: false to skip it). Default cameras are created from the doors and corners.",
-  inputSchema: zNewRoom.extend({
-    includePlan: zIncludePlan.describe("Return the plan PNG (default true)"),
+  description: [
+    "Create a room from its measurements, ceiling height, optional skirting (default 150 high \u00d7 18 deep), features and finishes. Corners are solved clockwise from C1 at (0, 0); wall Wi runs Ci \u2192 Ci+1. Returns the outline, corner angles, residual, walls and the plan PNG (includePlan: false skips it); default cameras come from the doors and corners.",
+    MEASUREMENTS_REFERENCE,
+    FEATURE_REFERENCE,
+  ].join("\n\n"),
+  inputSchema: zNewRoom.extend({ includePlan: zIncludePlanByDefault }),
+  listedSchema: zListedNewRoom.extend({
+    includePlan: zIncludePlanByDefault,
   }),
   annotations: WRITES,
   async handler({ includePlan = true, ...input }, { api }) {
@@ -85,17 +113,12 @@ export const createRoom = defineTool({
 export const setRoomShell = defineTool({
   name: "set_room_shell",
   title: "Set room outline",
-  description:
-    "Replace a room's outline measurements (rectangle | walk | quad | polygon, whole mm) and re-solve it. Returns corners, corner angles and the residual (re-measure if over 15mm), the walls, and the plan PNG (includePlan: false to skip). Features that no longer fit are an error unless dropInvalidFeatures: true. Every layout of the room is re-linted.",
-  inputSchema: z.object({
-    roomId: zRoomId,
-    measurements: zShellMeasurements,
-    dropInvalidFeatures: z
-      .boolean()
-      .optional()
-      .describe("Remove features that don't fit the new outline"),
-    includePlan: zIncludePlan.describe("Return the plan PNG (default true)"),
-  }),
+  description: [
+    "Replace a room's outline measurements and re-solve: returns corners, angles, residual (re-measure if over 15mm), walls and the plan PNG (includePlan: false skips it). Features that no longer fit are an error unless dropInvalidFeatures: true. Layouts are re-linted.",
+    MEASUREMENTS_REFERENCE,
+  ].join("\n\n"),
+  inputSchema: zSetShellArgs,
+  listedSchema: zSetShellArgs.extend({ measurements: zListedMeasurements }),
   annotations: WRITES,
   async handler(
     { roomId, measurements, dropInvalidFeatures, includePlan = true },
@@ -130,11 +153,19 @@ export const setRoomShell = defineTool({
 export const applyShellChanges = defineTool({
   name: "apply_shell_changes",
   title: "Edit room features",
-  description:
-    "Atomic batch of room edits, applied in order: addFeature (id optional — D1, WIN1, RAD1… are assigned), updateFeature (full replacement, keeps the id), removeFeature, setSkirting, setCeilingHeight, setFinishes (merge; empty string clears a field), rename. Wall features are placed by wall + offset (mm from the wall's start corner to the feature's nearest edge). If any op fails nothing is applied. Layouts are re-linted.",
+  description: [
+    "Atomic, ordered batch of room edits; if any op fails nothing is applied and the error names the op and field. updateFeature replaces every field but the id; setFinishes merges (an empty string clears a field). Layouts are re-linted.",
+    SHELL_OPS_REFERENCE,
+    FEATURE_REFERENCE,
+  ].join("\n\n"),
   inputSchema: z.object({
     roomId: zRoomId,
     ops: z.array(zShellOp).min(1).max(MAX_SHELL_OPS),
+    includePlan: zIncludePlan,
+  }),
+  listedSchema: z.object({
+    roomId: zRoomId,
+    ops: z.array(zListedShellOp).min(1).max(MAX_SHELL_OPS),
     includePlan: zIncludePlan,
   }),
   annotations: WRITES,
@@ -185,7 +216,7 @@ export const addRoomPhotos = defineTool({
     roomId: zRoomId,
     urls: z.array(z.url()).min(1).max(MAX_ROOM_PHOTOS),
   }),
-  annotations: { ...WRITES, openWorldHint: true },
+  annotations: WRITES_WEB,
   async handler({ roomId, urls }, deps) {
     await loadRoom(deps.api, roomId)
     const results = await Promise.all(urls.map((url) => storePhoto(deps, url)))
@@ -221,7 +252,7 @@ export const listCameras = defineTool({
   name: "list_cameras",
   title: "List cameras",
   description:
-    "A room's saved cameras: id, name, eye position (x, y, z mm; y = height), viewing bearing, tilt and vertical field of view. Use an id with render_view or render_photoreal. Cameras from-<door> and from-<corner> are kept in step with the room automatically.",
+    "A room's saved cameras: id, name, eye (x, y, z mm), viewing bearing, tilt and fov. from-<door> and corner-<Cn> cameras follow the room automatically.",
   inputSchema: z.object({ roomId: zRoomId }),
   annotations: READ_ONLY,
   async handler({ roomId }, { api }) {
@@ -241,8 +272,9 @@ export const setCamera = defineTool({
   name: "set_camera",
   title: "Save camera",
   description:
-    "Create or replace a named camera in a room (by id). position and target are [x, y, z] in room mm (y = height; eye height ≈ 1,500); fov is the vertical field of view in degrees (70 ≈ estate-agent wide angle, 50 ≈ phone); projection rectilinear (default, straight lines stay straight) or fisheye (fits more of the room near the camera). Check the framing with render_view before using it for render_photoreal.",
+    "Create or replace a room camera by id: position and target [x, y, z] in mm (y = height; eye \u2248 1,500), fov = vertical degrees (70 \u2248 estate-agent wide angle, 50 \u2248 phone), projection rectilinear (default) or fisheye. Check the framing with render_view.",
   inputSchema: z.object({ roomId: zRoomId, camera: zCamera }),
+  listedSchema: z.object({ roomId: zRoomId, camera: zListedCamera }),
   annotations: WRITES,
   async handler({ roomId, camera }, { api }) {
     const { created } = await api.rooms.upsertCamera({ roomId, camera })

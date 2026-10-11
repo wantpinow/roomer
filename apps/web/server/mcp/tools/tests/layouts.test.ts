@@ -183,6 +183,32 @@ describe("apply_changes", () => {
     )
   })
 
+  it("names the exact field of a bad op or position", async () => {
+    const deps = fakeDeps()
+    const result = await applyChanges.call(
+      {
+        layoutId: LAYOUT_ID,
+        ops: [
+          {
+            op: "add",
+            asset: "generic-sofa",
+            position: { mode: "against", wall: "W1" },
+          },
+          { op: "move", id: "sofa", position: { mode: "teleport" } },
+        ],
+      },
+      deps
+    )
+    expect(textOf(result)).toBe(
+      [
+        "Error INVALID_INPUT: Invalid input (2 problems):",
+        "- ops[0].position.at: Invalid input: expected number, received undefined",
+        "- ops[1].position.mode: Invalid discriminator value. Expected 'at' | 'against' | 'onWall' | 'centerOn' | 'inCorner'",
+      ].join("\n")
+    )
+    expect(deps.api.layouts.applyChanges).not.toHaveBeenCalled()
+  })
+
   it("rejects an unknown op before calling the backend", async () => {
     const deps = fakeDeps()
     const result = await applyChanges.call(

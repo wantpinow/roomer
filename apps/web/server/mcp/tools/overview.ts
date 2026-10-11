@@ -8,7 +8,7 @@ export const getOverview = defineTool({
   name: "get_overview",
   title: "Overview (start here)",
   description:
-    "Start here. Lists every room (id, size) with its layouts (id, name, status, revision, item count, total price, lint counts) and a summary of the asset library. Use the ids it returns with get_room, get_layout and the other tools.",
+    "Start here: every room (id, size) with its layouts (id, status, revision, items, price, lint counts) and an asset-library summary.",
   inputSchema: z.object({}),
   annotations: READ_ONLY,
   async handler(_args, { api }) {

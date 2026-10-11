@@ -14,6 +14,8 @@ import { ROOMER_TOOLS } from "../tools"
 
 import { fakeDeps, LAYOUT_ID, textOf } from "./fakes"
 
+const TOOLS_LIST_BUDGET_BYTES = 30_000
+
 const CONTRACT = [
   "get_overview",
   "get_room",
@@ -107,6 +109,48 @@ describe("the MCP handler", () => {
     })
     expect(textOf(result)).toMatch(/^Layout "Starter" at revision 3\./)
     expect(deps.api.layouts.get).toHaveBeenCalledWith({ layoutId: LAYOUT_ID })
+    await client.close()
+  })
+
+  it("keeps tools/list within its token budget", async () => {
+    const { client } = await connect()
+    const { tools } = await client.listTools()
+    // ~27KB on 2026-10-11 (from ~111KB before compact listings): about 7k
+    // tokens that every agent session pays. Raise only with a reason.
+    expect(JSON.stringify(tools).length).toBeLessThan(TOOLS_LIST_BUDGET_BYTES)
+    await client.close()
+  })
+
+  it("lists compact stand-ins but validates with the full core schemas", async () => {
+    const { client, deps } = await connect()
+    const { tools } = await client.listTools()
+    const createRoom = tools.find((t) => t.name === "create_room")!
+    expect(JSON.stringify(createRoom.inputSchema)).not.toContain("hinge")
+    expect(createRoom.description).toContain("- door: wall fields, hinge")
+    const result = await client.callTool({
+      name: "create_room",
+      arguments: {
+        name: "Study",
+        ceilingHeight: 2400,
+        measurements: { kind: "rectangle", width: 3000, depth: 2500 },
+        features: [
+          {
+            type: "door",
+            wall: "W1",
+            offset: 100,
+            width: 800,
+            bottom: 0,
+            height: 2000,
+            swing: "in",
+          },
+        ],
+      },
+    })
+    expect(result.isError).toBe(true)
+    expect(textOf(result)).toBe(
+      'Error INVALID_INPUT: Invalid input: features[0].hinge: Invalid option: expected one of "start"|"end"'
+    )
+    expect(deps.api.rooms.create).not.toHaveBeenCalled()
     await client.close()
   })
 

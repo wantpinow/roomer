@@ -16,6 +16,11 @@ import {
   lintReport,
   placementLine,
 } from "../format"
+import {
+  LAYOUT_OPS_REFERENCE,
+  zListedFinishes,
+  zListedLayoutOp,
+} from "../listing"
 import { loadLayout, loadRoom } from "../lookup"
 import { toolResult } from "../result"
 import { zIncludePlan, zLayoutId, zRoomId } from "../schemas"
@@ -62,7 +67,7 @@ export const getLayout = defineTool({
   name: "get_layout",
   title: "Get layout",
   description:
-    "A layout's items — placement id, asset name and key, W×D×H, footprint centre (x, z mm), facing bearing, elevation, and where it sits relative to the walls — plus notes, finishes override, total price and the lint report (errors first, with hints). includePlan adds the floor plan PNG.",
+    "A layout's items (placement id, asset name and key, W\u00d7D\u00d7H, centre (x, z), facing, elevation, where it sits relative to the walls), notes, finishes override, total price and lint (errors first, with hints). includePlan adds the plan PNG.",
   inputSchema: z.object({ layoutId: zLayoutId, includePlan: zIncludePlan }),
   annotations: READ_ONLY,
   async handler({ layoutId, includePlan = false }, { api }) {
@@ -112,23 +117,31 @@ export const createLayout = defineTool({
   },
 })
 
+const zUpdateLayoutArgs = z.object({
+  layoutId: zLayoutId,
+  name: zLabel.optional(),
+  notes: zNote.optional().describe("Replaces the notes; empty string clears"),
+  status: zLayoutStatus.optional(),
+  finishes: zFinishes
+    .nullable()
+    .optional()
+    .describe("Overrides the room's finishes for this layout; null removes it"),
+  expectedRevision: zExpectedRevision,
+})
+
 export const updateLayout = defineTool({
   name: "update_layout",
   title: "Update layout",
   description:
-    "Rename a layout, set its notes (your rationale — mention any warnings you accept and why), status (draft → candidate → favourite; archived hides it) or finishes override (wall/floor/… text for renders; null removes the override).",
-  inputSchema: z.object({
-    layoutId: zLayoutId,
-    name: zLabel.optional(),
-    notes: zNote.optional().describe("Replaces the notes; empty string clears"),
-    status: zLayoutStatus.optional(),
-    finishes: zFinishes
+    "Set a layout's name, notes (your rationale; justify any warnings you accept), status (draft \u2192 candidate \u2192 favourite; archived hides it) or finishes override (null removes it).",
+  inputSchema: zUpdateLayoutArgs,
+  listedSchema: zUpdateLayoutArgs.extend({
+    finishes: zListedFinishes
       .nullable()
       .optional()
       .describe(
-        "Overrides the room's finishes for this layout; null removes it"
+        "Overrides the room's finishes for this layout (walls, floor, ceiling, skirting, notes as short phrases); null removes it"
       ),
-    expectedRevision: zExpectedRevision,
   }),
   annotations: WRITES,
   async handler({ layoutId, ...fields }, { api }) {
@@ -148,11 +161,19 @@ export const updateLayout = defineTool({
 export const applyChanges = defineTool({
   name: "apply_changes",
   title: "Apply layout changes",
-  description:
-    'Atomic batch of furniture edits, applied in order: add {asset, id?, label?, position, mirrored?}, move {id, position}, nudge {id, dx?, dz?, rotate?} (world mm; rotate = degrees clockwise), swap {id, asset} (keeps centre and facing), set {id, label?, mirrored?}, remove {id}. Positions: {mode:"against", wall, at, anchor?, side?, gap?} (back to a wall, clear of the skirting, facing into the room; `at` = mm along the wall from its start corner), {mode:"onWall", wall, at, elevation} (TV, art, shelves), {mode:"centerOn", placement|feature, dx?, dz?} (rug under a table, pendant at L1), {mode:"inCorner", corner, against?}, {mode:"at", x, z, facing?}. If any op fails nothing is applied. Returns the changes, where each touched item ended up, and the lint report (errors first, with hints) — fix every error. includePlan adds the plan PNG with the touched items highlighted.',
+  description: [
+    "Atomic, ordered batch of furniture edits; if any op fails nothing is applied and the error names the op and field. Positions place the footprint centre: against = back (or side) to a wall, clear of the skirting, facing into the room; onWall = TV, art, shelf; centerOn = rug under a table, pendant at L1; inCorner; at = absolute. swap keeps the centre and facing. Returns the changes, where touched items ended up and lint (errors first, with hints) \u2014 fix every error. includePlan adds the plan with them highlighted.",
+    LAYOUT_OPS_REFERENCE,
+  ].join("\n\n"),
   inputSchema: z.object({
     layoutId: zLayoutId,
     ops: z.array(zLayoutOp).min(1).max(MAX_LAYOUT_OPS),
+    expectedRevision: zExpectedRevision,
+    includePlan: zIncludePlan,
+  }),
+  listedSchema: z.object({
+    layoutId: zLayoutId,
+    ops: z.array(zListedLayoutOp).min(1).max(MAX_LAYOUT_OPS),
     expectedRevision: zExpectedRevision,
     includePlan: zIncludePlan,
   }),
@@ -201,7 +222,7 @@ export const lintLayout = defineTool({
   name: "lint_layout",
   title: "Lint layout",
   description:
-    "The layout's current lint report: errors (E…, must fix), warnings (W…, fix or accept and explain in the notes) and info (I…), each naming the items and features involved with numbers in mm and a hint. Kept fresh when the room or an asset changes.",
+    "A layout's current lint: errors (E\u2026, must fix), warnings (W\u2026, fix or justify in the notes) and info (I\u2026), each naming the items and features involved, with mm and a hint.",
   inputSchema: z.object({ layoutId: zLayoutId }),
   annotations: READ_ONLY,
   async handler({ layoutId }, { api }) {
