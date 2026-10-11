@@ -1,15 +1,18 @@
 import { mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
+import { Writable } from "node:stream"
 
 import { describe, expect, it } from "vitest"
 
 import {
   fileTimestamp,
   imageFileName,
+  imageNames,
   parseCliArgs,
   readToolArgs,
   toolSummary,
+  writeAll,
 } from "../cli"
 
 describe("parseCliArgs", () => {
@@ -97,6 +100,84 @@ describe("image file names", () => {
       "20261011-090507-render_view-2.png"
     )
     expect(imageFileName(date, "x", 1, "image/jpeg")).toMatch(/\.jpg$/)
+  })
+
+  it("uses the tool's name for the image when it gives one", () => {
+    const date = new Date(2026, 9, 11, 9, 5, 7)
+    expect(
+      imageFileName(
+        date,
+        "create_asset",
+        5,
+        "image/png",
+        "castlery-avery-chair-comparison"
+      )
+    ).toBe("20261011-090507-create_asset-castlery-avery-chair-comparison.png")
+    expect(imageFileName(date, "x", 2, "image/png", "../../etc passwd")).toBe(
+      "20261011-090507-x-etc-passwd.png"
+    )
+    expect(imageFileName(date, "x", 3, "image/png", "///")).toBe(
+      "20261011-090507-x-3.png"
+    )
+  })
+})
+
+describe("imageNames", () => {
+  it("reads one name per image from structuredContent", () => {
+    expect(imageNames({ imageNames: ["a-front", "a-iso"] }, 2)).toEqual([
+      "a-front",
+      "a-iso",
+    ])
+  })
+
+  it("ignores missing or mismatched names", () => {
+    expect(imageNames(undefined, 2)).toEqual([undefined, undefined])
+    expect(imageNames({ imageNames: ["only-one"] }, 2)).toEqual([
+      undefined,
+      undefined,
+    ])
+    expect(imageNames({ imageNames: [1, 2] }, 2)).toEqual([
+      undefined,
+      undefined,
+    ])
+  })
+})
+
+describe("writeAll", () => {
+  /** A pipe-like stream that takes 1KB per tick, like a slow reader. */
+  function slowPipe() {
+    const chunks: Buffer[] = []
+    const stream = new Writable({
+      highWaterMark: 1024,
+      write(chunk: Buffer, _encoding, callback) {
+        setTimeout(() => {
+          chunks.push(chunk)
+          callback()
+        }, 1)
+      },
+    })
+    return { stream, received: () => Buffer.concat(chunks).length }
+  }
+
+  it("resolves only once the stream has taken every byte", async () => {
+    const pipe = slowPipe()
+    const big = "x".repeat(300 * 1024)
+    const done = writeAll(pipe.stream, big)
+    // Most of it is still buffered right after the write…
+    expect(pipe.received()).toBeLessThan(big.length)
+    await done
+    // …and all of it has gone through when the promise settles.
+    expect(pipe.received()).toBe(big.length)
+  })
+
+  it("rejects when the stream fails", async () => {
+    const broken = new Writable({
+      write(_chunk, _encoding, callback) {
+        callback(new Error("EPIPE"))
+      },
+    })
+    broken.on("error", () => undefined)
+    await expect(writeAll(broken, "hello")).rejects.toThrow("EPIPE")
   })
 })
 

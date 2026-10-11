@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs"
 import path from "node:path"
+import type { Writable } from "node:stream"
 
 // Pure helpers for `pnpm mcp` (scripts/mcp-call.ts): argument parsing,
 // where tool arguments come from, and how returned images are named.
@@ -24,9 +25,11 @@ export const USAGE = `usage:
   pnpm mcp --instructions               print the server instructions (agent guide)
   pnpm mcp <tool> ['<json>' | @args.json] [--json] [--out <dir>]
 
-  Prints the text result; images are written to .roomer-out/mcp/ and their
+  Prints the text result; images are written to .roomer-out/mcp/ (named
+  <time>-<tool>-<what>.png, e.g. …-create_asset-<key>-iso.png) and their
   paths printed. --json also prints structuredContent. Exit code 1 when the
-  tool reports an error. ROOMER_MCP_URL overrides ${DEFAULT_MCP_URL}.
+  tool reports an error. Output is complete when piped (… | wc -c).
+  ROOMER_MCP_URL overrides ${DEFAULT_MCP_URL}.
 
   e.g. pnpm mcp get_overview
        pnpm mcp render_plan '{"layoutId":"…"}'
@@ -121,14 +124,50 @@ const EXTENSIONS: Record<string, string> = {
   "image/gif": "gif",
 }
 
-/** `<yyyymmdd-hhmmss>-<tool>-<n>.png` (n from 1). */
+/**
+ * `<yyyymmdd-hhmmss>-<tool>-<name>.png` when the tool named its images
+ * (structuredContent.imageNames, e.g. "<asset key>-iso"), else
+ * `<yyyymmdd-hhmmss>-<tool>-<n>.png` (n from 1).
+ */
 export function imageFileName(
   date: Date,
   tool: string,
   index: number,
-  mimeType: string
+  mimeType: string,
+  name?: string
 ): string {
-  return `${fileTimestamp(date)}-${tool}-${index}.${EXTENSIONS[mimeType] ?? "bin"}`
+  const safe = name
+    ?.replace(/[^A-Za-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 120)
+  return `${fileTimestamp(date)}-${tool}-${safe || index}.${EXTENSIONS[mimeType] ?? "bin"}`
+}
+
+/** structuredContent.imageNames, when it names every image. */
+export function imageNames(
+  structured: unknown,
+  count: number
+): (string | undefined)[] {
+  const names =
+    typeof structured === "object" && structured !== null
+      ? Reflect.get(structured, "imageNames")
+      : undefined
+  return Array.isArray(names) &&
+    names.length === count &&
+    names.every((name) => typeof name === "string")
+    ? names
+    : Array.from({ length: count }, () => undefined)
+}
+
+/**
+ * Write text and wait until the stream has taken all of it. A pipe on
+ * macOS is asynchronous: exiting right after `console.log` drops whatever
+ * is still buffered (output piped into another program was cut at 64KB).
+ */
+export function writeAll(stream: Writable, text: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    stream.write(text, (error) => (error ? reject(error) : resolve()))
+  })
 }
 
 /** "get_overview — Overview (start here): Start here." */
