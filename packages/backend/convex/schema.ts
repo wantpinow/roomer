@@ -104,20 +104,26 @@ export default defineSchema({
     images: v.array(vAssetImage),
     // Rendered previews (front/side/top/iso) of the current model.
     previews: v.array(vAssetPreview),
+    // Words that find it in a search: name, key, tags, retailer, variant,
+    // category and product URL (see assetSearchText). Optional only because
+    // rows from before it existed lack it until assets:backfillSearchText.
+    searchText: v.optional(v.string()),
     // Last time the spec, photos or previews changed (ms since epoch).
     updatedAt: v.number(),
   })
     // Resolving an agent's asset reference by key; enforcing uniqueness.
     .index("by_key", ["key"])
+    // Duplicate check: other assets for the same product page.
+    .index("by_product_url", ["product.url"])
     // Library listing in name order.
     .index("by_name", ["name"])
     // Library listing filtered by category, in name order.
     .index("by_category_name", ["category", "name"])
     // Filtered by source (and optionally category), in name order.
     .index("by_source_category_name", ["source", "category", "name"])
-    // Free-text search over names, filterable like the listing.
-    .searchIndex("search_name", {
-      searchField: "name",
+    // Free-text search over searchText, filterable like the listing.
+    .searchIndex("search_searchText", {
+      searchField: "searchText",
       filterFields: ["category", "source"],
     }),
 

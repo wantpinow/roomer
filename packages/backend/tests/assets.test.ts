@@ -5,7 +5,9 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { api } from "../convex/_generated/api"
 import type { Id } from "../convex/_generated/dataModel"
 import {
+  assetSearchText,
   doAttachImages,
+  doBackfillSearchText,
   doCreateAsset,
   doGetAsset,
   doGetAssetByKey,
@@ -16,6 +18,8 @@ import {
   doSetPreviews,
   doUpdateAsset,
   downloadImage,
+  normalizeProductUrl,
+  searchWords,
   DESKTOP_USER_AGENT,
   IMAGE_FETCH_TIMEOUT_MS,
   MAX_IMAGE_BYTES,
@@ -391,7 +395,7 @@ describe("doRemoveAsset", () => {
     await expectAppError(
       t.run(async (ctx) => doRemoveAsset(ctx, { assetId })),
       "CONFLICT",
-      "Test rug is placed in 1 layout ('Cosy'). Remove or swap it there first."
+      `Test rug (test-rug) wasn't deleted: it is placed in 1 layout: 'Cosy' (layout ${layoutId}, 1 placement). Remove it there or swap it for another asset (apply_changes remove / swap), then delete it.`
     )
   })
 
@@ -483,6 +487,155 @@ describe("doSearchAssets", () => {
     expect(sofas).toEqual([])
     const all = await t.run(async (ctx) => doSearchAssets(ctx, { query: " " }))
     expect(all).toHaveLength(3)
+  })
+})
+
+describe("assetSearchText", () => {
+  it("collects name, key, tags, retailer, variant, category and URL words", () => {
+    const text = assetSearchText({
+      name: "Harper Curved Sideboard",
+      key: "castlery-harper-curved-sideboard-chestnut",
+      category: "storage",
+      tags: ["tambour", "Mid-century"],
+      product: {
+        url: "https://www.castlery.com/uk/products/harper-sideboard?variant=42",
+        retailer: "Castlery",
+        variant: "Chestnut",
+        dimsSource: "listing",
+      },
+    })
+    const words = text.split(" ")
+    for (const word of [
+      "castlery-harper-curved-sideboard-chestnut",
+      "harper",
+      "curved",
+      "tambour",
+      "mid",
+      "century",
+      "castlery",
+      "chestnut",
+      "storage",
+      "products",
+      "42",
+    ]) {
+      expect(words).toContain(word)
+    }
+    // Each word once.
+    expect(new Set(words).size).toBe(words.length)
+  })
+
+  it("splits words on anything but letters and digits", () => {
+    expect(searchWords("Söderhamn 3-seat, Ø90cm")).toEqual([
+      "söderhamn",
+      "3",
+      "seat",
+      "ø90cm",
+    ])
+  })
+
+  it("compares product URLs without their hash or trailing slash", () => {
+    expect(normalizeProductUrl("https://Shop.example/a/b/#top")).toBe(
+      "https://shop.example/a/b"
+    )
+    expect(normalizeProductUrl("https://shop.example/a?v=1")).toBe(
+      "https://shop.example/a?v=1"
+    )
+  })
+})
+
+describe("doSearchAssets: words beyond the name", () => {
+  async function seeded(t: TestConvex) {
+    const sofa = await createTestAsset(t, "sofa")
+    const table = await createTestAsset(t, "diningTable")
+    await createTestAsset(t, "coffeeTable")
+    await t.run(async (ctx) =>
+      doUpdateAsset(ctx, {
+        assetId: table,
+        tags: ["tambour"],
+        product: {
+          url: "https://www.castlery.com/uk/products/harper-dining-table",
+          retailer: "Castlery",
+          dimsSource: "listing",
+        },
+      })
+    )
+    return { sofa, table }
+  }
+
+  it("finds an asset by retailer, tag, key or product URL", async () => {
+    const t = createTestConvex()
+    const { table } = await seeded(t)
+    for (const query of [
+      "castlery",
+      "Castlery",
+      "tambour",
+      "test-dining-table",
+      "https://www.castlery.com/uk/products/harper-dining-table",
+    ]) {
+      const found = await t.run(async (ctx) => doSearchAssets(ctx, { query }))
+      expect(found[0]?._id, query).toBe(table)
+    }
+  })
+
+  it("ranks an exact key first, then rows with every word", async () => {
+    const t = createTestConvex()
+    await seeded(t)
+    const byKey = await t.run(async (ctx) =>
+      doSearchAssets(ctx, { query: "test-coffee-table" })
+    )
+    expect(byKey[0]?.key).toBe("test-coffee-table")
+    const words = await t.run(async (ctx) =>
+      doSearchAssets(ctx, { query: "dining table" })
+    )
+    expect(words[0]?.key).toBe("test-dining-table")
+  })
+
+  it("keeps the category and source filters for exact hits", async () => {
+    const t = createTestConvex()
+    await seeded(t)
+    const found = await t.run(async (ctx) =>
+      doSearchAssets(ctx, { query: "test-dining-table", category: "sofa" })
+    )
+    expect(found.every((asset) => asset.category === "sofa")).toBe(true)
+    expect(found.map((asset) => asset.key)).not.toContain("test-dining-table")
+  })
+})
+
+describe("doCreateAsset: duplicates", () => {
+  it("warns when another asset has the same product URL", async () => {
+    const t = createTestConvex()
+    const product = {
+      url: "https://shop.example/rug",
+      retailer: "Example",
+      dimsSource: "listing" as const,
+    }
+    await t.run(async (ctx) =>
+      doCreateAsset(ctx, { ...RUG, key: "rug-one", product })
+    )
+    const second = await t.run(async (ctx) =>
+      doCreateAsset(ctx, {
+        ...RUG,
+        key: "rug-two",
+        product: { ...product, url: "https://shop.example/rug/" },
+      })
+    )
+    expect(second.warnings).toEqual([
+      "Test rug (key rug-one) has the same product URL — is this a duplicate? If so, delete this one with delete_asset and update that one instead.",
+    ])
+  })
+})
+
+describe("doBackfillSearchText", () => {
+  it("fills searchText on rows written before it existed", async () => {
+    const t = createTestConvex()
+    const assetId = await createTestAsset(t, "sofa")
+    await t.run(async (ctx) => ctx.db.patch(assetId, { searchText: undefined }))
+    const result = await t.run(async (ctx) => doBackfillSearchText(ctx, {}))
+    expect(result).toEqual({ updated: 1, done: true })
+    const row = await t.run(async (ctx) => ctx.db.get(assetId))
+    expect(row?.searchText).toContain("test-sofa")
+    const again = await t.run(async (ctx) => doBackfillSearchText(ctx, {}))
+    expect(again.updated).toBe(0)
   })
 })
 

@@ -75,10 +75,56 @@ export function assetSpecOf(asset: Doc<"assets">): AssetSpec {
     images,
     previews,
     updatedAt,
+    searchText,
     ...spec
   } = asset
   void [_id, _creationTime, key, source, images, previews, updatedAt]
+  void searchText
   return spec
+}
+
+/** Lowercase words (letters and digits) of a text, in order. */
+export function searchWords(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((word) => word.length > 0)
+}
+
+/**
+ * What `search_searchText` indexes for an asset: its name, key (as typed
+ * and split into words), tags, retailer, variant, category and the words of
+ * its product URL — so "castlery", "tambour", a key or a URL all find it.
+ */
+export function assetSearchText(
+  asset: Pick<AssetSpec, "name" | "category" | "tags" | "product"> & {
+    key: string
+  }
+): string {
+  const parts = [
+    asset.name,
+    asset.key,
+    asset.key.replace(/-/g, " "),
+    ...(asset.tags ?? []),
+    asset.product?.retailer ?? "",
+    asset.product?.variant ?? "",
+    asset.category,
+    asset.product?.url ?? "",
+  ]
+  const words = new Set([asset.key, ...parts.flatMap(searchWords)])
+  return [...words].join(" ")
+}
+
+/** A product URL as compared for duplicates: no hash, no trailing slash. */
+export function normalizeProductUrl(url: string): string {
+  try {
+    const parsed = new URL(url.trim())
+    parsed.hash = ""
+    const path = parsed.pathname.replace(/\/+$/, "")
+    return `${parsed.protocol}//${parsed.host.toLowerCase()}${path}${parsed.search}`
+  } catch {
+    return url.trim()
+  }
 }
 
 export async function getAssetOrThrow(
@@ -145,7 +191,8 @@ async function previewUrls(ctx: QueryCtx, asset: Doc<"assets">) {
  * can still sketch the item.
  */
 async function assetSummary(ctx: QueryCtx, asset: Doc<"assets">) {
-  const { geometry, ...rest } = asset
+  const { geometry, searchText, ...rest } = asset
+  void searchText
   return {
     ...rest,
     partCount: geometry.parts.length,
@@ -157,8 +204,10 @@ async function assetSummary(ctx: QueryCtx, asset: Doc<"assets">) {
 
 /** A full asset with photo and preview URLs. */
 async function assetDetail(ctx: QueryCtx, asset: Doc<"assets">) {
+  const { searchText, ...stored } = asset
+  void searchText
   return {
-    ...asset,
+    ...stored,
     imageUrls: await Promise.all(
       asset.images.map(async (image) => ({
         ...image,
@@ -233,6 +282,15 @@ export async function doListAssets(
   return await Promise.all(sorted.map((asset) => assetSummary(ctx, asset)))
 }
 
+/** Most rows a text search ranks before it is cut to `limit`. */
+export const SEARCH_CANDIDATES = 100
+
+/**
+ * Search by text over names, keys, tags, retailer, variant, category and
+ * product URL (`search_searchText`). An exact key or product URL comes
+ * first; then rows containing every word of the query; then the rest in
+ * relevance order.
+ */
 export async function doSearchAssets(
   ctx: QueryCtx,
   args: {
@@ -248,20 +306,81 @@ export async function doSearchAssets(
     return all.slice(0, args.limit ?? 50)
   }
   const limit = Math.min(Math.max(args.limit ?? 50, 1), 100)
-  const rows = await ctx.db
-    .query("assets")
-    .withSearchIndex("search_name", (q) => {
-      const search = q.search("name", text)
-      const byCategory =
-        args.category !== undefined
-          ? search.eq("category", args.category)
-          : search
-      return args.source !== undefined
-        ? byCategory.eq("source", args.source)
-        : byCategory
+  const filtered = (asset: Doc<"assets">) =>
+    (args.category === undefined || asset.category === args.category) &&
+    (args.source === undefined || asset.source === args.source)
+
+  // Exact hits: the key as typed, or the product URL.
+  const exact: Doc<"assets">[] = []
+  const byKey = await getAssetByKey(ctx, text.toLowerCase())
+  if (byKey) exact.push(byKey)
+  if (/^https?:\/\//i.test(text)) {
+    exact.push(...(await assetsWithProductUrl(ctx, text)))
+  }
+
+  const words = searchWords(text)
+  const found =
+    words.length === 0
+      ? []
+      : await ctx.db
+          .query("assets")
+          .withSearchIndex("search_searchText", (q) => {
+            const search = q.search("searchText", words.join(" "))
+            const byCategory =
+              args.category !== undefined
+                ? search.eq("category", args.category)
+                : search
+            return args.source !== undefined
+              ? byCategory.eq("source", args.source)
+              : byCategory
+          })
+          .take(SEARCH_CANDIDATES)
+  const hasAll = (asset: Doc<"assets">) => {
+    const own = searchWords(asset.searchText ?? asset.name)
+    return words.every((word) => own.some((w) => w.startsWith(word)))
+  }
+  const ranked = [
+    ...exact.filter(filtered),
+    ...found.filter(hasAll),
+    ...found.filter((asset) => !hasAll(asset)),
+  ]
+  const seen = new Set<Id<"assets">>()
+  const rows = ranked
+    .filter((asset) => {
+      if (seen.has(asset._id)) return false
+      seen.add(asset._id)
+      return true
     })
-    .take(limit)
+    .slice(0, limit)
   return await Promise.all(rows.map((asset) => assetSummary(ctx, asset)))
+}
+
+/**
+ * Fills `searchText` for assets written before it existed (run once per
+ * deployment: `npx convex run assets:backfillSearchText`). A page at a
+ * time; each page schedules the next.
+ */
+export async function doBackfillSearchText(
+  ctx: MutationCtx,
+  args: { cursor?: string | null }
+): Promise<{ updated: number; done: boolean }> {
+  const page = await ctx.db
+    .query("assets")
+    .paginate({ numItems: 100, cursor: args.cursor ?? null })
+  let updated = 0
+  for (const asset of page.page) {
+    const searchText = assetSearchText(asset)
+    if (asset.searchText !== searchText) {
+      await ctx.db.patch(asset._id, { searchText })
+      updated++
+    }
+  }
+  if (!page.isDone) {
+    await ctx.scheduler.runAfter(0, internal.assets.backfillSearchText, {
+      cursor: page.continueCursor,
+    })
+  }
+  return { updated, done: page.isDone }
 }
 
 export async function doGetAsset(
@@ -350,20 +469,49 @@ export async function doCreateAsset(
     key = await freeAssetKey(ctx, slugify(spec.name, "asset"))
   }
   const validation = validateOrThrow(spec)
+  const twins = spec.product
+    ? await assetsWithProductUrl(ctx, spec.product.url)
+    : []
   const assetId = await ctx.db.insert("assets", {
     ...spec,
     key,
     source,
     images: [],
     previews: [],
+    searchText: assetSearchText({ ...spec, key }),
     updatedAt: Date.now(),
   })
   return {
     assetId,
     key,
-    warnings: validation.warnings,
+    warnings: [
+      ...validation.warnings,
+      ...twins.map(
+        (twin) =>
+          `${twin.name} (key ${twin.key}) has the same product URL — is this a duplicate? If so, delete this one with delete_asset and update that one instead.`
+      ),
+    ],
     bounds: validation.bounds,
   }
+}
+
+/** Assets whose product URL is this one (normalised), at most 10. */
+export async function assetsWithProductUrl(
+  ctx: QueryCtx,
+  url: string
+): Promise<Doc<"assets">[]> {
+  const wanted = normalizeProductUrl(url)
+  const candidates = new Map<Id<"assets">, Doc<"assets">>()
+  for (const variant of new Set([url, wanted, url.trim()])) {
+    const rows = await ctx.db
+      .query("assets")
+      .withIndex("by_product_url", (q) => q.eq("product.url", variant))
+      .take(10)
+    for (const row of rows) candidates.set(row._id, row)
+  }
+  return [...candidates.values()].filter(
+    (row) => row.product && normalizeProductUrl(row.product.url) === wanted
+  )
 }
 
 /** `base`, or `base-2`, `base-3`, … — the first key no asset uses. */
@@ -404,7 +552,11 @@ export async function doUpdateAsset(
     "asset"
   )
   const validation = validateOrThrow(spec)
-  await ctx.db.patch(asset._id, { ...spec, updatedAt: Date.now() })
+  await ctx.db.patch(asset._id, {
+    ...spec,
+    searchText: assetSearchText({ ...spec, key: asset.key }),
+    updatedAt: Date.now(),
+  })
   const relintedLayouts = await scheduleAssetRelint(
     ctx,
     asset._id,
@@ -454,6 +606,7 @@ export async function doReplaceAssetSpec(
     source: args.source,
     images: asset.images,
     previews: previewsCleared ? [] : asset.previews,
+    searchText: assetSearchText({ ...spec, key: asset.key }),
     updatedAt: Date.now(),
   })
   await scheduleAssetRelint(ctx, asset._id, `${spec.name} was updated`)
@@ -511,15 +664,16 @@ export async function doRemoveAsset(
   args: { assetId: Id<"assets"> }
 ): Promise<void> {
   const asset = await getAssetOrThrow(ctx, args.assetId)
-  const refs = await ctx.db
-    .query("layoutAssetRefs")
-    .withIndex("by_asset", (q) => q.eq("assetId", asset._id))
-    .take(50)
-  if (refs.length > 0) {
-    const layouts = await Promise.all(refs.map((r) => ctx.db.get(r.layoutId)))
-    const names = layouts.flatMap((l) => (l ? [`'${l.name}'`] : []))
+  const { layouts } = await doAssetUsage(ctx, { assetId: asset._id })
+  if (layouts.length > 0) {
+    const where = layouts
+      .map(
+        (l) =>
+          `'${l.layoutName}' (layout ${l.layoutId}, ${l.count} placement${l.count === 1 ? "" : "s"})`
+      )
+      .join(", ")
     throw conflict(
-      `${asset.name} is placed in ${refs.length} layout${refs.length === 1 ? "" : "s"} (${names.join(", ")}). Remove or swap it there first.`
+      `${asset.name} (${asset.key}) wasn't deleted: it is placed in ${layouts.length} layout${layouts.length === 1 ? "" : "s"}: ${where}. Remove it there or swap it for another asset (apply_changes remove / swap), then delete it.`
     )
   }
   // Previews belong to this asset alone. Product photos are kept: render
@@ -815,6 +969,13 @@ export const addImagesFromUrls = appAction({
   },
   handler: async (ctx, args) => {
     return await doAddImagesFromUrls(ctx, args)
+  },
+})
+
+export const backfillSearchText = internalMutation({
+  args: { cursor: v.optional(v.union(v.string(), v.null())) },
+  handler: async (ctx, args) => {
+    return await doBackfillSearchText(ctx, args)
   },
 })
 
