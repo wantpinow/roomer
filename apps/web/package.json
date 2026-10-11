@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "mcp": "tsx scripts/mcp-call.ts",
-    "render:fixture": "tsx scripts/render-fixture.ts"
+    "render:fixture": "tsx scripts/render-fixture.ts",
+    "photoreal:spike": "tsx scripts/photoreal-spike.ts"
   },
   "dependencies": {
     "@ai-sdk/gateway": "4.0.110",
