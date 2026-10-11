@@ -109,6 +109,24 @@ look at the plan, fix, repeat.
   ceiling items to ceiling height − h; wall items need `onWall` with an elevation. Anything
   standing on furniture (a table lamp on a sideboard) takes `elevation` = the host's height in
   `at`, `against` or `centerOn`.
+- **Modelling upholstery:** the photoreal model paints whatever silhouette you give it —
+  oversized radii come back as marshmallows. Describe it the same way (flat-topped, rolled arm,
+  recessed plinth; never puffy, cloud or bubble).
+  - Size radii to the part, not the piece: seat blocks and cushions 40–90mm, arms at most half
+    their width, scatter cushions ~⅓ of their thickness. Never round a whole sofa or seat into a pill.
+  - Seats have flat tops and upright sides: a plan `extrude` (axis y) with rounded corners and a
+    `bevel` of 60–90 gives the bullnose without doming the top.
+  - Copy the photo's construction: a continuous back (one x-extrude per section, seams as 2–6mm
+    gaps) is not a row of loose pillows; model separate cushions only where the product has them.
+  - Put big curves in profiles, not radii: a rolled arm, or a back wrapping into it, is an extrude
+    whose outline has one large fillet where the photo shows it and stays crisp elsewhere.
+  - Hidden glides read as a recessed `dark` plinth: a ~30mm box inset 50–70mm under the piece
+    (arms may overhang it). Add the scatter or lumbar cushions it ships with, tilted and turned a
+    little: they read clearly in renders and make it look real.
+  - Round pieces: `lathe` with `arc` for walls and drums, a `torus` for a rolled rim (tilt it for
+    a sloping top), not chains of spheres or visibly stepped slices.
+  - An extrude's convex outline corners need radii well over its `bevel` (or none), else the
+    inset outline folds and validation rejects it.
 
 ## Design rules of thumb (UK homes)
 
