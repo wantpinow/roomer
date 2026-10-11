@@ -9,7 +9,7 @@ import {
 } from "../types"
 
 const scene = buildFixtureScene({
-  view: { kind: "camera", camera: FIXTURE_CAMERAS.fromHall },
+  view: { kind: "camera", camera: FIXTURE_CAMERAS.fromDoor },
 })
 
 describe("zRenderScene", () => {

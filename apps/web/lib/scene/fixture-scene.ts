@@ -16,8 +16,8 @@ import type { CameraView, RenderScene, SceneRoom } from "./types"
 // A furnished living room built from core's fixtures, for the render
 // fixture script, the photoreal pipeline's tests and anyone who needs a
 // realistic scene without a database. Positions are hand-computed (mm):
-// the room is 2980 wide (x) and 7690 long (z), hall door D1 at the top,
-// kitchen door D2 on the right wall (W2, z 5250–6010), window WIN1 at the
+// the room is 2980 wide (x) and 7690 long (z), kitchen door D1 at the top,
+// hall door D2 on the right wall (W2, z 5250–6010), window WIN1 at the
 // bottom (W5), pier OB1 on the left wall (W6, z 1770–2770).
 
 export const FIXTURE_ROOM: SceneRoom = {
@@ -115,16 +115,26 @@ export const FIXTURE_PLACEMENTS: Placement[] = [
   ),
 ]
 
-export const FIXTURE_CAMERAS: Record<"fromHall" | "fromWindow", Camera> = {
-  /** Just inside the hall door, looking down the room to the window. */
-  fromHall: {
-    id: "from-hall-door",
-    name: "From the hall door",
-    position: [1550, 1600, 350],
-    target: [1150, 1050, 7000],
-    fov: 55,
-  },
-  /** From the window end, looking back towards the hall. */
+const FROM_DOOR: Camera = {
+  id: "from-kitchen-door",
+  name: "From the kitchen door",
+  position: [1550, 1600, 350],
+  target: [1150, 1050, 7000],
+  fov: 55,
+}
+
+export const FIXTURE_CAMERAS: Record<
+  "fromDoor" | "fromHall" | "fromWindow",
+  Camera
+> = {
+  /** Just inside door D1 (from the kitchen), looking down the room to the window. */
+  fromDoor: FROM_DOOR,
+  /**
+   * @deprecated D1 turned out to be the kitchen door, not the hall's; use
+   * `fromDoor`. Kept until the photoreal spike script moves over.
+   */
+  fromHall: FROM_DOOR,
+  /** From the window end, looking back towards the kitchen door. */
   fromWindow: {
     id: "from-window",
     name: "From the window",

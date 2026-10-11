@@ -97,7 +97,7 @@ describe("fitPerspective", () => {
 describe("roomViewSetup", () => {
   it("turns a saved camera into metres", () => {
     const { camera, cutWalls } = roomViewSetup(
-      { kind: "camera", camera: FIXTURE_CAMERAS.fromHall },
+      { kind: "camera", camera: FIXTURE_CAMERAS.fromDoor },
       shell,
       ASPECT
     )
@@ -159,7 +159,7 @@ describe("roomViewSetup", () => {
       shell,
       ASPECT
     )
-    // From the top-right: the hall wall, the long right wall and the
+    // From the top-right: the kitchen-end wall, the long right wall and the
     // recess side (seen from outside) are cut.
     expect(cutWalls).toEqual(["W1", "W2", "W4"])
     const dx = camera.position[0] - camera.target[0]

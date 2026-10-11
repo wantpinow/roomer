@@ -74,7 +74,7 @@ describe("groundAt", () => {
 })
 
 describe("spawn", () => {
-  it("stands just inside the hall door, facing into the room, in free space", () => {
+  it("stands just inside the first door (D1), facing into the room, in free space", () => {
     const [x, z] = world.spawn.position
     expect(x).toBeCloseTo(1550)
     expect(z).toBeCloseTo(300)

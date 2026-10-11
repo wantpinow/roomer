@@ -1,7 +1,7 @@
 /**
  * `pnpm --filter web render:fixture` — renders the furnished living-room
  * fixture through the running dev server's /render page and writes PNGs to
- * .roomer-out/render-fixture/: clay and id passes from two room cameras, a
+ * .roomer-out/render-fixture/: clay and id passes from two room cameras (kitchen door, window end), a
  * depth pass, the top and orbit views, and the sofa's four asset previews.
  * Checks each id pass pixel-exactly and that renders are deterministic.
  *
@@ -33,18 +33,18 @@ import { countPalettePixels } from "../server/render/id-pass"
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url))
 const outDir = path.join(repoRoot, ".roomer-out", "render-fixture")
 
-const fromHall = { kind: "camera", camera: FIXTURE_CAMERAS.fromHall } as const
+const fromDoor = { kind: "camera", camera: FIXTURE_CAMERAS.fromDoor } as const
 const fromWindow = {
   kind: "camera",
   camera: FIXTURE_CAMERAS.fromWindow,
 } as const
 
 const RENDERS: [name: string, scene: RenderScene][] = [
-  ["clay-from-hall", buildFixtureScene({ view: fromHall })],
+  ["clay-from-door", buildFixtureScene({ view: fromDoor })],
   ["clay-from-window", buildFixtureScene({ view: fromWindow })],
-  ["id-from-hall", buildFixtureScene({ view: fromHall, pass: "id" })],
+  ["id-from-door", buildFixtureScene({ view: fromDoor, pass: "id" })],
   ["id-from-window", buildFixtureScene({ view: fromWindow, pass: "id" })],
-  ["depth-from-hall", buildFixtureScene({ view: fromHall, pass: "depth" })],
+  ["depth-from-door", buildFixtureScene({ view: fromDoor, pass: "depth" })],
   [
     "clay-top",
     buildFixtureScene({ view: { kind: "top" }, width: 1024, height: 1536 }),

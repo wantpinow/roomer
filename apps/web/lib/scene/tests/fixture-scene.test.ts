@@ -30,7 +30,7 @@ describe("FIXTURE_PLACEMENTS", () => {
 describe("buildFixtureScene", () => {
   it("defaults to a 1536 × 1024 clay render", () => {
     const scene = buildFixtureScene({
-      view: { kind: "camera", camera: FIXTURE_CAMERAS.fromHall },
+      view: { kind: "camera", camera: FIXTURE_CAMERAS.fromDoor },
     })
     expect(scene).toMatchObject({ pass: "clay", width: 1536, height: 1024 })
     expect(scene).not.toHaveProperty("showCeiling")
