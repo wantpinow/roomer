@@ -60,6 +60,7 @@ describe("liveLayoutIds", () => {
             summary: "",
             changes: [],
             lintCounts: counts(0),
+            lintCountsBefore: counts(0),
           }
         : null,
     }))
