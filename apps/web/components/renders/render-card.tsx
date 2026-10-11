@@ -2,7 +2,7 @@
 
 import { TriangleAlertIcon } from "lucide-react"
 
-import type { RenderStatus } from "@roomer/core/schema"
+import type { RenderKind, RenderStatus } from "@roomer/core/schema"
 import { cn } from "@roomer/ui/lib/utils"
 
 import { ImageFrame } from "@/components/common/image-frame"
@@ -12,6 +12,8 @@ import { formatDuration, modelLabel } from "@/lib/format/render"
 /** A render record as the gallery shows it. */
 export interface RenderSummary {
   id: string
+  /** photoreal (default) or a bare clay / id pass. */
+  kind?: RenderKind
   status: RenderStatus
   /** Gateway model id, e.g. "openai/gpt-image-2.5-sunburst". */
   model?: string
@@ -46,6 +48,7 @@ export function RenderCard({
 }) {
   const title = render.cameraName ?? "Render"
   const model = render.model ? modelLabel(render.model) : null
+  const pass = render.kind && render.kind !== "photoreal" ? render.kind : null
   const openable = render.status === "done" && onOpen !== undefined
 
   return (
@@ -110,6 +113,11 @@ export function RenderCard({
             />
           </div>
           <div className="flex items-center gap-1.5 truncate text-2xs text-muted-foreground">
+            {pass ? (
+              <span className="rounded-xs bg-sunken px-1 font-mono tracking-wide uppercase">
+                {pass} pass
+              </span>
+            ) : null}
             {model ? (
               <span className="truncate font-mono" title={render.model}>
                 {model.name}
