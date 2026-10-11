@@ -17,6 +17,7 @@ import {
   type WalkInput,
   type WalkState,
 } from "@/lib/walk/physics"
+import type { WalkViewSnapshot } from "@/lib/walk/photo"
 import type { WalkWorld } from "@/lib/walk/world"
 
 /** Dev-only handle for tests and agents driving the walk without a mouse. */
@@ -76,6 +77,7 @@ export function WalkController({
   takeLook,
   active,
   onBump,
+  registerView,
 }: {
   world: WalkWorld
   /** `KeyboardEvent.code`s currently held. */
@@ -85,8 +87,11 @@ export function WalkController({
   /** False while the walk isn't engaged: keys are ignored. */
   active: boolean
   onBump: (bump: WalkBump) => void
+  /** Receives a function that reads the current view (for photos). */
+  registerView?: (read: () => WalkViewSnapshot) => void
 }) {
   const camera = useThree((state) => state.camera)
+  const size = useThree((state) => state.size)
   const state = useRef<WalkState>(createWalkState(world))
   const pendingHeading = useRef<number | null>(world.spawn.heading)
   const lastBump = useRef<WalkBump | null>(null)
@@ -110,6 +115,26 @@ export function WalkController({
       lastBump.current = null
     }
   }, [world])
+
+  useEffect(() => {
+    if (!registerView) return
+    registerView(() => {
+      const s = state.current
+      const look = new Vector3()
+      camera.getWorldDirection(look)
+      return {
+        // The eye without head-bob: photos shouldn't wobble.
+        position: [
+          s.position[0],
+          s.feet + world.player.eyeHeight,
+          s.position[1],
+        ],
+        direction: [look.x, look.y, look.z],
+        fov: "isPerspectiveCamera" in camera ? camera.fov : 70,
+        aspect: size.height > 0 ? size.width / size.height : 1,
+      }
+    })
+  }, [registerView, camera, world, size])
 
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return

@@ -4,6 +4,7 @@ import { PlusIcon } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useMemo, useState } from "react"
 
+import type { Id } from "@roomer/backend/convex/_generated/dataModel"
 import type { RoomGeometry } from "@roomer/core/geometry"
 import type {
   AssetSpec,
@@ -93,6 +94,8 @@ export function WorkspaceStage({
   pickerOpen,
   onAddItem,
   caption,
+  roomId,
+  layoutId,
 }: {
   mode: ViewMode
   onModeChange: (mode: ViewMode) => void
@@ -120,6 +123,9 @@ export function WorkspaceStage({
   /** The toolbar's Add item control (switches to Plan first). */
   onAddItem: () => void
   caption: React.ReactNode
+  /** The room and layout on stage (walk-mode photos and saved views). */
+  roomId: Id<"rooms">
+  layoutId: Id<"layouts"> | undefined
 }) {
   const { theme } = useTheme()
   const [viewport, setViewport] = useState<PlanViewport>(FIT_VIEWPORT)
@@ -190,7 +196,13 @@ export function WorkspaceStage({
     )
   } else if (mode === "walk") {
     content = (
-      <WalkStage scene={walkScene} onExit={() => onModeChange("plan")} />
+      <WalkStage
+        scene={walkScene}
+        onExit={() => onModeChange("plan")}
+        roomId={roomId}
+        layoutId={layoutId}
+        cameraCount={cameras.length}
+      />
     )
   } else if (mode === "camera" && !camera) {
     content = <StageMessage>This room has no saved cameras yet.</StageMessage>

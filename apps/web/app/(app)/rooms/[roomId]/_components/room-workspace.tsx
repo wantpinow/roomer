@@ -244,6 +244,8 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
       stage={
         geometry && room ? (
           <WorkspaceStage
+            roomId={roomId}
+            layoutId={layoutId}
             mode={mode}
             onModeChange={(next) => {
               setMode(next)

@@ -13,10 +13,18 @@ import {
   useState,
 } from "react"
 
+import type { Camera } from "@roomer/core"
+
 import type { SceneContent } from "@/lib/scene/types"
 import { isWalkKey } from "@/lib/walk/keys"
 import { verticalFovFor, WALK_HFOV } from "@/lib/walk/lens"
 import type { WalkBump } from "@/lib/walk/physics"
+import {
+  walkCamera,
+  type WalkActionResult,
+  type WalkPhoto,
+  type WalkViewSnapshot,
+} from "@/lib/walk/photo"
 import {
   DEFAULT_STATURE_MM,
   parseStature,
@@ -31,6 +39,12 @@ import { passCanvasProps } from "./canvas-config"
 import { RoomScene } from "./room-scene"
 import { type LookDelta, WalkController } from "./walk-controller"
 import { WalkHud, type WalkMode } from "./walk-hud"
+import { type WalkNote, WalkPhotoHud } from "./walk-photo-hud"
+
+/** How long a note ("Photo taken — rendering…") stays up, ms. */
+const NOTE_MS = 4000
+/** How long a finished photo's thumbnail stays up, ms. */
+const READY_MS = 8000
 
 /** Where the walker's height setting is remembered (per browser). */
 const STATURE_KEY = "roomer.walk.statureMm"
@@ -86,6 +100,23 @@ export interface WalkViewerProps {
    * this browser, else 6 ft). The HUD's −/+ control changes it from there.
    */
   statureMm?: number
+  /**
+   * Take a photo (shutter button or Enter): the current view as a
+   * rectilinear Camera (eye position, 1 m ahead along the look direction,
+   * the view's vertical fov) and the viewport's aspect. Resolve to a
+   * failure to have it shown.
+   */
+  onPhoto?: (
+    camera: Camera,
+    aspect: number
+  ) => void | Promise<WalkActionResult | void>
+  /**
+   * Photos the host is rendering for this walk: pending ones show
+   * "rendering…", a finished one shows as a thumbnail for a few seconds.
+   */
+  photos?: readonly WalkPhoto[]
+  /** Save the current view as a room camera (bookmark button, Shift+Enter). */
+  onSaveView?: (camera: Camera) => void | Promise<WalkActionResult | void>
   className?: string
 }
 
@@ -101,6 +132,9 @@ export function WalkViewer({
   onBump,
   onExit,
   statureMm,
+  onPhoto,
+  photos,
+  onSaveView,
   className,
 }: WalkViewerProps) {
   const { room, placements, assets } = scene
@@ -194,6 +228,88 @@ export function WalkViewer({
     return delta
   }, [])
 
+  // --- Photos -------------------------------------------------------------
+  const readView = useRef<(() => WalkViewSnapshot) | null>(null)
+  const registerView = useCallback((read: () => WalkViewSnapshot) => {
+    readView.current = read
+  }, [])
+  const [flashing, setFlashing] = useState(false)
+  const [note, setNote] = useState<WalkNote | null>(null)
+  const [seen, setSeen] = useState<ReadonlySet<string>>(() => new Set())
+  const ready =
+    photos?.find((p) => p.status === "done" && p.url && !seen.has(p.id)) ?? null
+  const failed =
+    photos?.find((p) => p.status === "failed" && !seen.has(p.id)) ?? null
+  const rendering = photos?.some((p) => p.status === "pending") ?? false
+  const shownNote: WalkNote | null =
+    note ??
+    (failed
+      ? {
+          text: `The photo didn't render${failed.error ? `: ${failed.error}` : "."}`,
+          tone: "error",
+        }
+      : rendering
+        ? { text: "Photo taken — rendering…", tone: "info" }
+        : null)
+
+  useEffect(() => {
+    if (!note) return
+    const timer = setTimeout(() => setNote(null), NOTE_MS)
+    return () => clearTimeout(timer)
+  }, [note])
+  useEffect(() => {
+    if (!flashing) return
+    const timer = setTimeout(() => setFlashing(false), 60)
+    return () => clearTimeout(timer)
+  }, [flashing])
+  // Finished (or failed) photos are shown once, for a few seconds.
+  const shownId = ready?.id ?? failed?.id
+  useEffect(() => {
+    if (!shownId) return
+    const timer = setTimeout(
+      () => setSeen((ids) => new Set(ids).add(shownId)),
+      ready ? READY_MS : NOTE_MS
+    )
+    return () => clearTimeout(timer)
+  }, [shownId, ready])
+
+  const report = useCallback(
+    (result: WalkActionResult | void, success?: string) => {
+      if (result && !result.ok) setNote({ text: result.message, tone: "error" })
+      else if (result?.message) setNote({ text: result.message, tone: "info" })
+      else if (success) setNote({ text: success, tone: "info" })
+    },
+    []
+  )
+  const failedAction = useCallback((error: unknown) => {
+    setNote({
+      text: error instanceof Error ? error.message : "Something went wrong.",
+      tone: "error",
+    })
+  }, [])
+
+  const takePhoto = useCallback(() => {
+    const read = readView.current
+    if (!onPhoto || !read) return
+    const view = read()
+    setFlashing(true)
+    setNote({ text: "Photo taken — rendering…", tone: "info" })
+    Promise.resolve(onPhoto(walkCamera(view, new Date(), "photo"), view.aspect))
+      .then((result) => report(result))
+      .catch(failedAction)
+  }, [onPhoto, report, failedAction])
+
+  const saveView = useCallback(() => {
+    const read = readView.current
+    if (!onSaveView || !read) return
+    const camera = walkCamera(read(), new Date(), "view")
+    Promise.resolve(onSaveView(camera))
+      .then((result) =>
+        report(result, `Saved “${camera.name}” to the room's cameras`)
+      )
+      .catch(failedAction)
+  }, [onSaveView, report, failedAction])
+
   const handleBump = useCallback((b: WalkBump) => {
     onBumpRef.current?.(b)
   }, [])
@@ -234,6 +350,13 @@ export function WalkViewer({
     if (event.code === "Escape") {
       event.currentTarget.blur()
       exit()
+      return
+    }
+    if (event.code === "Enter" || event.code === "NumpadEnter") {
+      event.preventDefault()
+      if (event.repeat) return
+      if (event.shiftKey) saveView()
+      else takePhoto()
       return
     }
     if (event.code === "Minus" || event.code === "NumpadSubtract") {
@@ -290,6 +413,7 @@ export function WalkViewer({
           takeLook={takeLook}
           active={mode !== "idle"}
           onBump={handleBump}
+          registerView={registerView}
         />
       </Canvas>
       <WalkHud
@@ -299,6 +423,13 @@ export function WalkViewer({
         onShorter={() => changeStature(-1)}
         canGrow={statureInches(stature) < STATURE_RANGE_IN.max}
         canShrink={statureInches(stature) > STATURE_RANGE_IN.min}
+      />
+      <WalkPhotoHud
+        flashing={flashing}
+        note={shownNote}
+        ready={ready}
+        {...(onPhoto ? { onShutter: takePhoto } : {})}
+        {...(onSaveView ? { onSaveView: saveView } : {})}
       />
     </div>
   )
