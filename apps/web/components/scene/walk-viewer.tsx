@@ -1,7 +1,7 @@
 "use client"
 
 import { directionOf } from "@roomer/core/geometry"
-import { Canvas } from "@react-three/fiber"
+import { Canvas, useThree } from "@react-three/fiber"
 import { cn } from "@roomer/ui/lib/utils"
 import {
   type KeyboardEvent,
@@ -15,6 +15,7 @@ import {
 
 import type { SceneContent } from "@/lib/scene/types"
 import { isWalkKey } from "@/lib/walk/keys"
+import { verticalFovFor, WALK_HFOV } from "@/lib/walk/lens"
 import type { WalkBump } from "@/lib/walk/physics"
 import { PLAYER } from "@/lib/walk/player"
 import { buildWalkWorld } from "@/lib/walk/world"
@@ -24,8 +25,25 @@ import { RoomScene } from "./room-scene"
 import { type LookDelta, WalkController } from "./walk-controller"
 import { WalkHud, type WalkMode } from "./walk-hud"
 
-/** Vertical field of view, degrees: a natural first-person view. */
-const WALK_FOV = 70
+/** Starting vertical fov (a 16:9 viewport); `WalkLens` keeps it right. */
+const INITIAL_WALK_VFOV = Math.round(verticalFovFor(WALK_HFOV, 16 / 9))
+
+/**
+ * Keeps the walk camera's horizontal field of view at WALK_HFOV whatever
+ * shape the stage is, by deriving the vertical fov from the viewport.
+ */
+function WalkLens() {
+  const get = useThree((state) => state.get)
+  const width = useThree((state) => state.size.width)
+  const height = useThree((state) => state.size.height)
+  useEffect(() => {
+    const { camera } = get()
+    if (!("isPerspectiveCamera" in camera) || height <= 0) return
+    camera.fov = verticalFovFor(WALK_HFOV, width / height)
+    camera.updateProjectionMatrix()
+  }, [get, width, height])
+  return null
+}
 
 export interface WalkViewerProps {
   /** The room and what's in it (a RoomViewer `scene` works as-is). */
@@ -75,7 +93,7 @@ export function WalkViewer({
           name: "Walk",
           position: [Math.round(x), eye, Math.round(z)],
           target: [Math.round(x + dx * 1000), eye, Math.round(z + dz * 1000)],
-          fov: WALK_FOV,
+          fov: INITIAL_WALK_VFOV,
         },
       },
     }
@@ -207,8 +225,9 @@ export function WalkViewer({
       <Canvas
         {...passCanvasProps("clay")}
         dpr={[1, 1.5]}
-        camera={{ fov: WALK_FOV, near: 0.05, far: 60 }}
+        camera={{ fov: INITIAL_WALK_VFOV, near: 0.05, far: 60 }}
       >
+        <WalkLens />
         <RoomScene scene={content} externalCamera fast />
         <WalkController
           world={world}
