@@ -10,8 +10,9 @@ export const WALK_HINT =
   "Click to walk · WASD · Space to jump · Shift to run · Esc to exit"
 
 /**
- * The walk view's overlay: a crosshair while walking, the controls hint,
- * and a short-lived "Bumped into …" note.
+ * The walk view's overlay: a crosshair while walking, the controls hint
+ * (bottom centre, clear of a host's top-centre controls) and a short-lived
+ * "Bumped into …" note — the hint's neighbour at the bottom, never the top.
  */
 export function WalkHud({
   mode,
@@ -36,7 +37,7 @@ export function WalkHud({
         role="status"
         aria-live="polite"
         className={cn(
-          "absolute top-4 left-1/2 -translate-x-1/2 rounded-md border border-hairline bg-surface/90 px-3 py-1.5 text-sm text-ink shadow-sm transition-opacity duration-300",
+          "absolute bottom-14 left-1/2 -translate-x-1/2 rounded-md border border-hairline bg-surface/90 px-3 py-1.5 text-sm text-ink shadow-sm transition-opacity duration-300",
           bump ? "opacity-100" : "opacity-0"
         )}
       >

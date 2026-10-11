@@ -32,7 +32,10 @@ const WALK_FOV = 70
 export interface WalkViewerProps {
   /** The room and what's in it (a RoomViewer `scene` works as-is). */
   scene: Pick<SceneContent, "room" | "placements" | "assets">
-  /** Called each time the walker bumps into something. */
+  /**
+   * Called each time the walker bumps into something. When given, the host
+   * shows the bump and the viewer's own "Bumped into …" note stays hidden.
+   */
   onBump?: (bump: WalkBump) => void
   /** Called when the user leaves the walk (Esc). */
   onExit?: () => void
@@ -225,7 +228,7 @@ export function WalkViewer({
           onBump={handleBump}
         />
       </Canvas>
-      <WalkHud mode={mode} bump={bump} />
+      <WalkHud mode={mode} bump={onBump ? null : bump} />
     </div>
   )
 }
