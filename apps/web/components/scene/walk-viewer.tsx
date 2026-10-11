@@ -24,8 +24,6 @@ import { RoomScene } from "./room-scene"
 import { type LookDelta, WalkController } from "./walk-controller"
 import { WalkHud, type WalkMode } from "./walk-hud"
 
-/** How long a "Bumped into …" note stays up, ms. */
-const BUMP_NOTE_MS = 1600
 /** Vertical field of view, degrees: a natural first-person view. */
 const WALK_FOV = 70
 
@@ -33,8 +31,8 @@ export interface WalkViewerProps {
   /** The room and what's in it (a RoomViewer `scene` works as-is). */
   scene: Pick<SceneContent, "room" | "placements" | "assets">
   /**
-   * Called each time the walker bumps into something. When given, the host
-   * shows the bump and the viewer's own "Bumped into …" note stays hidden.
+   * Called each time the walker bumps into something (no message is shown;
+   * useful for tests and debugging).
    */
   onBump?: (bump: WalkBump) => void
   /** Called when the user leaves the walk (Esc). */
@@ -89,19 +87,12 @@ export function WalkViewer({
   const dragging = useRef(false)
   const locked = useRef(false)
   const [mode, setMode] = useState<WalkMode>("idle")
-  const [bump, setBump] = useState<WalkBump | null>(null)
   const onExitRef = useRef(onExit)
   const onBumpRef = useRef(onBump)
   useEffect(() => {
     onExitRef.current = onExit
     onBumpRef.current = onBump
   }, [onExit, onBump])
-
-  useEffect(() => {
-    if (!bump) return
-    const timer = setTimeout(() => setBump(null), BUMP_NOTE_MS)
-    return () => clearTimeout(timer)
-  }, [bump])
 
   const exit = useCallback(() => {
     keys.current.clear()
@@ -141,7 +132,6 @@ export function WalkViewer({
   }, [])
 
   const handleBump = useCallback((b: WalkBump) => {
-    setBump(b)
     onBumpRef.current?.(b)
   }, [])
 
@@ -228,7 +218,7 @@ export function WalkViewer({
           onBump={handleBump}
         />
       </Canvas>
-      <WalkHud mode={mode} bump={onBump ? null : bump} />
+      <WalkHud mode={mode} />
     </div>
   )
 }
