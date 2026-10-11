@@ -40,7 +40,7 @@ import {
 } from "@/lib/plan-edit/viewport"
 import type { CameraView, SceneContent } from "@/lib/scene/types"
 
-import { WalkPlaceholder } from "./walk-placeholder"
+import { WalkStage } from "./walk-stage"
 
 // three.js only runs in the browser.
 const RoomViewer = dynamic(
@@ -126,6 +126,15 @@ export function WorkspaceStage({
     }
   }, [room, finishes, placements, assets, mode, camera])
 
+  const walkScene = useMemo(
+    () => ({
+      room: { ...room, finishes },
+      placements: [...placements],
+      assets: { ...assets },
+    }),
+    [room, finishes, placements, assets]
+  )
+
   const selected = selection.selectedId
     ? placements.find((p) => p.id === selection.selectedId)
     : undefined
@@ -163,7 +172,9 @@ export function WorkspaceStage({
       />
     )
   } else if (mode === "walk") {
-    content = <WalkPlaceholder />
+    content = (
+      <WalkStage scene={walkScene} onExit={() => onModeChange("plan")} />
+    )
   } else if (mode === "camera" && !camera) {
     content = <StageMessage>This room has no saved cameras yet.</StageMessage>
   } else if (scene) {

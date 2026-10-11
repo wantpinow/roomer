@@ -51,7 +51,12 @@ function Toaster({
   className,
 }: {
   children: React.ReactNode
-  position?: "bottom-center" | "bottom-right" | "top-center"
+  position?:
+    | "bottom-center"
+    | "bottom-left"
+    | "bottom-right"
+    | "top-center"
+    | "top-left"
   inline?: boolean
   className?: string
 }) {
@@ -137,6 +142,8 @@ function Toaster({
             position === "bottom-center" &&
               "bottom-4 left-1/2 -translate-x-1/2",
             position === "bottom-right" && "right-4 bottom-4",
+            position === "bottom-left" && "bottom-4 left-4",
+            position === "top-left" && "top-14 left-3",
             position === "top-center" && "top-4 left-1/2 -translate-x-1/2",
             className
           )}
