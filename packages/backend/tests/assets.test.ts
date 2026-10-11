@@ -1,3 +1,4 @@
+import { assetFootprint } from "@roomer/core/assets"
 import { COFFEE_TABLE, RUG, SOFA, TEST_ASSETS } from "@roomer/core/fixtures"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
@@ -446,12 +447,19 @@ describe("doListAssets", () => {
     expect(await names({ source: "library" })).toHaveLength(8)
   })
 
-  it("leaves geometry out of list rows", async () => {
+  it("leaves geometry out of list rows but sketches the footprint", async () => {
     const t = createTestConvex()
     await createTestAsset(t, "sofa")
     const [row] = await t.run(async (ctx) => doListAssets(ctx, {}))
     expect(row).not.toHaveProperty("geometry")
     expect(row?.partCount).toBe(SOFA.geometry.parts.length)
+    expect(row?.footprint).toEqual(assetFootprint(SOFA))
+    expect(row?.footprint[0]).toEqual([
+      [-1100, -475],
+      [1100, -475],
+      [1100, 475],
+      [-1100, 475],
+    ])
   })
 })
 
@@ -468,6 +476,7 @@ describe("doSearchAssets", () => {
       "Test coffee table",
       "Test dining table",
     ])
+    expect(found.every((a) => a.footprint.length === 1)).toBe(true)
     const sofas = await t.run(async (ctx) =>
       doSearchAssets(ctx, { query: "table", category: "sofa" })
     )

@@ -4,7 +4,7 @@
  * match, nothing below the floor, …) and rejects it with every problem
  * listed; changing one re-lints every layout that uses it.
  */
-import { validateAsset, type Aabb3 } from "@roomer/core/assets"
+import { assetFootprint, validateAsset, type Aabb3 } from "@roomer/core/assets"
 import { slugify, uniqueId } from "@roomer/core/placement"
 import {
   zAssetCategory,
@@ -138,12 +138,17 @@ async function previewUrls(ctx: QueryCtx, asset: Doc<"assets">) {
   )
 }
 
-/** List/search row: everything but the (possibly large) geometry. */
+/**
+ * List/search row: everything but the (possibly large) geometry, plus a
+ * simplified plan outline (item-local x/z mm rings) so cards without a photo
+ * can still sketch the item.
+ */
 async function assetSummary(ctx: QueryCtx, asset: Doc<"assets">) {
   const { geometry, ...rest } = asset
   return {
     ...rest,
     partCount: geometry.parts.length,
+    footprint: assetFootprint(asset),
     primaryImageUrl: await primaryImageUrl(ctx, asset),
     previewUrls: await previewUrls(ctx, asset),
   }
