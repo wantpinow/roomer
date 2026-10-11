@@ -9,7 +9,10 @@ import {
 } from "../schema"
 import { buildContext, type LintThresholds } from "./context"
 import { lintItemCollisions, lintObstacleCollisions } from "./rules/collisions"
+import { lintDoorSwings, lintDoorways } from "./rules/doors"
 import { lintMounting, lintOutsideRoom } from "./rules/room"
+import { lintSupport } from "./rules/support"
+import { lintRadiators, lintWindows } from "./rules/zones"
 
 // The layout linter (spec §7, architecture §3.5): a pure function from a
 // room, its placements and their assets to a list of plain-English issues
@@ -57,12 +60,18 @@ export function lint(input: LintInput): LintReport {
     input.assets,
     thresholds
   )
-  // Order matters only for de-duplication: E003 before E002 (skirting).
+  // Order matters only for de-duplication: E003 before E002 (skirting),
+  // E004 before E005, E002 before W103/W104.
   const issues: LintIssue[] = [
     ...lintItemCollisions(ctx),
     ...lintOutsideRoom(ctx),
     ...lintObstacleCollisions(ctx),
+    ...lintDoorSwings(ctx),
+    ...lintDoorways(ctx),
     ...lintMounting(ctx),
+    ...lintRadiators(ctx),
+    ...lintWindows(ctx),
+    ...lintSupport(ctx),
   ]
   issues.sort(compareIssues)
 
