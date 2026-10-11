@@ -8,10 +8,13 @@ import {
   type Placement,
 } from "../schema"
 import { buildContext, type LintThresholds } from "./context"
+import { lintClearances } from "./rules/clearance"
 import { lintItemCollisions, lintObstacleCollisions } from "./rules/collisions"
 import { lintDoorSwings, lintDoorways } from "./rules/doors"
+import { lintAwkwardGaps } from "./rules/gaps"
 import { lintMounting, lintOutsideRoom } from "./rules/room"
 import { lintRoutes } from "./rules/routes"
+import { lintHiddenOutlets } from "./rules/sockets"
 import { lintSupport } from "./rules/support"
 import { lintRadiators, lintWindows } from "./rules/zones"
 import { analyseWalkways } from "./walkway"
@@ -74,7 +77,14 @@ export function lint(input: LintInput): LintReport {
   ]
   const walkway = ctx.doors.length > 0 ? analyseWalkways(ctx) : undefined
   if (walkway) issues.push(...lintRoutes(ctx, walkway))
-  issues.push(...lintRadiators(ctx), ...lintWindows(ctx), ...lintSupport(ctx))
+  issues.push(
+    ...lintClearances(ctx, walkway),
+    ...lintRadiators(ctx),
+    ...lintWindows(ctx),
+    ...lintSupport(ctx),
+    ...lintHiddenOutlets(ctx),
+    ...lintAwkwardGaps(ctx)
+  )
   issues.sort(compareIssues)
 
   const counts = { error: 0, warning: 0, info: 0 }
