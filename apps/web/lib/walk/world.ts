@@ -1,4 +1,5 @@
 import {
+  type AssetCategory,
   type AssetSpec,
   defaultCameras,
   type Feature,
@@ -54,6 +55,16 @@ export interface Collider {
   standable: boolean
   /** Plan bounds, for quick rejection. */
   box: Bounds2
+  /** For placed items: what it is and which way it faces (sitting). */
+  item?: PlacedItem
+}
+
+export interface PlacedItem {
+  category: AssetCategory
+  /** The placement's facing, degrees (its front's bearing). */
+  facing: number
+  /** The part's name ("seat cushion left"). */
+  part: string
 }
 
 export interface WalkSpawn {
@@ -192,6 +203,11 @@ function placementColliders(
             y0: shape.y0,
             y1: shape.y1,
             walkable,
+            item: {
+              category: asset.category,
+              facing: placement.facing,
+              part: shape.part,
+            },
           },
           input.room.ceilingHeight,
           stature

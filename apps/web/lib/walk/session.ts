@@ -6,11 +6,17 @@
 // Releasing the mouse never leaves walk mode: Esc while walking pauses;
 // Esc while paused exits. A first visit starts paused, so the click that
 // starts walking is the user gesture pointer lock needs.
+//
+// Orthogonally the walker stands, sits or lies. C toggles sitting, Z
+// lying (the other toggle switches posture); while walking, Space or a
+// movement key stands you up. Posture survives pausing.
 
 export type WalkPhase = "paused" | "walking" | "exited"
 
 /** How walking is driven: captured mouse, or keys and drag-to-look. */
 export type WalkControl = "lock" | "keys"
+
+export type Posture = "standing" | "sitting" | "lying"
 
 export interface WalkSession {
   phase: WalkPhase
@@ -19,6 +25,7 @@ export interface WalkSession {
   started: boolean
   /** When the walk last paused because the mouse was released, ms. */
   lockLostAt: number | null
+  posture: Posture
 }
 
 export type WalkSessionEvent =
@@ -36,6 +43,12 @@ export type WalkSessionEvent =
   | { type: "escape"; at: number }
   /** "Exit to plan". */
   | { type: "exit" }
+  /** C: sit down, or stand up if already sitting. */
+  | { type: "sit" }
+  /** Z: lie down, or stand up if already lying. */
+  | { type: "lie" }
+  /** Stand up (Space or a movement key while walking, the card's Stand). */
+  | { type: "stand" }
 
 /**
  * Chrome both releases the lock and (sometimes) delivers the Escape that
@@ -49,6 +62,7 @@ export const INITIAL_WALK_SESSION: WalkSession = {
   control: "keys",
   started: false,
   lockLostAt: null,
+  posture: "standing",
 }
 
 export function walkSession(
@@ -83,5 +97,19 @@ export function walkSession(
       return { ...state, phase: "exited" }
     case "exit":
       return { ...state, phase: "exited" }
+    case "sit":
+      return {
+        ...state,
+        posture: state.posture === "sitting" ? "standing" : "sitting",
+      }
+    case "lie":
+      return {
+        ...state,
+        posture: state.posture === "lying" ? "standing" : "lying",
+      }
+    case "stand":
+      return state.posture === "standing"
+        ? state
+        : { ...state, posture: "standing" }
   }
 }

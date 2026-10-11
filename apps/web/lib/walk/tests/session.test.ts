@@ -18,6 +18,7 @@ describe("walkSession", () => {
       control: "keys",
       started: false,
       lockLostAt: null,
+      posture: "standing",
     })
   })
 
@@ -104,5 +105,49 @@ describe("walkSession", () => {
     expect(walkSession(exited, { type: "resume" })).toBe(exited)
     expect(walkSession(exited, { type: "lockAcquired" })).toBe(exited)
     expect(walkSession(exited, { type: "enter" })).toEqual(INITIAL_WALK_SESSION)
+  })
+
+  describe("posture", () => {
+    const walking = run({ type: "resume" }, { type: "lockAcquired" })
+
+    it("toggles sitting with C and lying with Z", () => {
+      const sitting = walkSession(walking, { type: "sit" })
+      expect(sitting.posture).toBe("sitting")
+      expect(walkSession(sitting, { type: "sit" }).posture).toBe("standing")
+      const lying = walkSession(walking, { type: "lie" })
+      expect(lying.posture).toBe("lying")
+      expect(walkSession(lying, { type: "lie" }).posture).toBe("standing")
+    })
+
+    it("switches straight from one posture to the other", () => {
+      const sitting = walkSession(walking, { type: "sit" })
+      expect(walkSession(sitting, { type: "lie" }).posture).toBe("lying")
+      const lying = walkSession(walking, { type: "lie" })
+      expect(walkSession(lying, { type: "sit" }).posture).toBe("sitting")
+    })
+
+    it("stands up, and standing while standing changes nothing", () => {
+      const sitting = walkSession(walking, { type: "sit" })
+      expect(walkSession(sitting, { type: "stand" }).posture).toBe("standing")
+      expect(walkSession(walking, { type: "stand" })).toBe(walking)
+    })
+
+    it("works from the pause card and survives pausing", () => {
+      const paused = walkSession(walking, { type: "lockLost", at: 1 })
+      const sittingPaused = walkSession(paused, { type: "sit" })
+      expect(sittingPaused).toMatchObject({
+        phase: "paused",
+        posture: "sitting",
+      })
+      const resumed = walkSession(sittingPaused, { type: "resume" })
+      expect(resumed).toMatchObject({ phase: "walking", posture: "sitting" })
+    })
+
+    it("starts standing again on re-entry, and ignores postures once exited", () => {
+      const sitting = walkSession(walking, { type: "sit" })
+      expect(walkSession(sitting, { type: "enter" }).posture).toBe("standing")
+      const exited = run({ type: "exit" })
+      expect(walkSession(exited, { type: "sit" })).toBe(exited)
+    })
   })
 })
