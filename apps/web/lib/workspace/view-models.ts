@@ -13,10 +13,12 @@ import type { ActivityEvent } from "@/components/activity/activity-feed"
 import type { RoomStatsValue } from "@/components/common/room-stats"
 import type { PlacedItem } from "@/components/items/item-row"
 import type { LayoutSummary } from "@/components/layouts/layout-card"
+import type { AssetSummary } from "@/components/library/asset-card"
 import type { RenderSummary } from "@/components/renders/render-card"
 import type { ItemPosition } from "@/lib/format/position"
 
 import type {
+  AssetRow,
   LayoutDetail,
   LayoutEventRow,
   LayoutRow,
@@ -106,37 +108,69 @@ export function defaultLayout<
 
 type DetailAsset = LayoutDetail["assets"][string]
 
+/** The AssetSpec fields of a stored asset, without ids, photos or URLs. */
+export function assetSpecOf(asset: AssetSpec): AssetSpec {
+  const {
+    name,
+    category,
+    mount,
+    dims,
+    geometry,
+    clearance,
+    description,
+    product,
+    tags,
+  } = asset
+  return {
+    name,
+    category,
+    mount,
+    dims,
+    geometry,
+    ...(clearance !== undefined ? { clearance } : {}),
+    ...(description !== undefined ? { description } : {}),
+    ...(product !== undefined ? { product } : {}),
+    ...(tags !== undefined ? { tags } : {}),
+  }
+}
+
 /** Asset specs keyed by id, without the storage/UI extras (for core & 3D). */
 export function assetSpecs(
   assets: Readonly<Record<string, DetailAsset>>
 ): Record<string, AssetSpec> {
   return Object.fromEntries(
-    Object.entries(assets).map(([id, asset]) => {
-      const {
-        name,
-        category,
-        mount,
-        dims,
-        geometry,
-        clearance,
-        description,
-        product,
-        tags,
-      } = asset
-      const spec: AssetSpec = {
-        name,
-        category,
-        mount,
-        dims,
-        geometry,
-        ...(clearance !== undefined ? { clearance } : {}),
-        ...(description !== undefined ? { description } : {}),
-        ...(product !== undefined ? { product } : {}),
-        ...(tags !== undefined ? { tags } : {}),
-      }
-      return [id, spec]
-    })
+    Object.entries(assets).map(([id, asset]) => [id, assetSpecOf(asset)])
   )
+}
+
+/** A library row as the asset card shows it. */
+export function toAssetSummary(
+  asset: Pick<
+    AssetRow,
+    | "_id"
+    | "key"
+    | "name"
+    | "category"
+    | "mount"
+    | "dims"
+    | "product"
+    | "description"
+    | "primaryImageUrl"
+    | "previewUrls"
+  >
+): AssetSummary {
+  const iso = asset.previewUrls.find((p) => p.view === "iso")?.url
+  return {
+    id: asset._id,
+    key: asset.key,
+    name: asset.name,
+    category: asset.category,
+    mount: asset.mount,
+    dims: asset.dims,
+    product: asset.product,
+    description: asset.description,
+    imageUrl: asset.primaryImageUrl ?? iso ?? undefined,
+  }
 }
 
 /** The wall-relative readout for an item, from the backend's relation. */

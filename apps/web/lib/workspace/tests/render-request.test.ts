@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { errorFromBody, requestPhotoreal } from "../render-request"
+import {
+  errorFromBody,
+  requestAssetPreviews,
+  requestPhotoreal,
+} from "../render-request"
 
 describe("errorFromBody", () => {
   it("reads message, error, or a nested error message", () => {
@@ -59,6 +63,26 @@ describe("requestPhotoreal", () => {
     expect(await requestPhotoreal("l1", { camera: "c" }, fetcher)).toEqual({
       ok: false,
       message: "Couldn't reach the app's server.",
+    })
+  })
+})
+
+describe("requestAssetPreviews", () => {
+  it("posts to the asset's previews route", async () => {
+    const fetcher = vi.fn<typeof fetch>(async () =>
+      Response.json({ ok: true }, { status: 202 })
+    )
+    expect(await requestAssetPreviews("a 1", fetcher)).toEqual({ ok: true })
+    expect(fetcher.mock.calls[0]![0]).toBe("/api/assets/a%201/previews")
+  })
+
+  it("reports a missing route kindly", async () => {
+    const fetcher = vi.fn<typeof fetch>(async () =>
+      Response.json(null, { status: 404 })
+    )
+    expect(await requestAssetPreviews("a1", fetcher)).toEqual({
+      ok: false,
+      message: "The render service isn't available yet.",
     })
   })
 })

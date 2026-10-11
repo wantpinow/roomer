@@ -59,6 +59,7 @@ export function AssetCard({
         tone="cutout"
         ratio="4/3"
         imageClassName="transition-transform duration-700 ease-out-soft group-hover/asset:scale-[1.03]"
+        placeholder={<CategoryPlaceholder category={asset.category} />}
       />
       <span className="flex flex-col gap-1 px-1">
         <span className="flex items-baseline gap-3">
@@ -87,5 +88,23 @@ export function AssetCard({
         </span>
       </span>
     </button>
+  )
+}
+
+/** For pieces without a photo yet: the category, set like a plinth label. */
+export function CategoryPlaceholder({
+  category,
+}: {
+  category: AssetSummary["category"]
+}) {
+  return (
+    <span className="flex flex-col items-center gap-1">
+      <span className="font-display text-xl text-faint italic dark:text-muted-foreground">
+        {CATEGORY_LABELS[category]}
+      </span>
+      <span className="text-[10px] tracking-[0.08em] text-muted-foreground uppercase">
+        No photo yet
+      </span>
+    </span>
   )
 }

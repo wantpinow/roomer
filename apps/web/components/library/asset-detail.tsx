@@ -12,7 +12,7 @@ import { ImageFrame } from "@/components/common/image-frame"
 import { Price } from "@/components/common/price"
 import { formatArea, formatExtent } from "@/lib/format/length"
 
-import type { AssetSummary } from "./asset-card"
+import { CategoryPlaceholder, type AssetSummary } from "./asset-card"
 import {
   CATEGORY_LABELS,
   DIMS_SOURCE_LABELS,
@@ -104,6 +104,7 @@ function AssetDetailBody({
           tone={active === 0 ? "cutout" : "photo"}
           ratio="4/3"
           className="rounded-lg"
+          placeholder={<CategoryPlaceholder category={asset.category} />}
         />
         {images.length > 1 ? (
           <div
@@ -146,11 +147,13 @@ function AssetDetailBody({
         {product?.variant ? (
           <p className="text-ui text-muted-foreground">{product.variant}</p>
         ) : null}
-        <Price
-          amount={product?.price}
-          currency={product?.currency}
-          className="pt-1 font-display text-xl text-foreground"
-        />
+        {product?.price !== undefined ? (
+          <Price
+            amount={product.price}
+            currency={product.currency}
+            className="pt-1 font-display text-xl text-foreground"
+          />
+        ) : null}
       </header>
 
       <dl className="grid grid-cols-[6.5rem_1fr] gap-x-4 border-t border-border text-ui">

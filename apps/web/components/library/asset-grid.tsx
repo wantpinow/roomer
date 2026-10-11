@@ -16,11 +16,14 @@ export function AssetGrid({
   assets,
   selectedId,
   onSelect,
+  empty,
   className,
 }: {
   assets: readonly AssetSummary[] | undefined
   selectedId?: string
   onSelect?: (id: string) => void
+  /** Overrides the empty state's copy (e.g. "Nothing matches"). */
+  empty?: { title: string; description: string }
   className?: string
 }) {
   if (assets === undefined) return <AssetGridSkeleton className={className} />
@@ -30,8 +33,11 @@ export function AssetGrid({
       <EmptyState
         className={className}
         icon={<SofaIcon />}
-        title="The library is empty"
-        description="Give the agent a product link — it reads the dimensions, builds a model and adds it here."
+        title={empty?.title ?? "The library is empty"}
+        description={
+          empty?.description ??
+          "Give the agent a product link — it reads the dimensions, builds a model and adds it here."
+        }
       />
     )
   }

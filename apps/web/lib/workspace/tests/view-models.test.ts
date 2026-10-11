@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest"
 
 import type { Id } from "@roomer/backend/convex/_generated/dataModel"
-import { LIVING_ROOM_CORNERS } from "@roomer/core/fixtures"
+import { LIVING_ROOM_CORNERS, TEST_ASSETS } from "@roomer/core/fixtures"
 import type { PlacementRelation } from "@roomer/core/placement"
 
 import {
   activityEvents,
+  assetSpecOf,
   defaultLayout,
   entityLabels,
   itemPosition,
   liveLayoutIds,
   roomStats,
+  toAssetSummary,
   toRenderSummary,
 } from "../view-models"
 
@@ -241,5 +243,60 @@ describe("toRenderSummary", () => {
     })
     expect(summary.imageUrl).toBeUndefined()
     expect(summary.clayUrl).toBeUndefined()
+  })
+})
+
+describe("toAssetSummary", () => {
+  const row = {
+    _id: "a1" as Id<"assets">,
+    key: "generic-sofa",
+    name: "Generic sofa",
+    category: "sofa" as const,
+    mount: "floor" as const,
+    dims: { w: 2200, d: 950, h: 820 },
+    product: undefined,
+    description: undefined,
+  }
+
+  it("prefers the product photo", () => {
+    expect(
+      toAssetSummary({
+        ...row,
+        primaryImageUrl: "photo.jpg",
+        previewUrls: [{ view: "iso" as const, url: "iso.png" }],
+      }).imageUrl
+    ).toBe("photo.jpg")
+  })
+
+  it("falls back to the iso preview, then nothing", () => {
+    expect(
+      toAssetSummary({
+        ...row,
+        primaryImageUrl: null,
+        previewUrls: [
+          { view: "front" as const, url: "front.png" },
+          { view: "iso" as const, url: "iso.png" },
+        ],
+      }).imageUrl
+    ).toBe("iso.png")
+    expect(
+      toAssetSummary({ ...row, primaryImageUrl: null, previewUrls: [] })
+        .imageUrl
+    ).toBeUndefined()
+  })
+})
+
+describe("assetSpecOf", () => {
+  it("drops everything that isn't part of the spec", () => {
+    const stored = {
+      ...TEST_ASSETS.sofa,
+      _id: "a1",
+      key: "k",
+      primaryImageUrl: null,
+    }
+    const spec = assetSpecOf(stored)
+    expect(Object.keys(spec).sort()).toEqual(
+      Object.keys(TEST_ASSETS.sofa).sort()
+    )
   })
 })

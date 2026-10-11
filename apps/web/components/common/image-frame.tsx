@@ -49,7 +49,10 @@ export function ImageFrame({
       style={{ aspectRatio: ratio }}
       className={cn(
         "relative isolate overflow-hidden rounded-md",
-        tone === "cutout" ? "bg-[#f1ede6] dark:bg-[#dcd5ca]" : "bg-sunken",
+        // The plinth only behind an actual cutout; empty frames stay quiet.
+        tone === "cutout" && showImage
+          ? "bg-[#f1ede6] dark:bg-[#dcd5ca]"
+          : "bg-sunken",
         className
       )}
     >
