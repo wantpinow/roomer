@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    // Dev scripts run under Node (tsx), so they get Node's types; src/ and
+    // tests/ stay on the runtime-neutral config.
+    "types": ["node"]
+  },
+  "include": ["."]
+}

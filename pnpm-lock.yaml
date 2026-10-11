@@ -221,12 +221,18 @@ importers:
         specifier: ^4.6.6
         version: 4.6.6
     devDependencies:
+      '@resvg/resvg-js':
+        specifier: 2.6.2
+        version: 2.6.2
       '@roomer/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
       '@roomer/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      '@types/node':
+        specifier: ^22.20.5
+        version: 22.20.5
       eslint:
         specifier: 9.39.5
         version: 9.39.5(jiti@2.7.0)
