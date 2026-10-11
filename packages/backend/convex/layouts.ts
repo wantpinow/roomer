@@ -139,6 +139,7 @@ async function appendEvent(
     actor: Actor
     summary: string
     changes: Change[]
+    lintCountsBefore: LintCounts
     lintCounts: LintCounts
   }
 ): Promise<Id<"layoutEvents">> {
@@ -195,6 +196,7 @@ export async function doRelintLayout(
       actor: "system",
       summary: `Re-checked after ${args.cause}: now ${describeLintCounts(report.counts)} (was ${describeLintCounts(layout.lint.counts)})`,
       changes: [],
+      lintCountsBefore: layout.lint.counts,
       lintCounts: report.counts,
     })
   }
@@ -437,6 +439,7 @@ export async function doCreateLayout(
       ? `Forked '${source.name}' as '${name}' (${plural(placements.length, "item")})`
       : `Created layout '${name}'`,
     changes: [],
+    lintCountsBefore: report.counts,
     lintCounts: report.counts,
   })
   return { layoutId, lint: report }
@@ -517,6 +520,7 @@ export async function doUpdateLayout(
     actor: args.actor ?? "user",
     summary: joinChangeSummaries(summaries),
     changes: [],
+    lintCountsBefore: layout.lint.counts,
     lintCounts: layout.lint.counts,
   })
   return { revision: next.revision }
@@ -642,6 +646,7 @@ export async function doApplyChanges(
     actor: args.actor,
     summary: joinChangeSummaries(result.changes.map((c) => c.summary)),
     changes: result.changes,
+    lintCountsBefore: layout.lint.counts,
     lintCounts: report.counts,
   })
   return { revision, changes: result.changes, lint: report, placements }
@@ -679,16 +684,28 @@ export async function doRemoveLayout(
   await ctx.db.delete(layout._id)
 }
 
+/**
+ * An event with `lintCountsBefore` always present: events written before
+ * the field existed report their after-counts as before (no change shown).
+ */
+export function withLintCountsBefore(event: Doc<"layoutEvents">) {
+  return {
+    ...event,
+    lintCountsBefore: event.lintCountsBefore ?? event.lintCounts,
+  }
+}
+
 export async function doListEvents(
   ctx: QueryCtx,
   args: { layoutId: Id<"layouts">; limit?: number }
 ) {
   const limit = Math.min(Math.max(Math.floor(args.limit ?? 50), 1), MAX_EVENTS)
-  return await ctx.db
+  const events = await ctx.db
     .query("layoutEvents")
     .withIndex("by_layout", (q) => q.eq("layoutId", args.layoutId))
     .order("desc")
     .take(limit)
+  return events.map(withLintCountsBefore)
 }
 
 export async function doRoomActivity(
@@ -730,10 +747,10 @@ export async function doRoomActivity(
     layouts: perLayout.map(({ layoutId, name, latest }) => ({
       layoutId,
       name,
-      latest,
+      latest: latest && withLintCountsBefore(latest),
     })),
     /** The room's newest event across all its layouts. */
-    latest,
+    latest: latest && withLintCountsBefore(latest),
     latestAt: latest?.createdAt ?? null,
     /** When the agent last changed any layout (for an "agent active" dot). */
     latestAgentAt:

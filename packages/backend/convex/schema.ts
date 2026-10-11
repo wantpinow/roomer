@@ -175,6 +175,10 @@ export default defineSchema({
     changes: v.array(vChange),
     // Lint counts after the change, so the feed can show progress.
     lintCounts: vLintCounts,
+    // Lint counts just before the change, so the feed can show what it fixed
+    // or broke. Optional only because events from before this field existed
+    // lack it; every new event sets it.
+    lintCountsBefore: v.optional(vLintCounts),
     // When the change happened (ms since epoch).
     createdAt: v.number(),
   })

@@ -512,6 +512,7 @@ describe("doRelintLayout", () => {
       actor: "system",
       revision: 0,
       changes: [],
+      lintCountsBefore: CLEAN.counts,
       lintCounts: ONE_ERROR.counts,
       summary:
         "Re-checked after D2 moved: now 1 error, 0 warnings, 0 info (was 0 errors, 0 warnings, 0 info)",
@@ -768,6 +769,51 @@ describe("doRemoveLayout", () => {
     expect(left.outputKept).toBe(false)
     // Product photos belong to the asset, not the render.
     expect(left.referenceKept).toBe(true)
+  })
+})
+
+describe("event lint counts", () => {
+  it("record the counts before and after each change", async () => {
+    const w = await world()
+    lintSpy.mockReturnValue(ONE_ERROR)
+    await apply(w, [SOFA_AGAINST_W6, COFFEE_TABLE_IN_FRONT])
+    lintSpy.mockReturnValue(CLEAN)
+    await apply(w, [{ op: "nudge", id: "coffee-table", dx: 200 }])
+    await w.t.run(async (ctx) =>
+      doUpdateLayout(ctx, { layoutId: w.layoutId, status: "candidate" })
+    )
+    const feed = await events(w.t, w.layoutId)
+    expect(
+      feed.map((e) => [
+        e.summary.slice(0, 12),
+        e.lintCountsBefore.error,
+        e.lintCounts.error,
+      ])
+    ).toEqual([
+      ["Marked as ca", 0, 0],
+      ["Moved coffee", 1, 0],
+      ["Added Test t", 0, 1],
+      ["Created layo", 0, 0],
+    ])
+  })
+
+  it("report old events' after-counts as before", async () => {
+    const w = await world()
+    await w.t.run(async (ctx) => {
+      const [created] = await ctx.db
+        .query("layoutEvents")
+        .withIndex("by_layout", (q) => q.eq("layoutId", w.layoutId))
+        .collect()
+      const { _id, _creationTime, lintCountsBefore, ...old } = created!
+      void [_creationTime, lintCountsBefore]
+      await ctx.db.replace(_id, { ...old, lintCounts: ONE_ERROR.counts })
+    })
+    const [event] = await events(w.t, w.layoutId)
+    expect(event?.lintCountsBefore).toEqual(ONE_ERROR.counts)
+    const activity = await w.t.run(async (ctx) =>
+      doRoomActivity(ctx, { roomId: w.roomId })
+    )
+    expect(activity.latest?.lintCountsBefore).toEqual(ONE_ERROR.counts)
   })
 })
 
