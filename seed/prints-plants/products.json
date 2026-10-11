@@ -1,0 +1,1044 @@
+{
+  "retrievedAt": "2026-10-11",
+  "source": "Postery (postery.com/en-gb), Wikimedia Commons (public-domain artworks), Patch Plants (patchplants.com)",
+  "notes": [
+    "Prints: framed outer size = poster size + 2×12mm Postery frame profile, 22mm deep. Public-domain works are priced as the Postery frame only.",
+    "Posterlounge UK had good Bauhaus listings but blocked the IP after a few requests (429 then TLS reset), so retail prints come from Postery.",
+    "Plants: Patch lists height incl. pot and nursery pot size; spread is estimated from the studio photos. Decorative pots chosen from Patch's range (warm/natural); the primary photo may show a different pot."
+  ],
+  "products": [
+    {
+      "key": "print-bauhaus-ausstellung-1923-joost-schmidt",
+      "name": "Bauhaus Ausstellung 1923 poster, Joost Schmidt (framed)",
+      "variant": "50×70 cm portrait, black wood frame, narrow white mount",
+      "url": "https://commons.wikimedia.org/wiki/File:Joost_Schmidt_Bauhausausstellung_1923.jpg",
+      "source": "Wikimedia Commons (public domain)",
+      "artist": "Joost Schmidt (1893–1948)",
+      "year": 1923,
+      "frame": {
+        "retailer": "Postery",
+        "name": "Picture Frame Wood Black",
+        "size": "50x70",
+        "url": "https://www.postery.com/en-gb/picture-frame-wood-black",
+        "price": 35.99,
+        "profileMm": {
+          "width": 12,
+          "depth": 22
+        }
+      },
+      "dims": {
+        "w": 524,
+        "d": 22,
+        "h": 724
+      },
+      "price": {
+        "amount": 35.99,
+        "currency": "GBP",
+        "note": "frame only (Postery); the public-domain print is self-sourced"
+      },
+      "description": "Framed print of the Staatliches Bauhaus Ausstellung poster, Joost Schmidt, 1923 (public domain). Yellow-ochre ground with a bold constructivist figure: a thick red ring at upper left, a black arch and upright band forming an S-curve down the centre, a black J-hook at lower right, red bars at middle right. BAUHAUS in black capitals across the top, STAATLICHES small in red up the left, AUSSTELLUNG in black along the lower left, WEIMAR at the bottom, 1923 vertical on the right. Slim matte black frame, narrow white mount.",
+      "geometryNotes": "Postery black wood frame 50×70 (12mm profile, 22mm deep) → outer 524×724×22. Commons scan ratio 0.77 (409×530 px), so the artwork panel is 476×616 inside a narrow white mount.",
+      "images": [
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Joost_Schmidt_Bauhausausstellung_1923.jpg",
+          "kind": "artwork"
+        }
+      ],
+      "category": "decor",
+      "role": "wall-art",
+      "mount": "wall"
+    },
+    {
+      "key": "print-kandinsky-composition-viii-1923",
+      "name": "Composition VIII, Wassily Kandinsky (framed)",
+      "variant": "100×70 cm landscape, oak frame, white mount",
+      "url": "https://commons.wikimedia.org/wiki/File:Kandinsky_-_Composition_8,_July_1923.jpg",
+      "source": "Wikimedia Commons (public domain)",
+      "artist": "Wassily Kandinsky (1866–1944)",
+      "year": 1923,
+      "frame": {
+        "retailer": "Postery",
+        "name": "Picture Frame Oak",
+        "size": "70x100",
+        "url": "https://www.postery.com/en-gb/picture-frame-oak",
+        "price": 49.99,
+        "profileMm": {
+          "width": 12,
+          "depth": 22
+        }
+      },
+      "dims": {
+        "w": 1024,
+        "d": 22,
+        "h": 724
+      },
+      "price": {
+        "amount": 49.99,
+        "currency": "GBP",
+        "note": "frame only (Postery); the public-domain print is self-sourced"
+      },
+      "description": "Framed print of Composition VIII, Wassily Kandinsky, 1923 (public domain). A landscape composition on a pale cream ground: a large black-ringed violet-and-black circle at upper left, a cluster of small red, blue and yellow circles, criss-crossing thin black lines, sharp triangles and semicircles, chequerboard strips and grids spread across the lower right — airy, precise geometric abstraction. Light natural oak frame with a wide white mount.",
+      "geometryNotes": "Postery oak frame 70×100 hung landscape → outer 1024×724×22. Artwork ratio 1.373 → panel 820×597 in a white mount.",
+      "images": [
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Kandinsky_-_Composition_8%2C_July_1923.jpg/1280px-Kandinsky_-_Composition_8%2C_July_1923.jpg",
+          "kind": "artwork"
+        }
+      ],
+      "category": "decor",
+      "role": "wall-art",
+      "mount": "wall"
+    },
+    {
+      "key": "print-mondrian-composition-ii-red-blue-yellow-1930",
+      "name": "Composition II in Red, Blue and Yellow, Piet Mondrian (framed)",
+      "variant": "50×50 cm square, white wood frame, white passe-partout",
+      "url": "https://commons.wikimedia.org/wiki/File:Piet_Mondriaan,_1930_-_Mondrian_Composition_II_in_Red,_Blue,_and_Yellow.jpg",
+      "source": "Wikimedia Commons (public domain)",
+      "artist": "Piet Mondrian (1872–1944)",
+      "year": 1930,
+      "frame": {
+        "retailer": "Postery",
+        "name": "Picture Frame Wood White 50x50 (with passe-partout)",
+        "size": "50x50",
+        "url": "https://www.postery.com/en-gb/picture-frame-wood-white-50x50",
+        "price": 40.99,
+        "profileMm": {
+          "width": 12,
+          "depth": 22
+        }
+      },
+      "dims": {
+        "w": 524,
+        "d": 22,
+        "h": 524
+      },
+      "price": {
+        "amount": 40.99,
+        "currency": "GBP",
+        "note": "frame only (Postery); the public-domain print is self-sourced"
+      },
+      "description": "Framed print of Composition II in Red, Blue and Yellow, Piet Mondrian, 1930 (public domain). A near-square grid of thick black lines on white: a large bright red square fills the upper right, a small blue square at lower left, a small yellow rectangle at lower right, white rectangles elsewhere. White wood frame with a white passe-partout.",
+      "geometryNotes": "Postery 50×50 square frame with passe-partout → outer 524×524×22. Artwork panel 330×335 (ratio 0.986).",
+      "images": [
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Piet_Mondriaan%2C_1930_-_Mondrian_Composition_II_in_Red%2C_Blue%2C_and_Yellow.jpg/1280px-Piet_Mondriaan%2C_1930_-_Mondrian_Composition_II_in_Red%2C_Blue%2C_and_Yellow.jpg",
+          "kind": "artwork"
+        }
+      ],
+      "category": "decor",
+      "role": "wall-art",
+      "mount": "wall"
+    },
+    {
+      "key": "print-klee-castle-and-sun-1928",
+      "name": "Castle and Sun, Paul Klee (framed)",
+      "variant": "40×30 cm landscape, oak frame, white mount",
+      "url": "https://commons.wikimedia.org/wiki/File:Burg_und_Sonne_-_Klee.jpg",
+      "source": "Wikimedia Commons (public domain)",
+      "artist": "Paul Klee (1879–1940)",
+      "year": 1928,
+      "frame": {
+        "retailer": "Postery",
+        "name": "Picture Frame Oak",
+        "size": "30x40",
+        "url": "https://www.postery.com/en-gb/picture-frame-oak",
+        "price": 19.99,
+        "profileMm": {
+          "width": 12,
+          "depth": 22
+        }
+      },
+      "dims": {
+        "w": 424,
+        "d": 22,
+        "h": 324
+      },
+      "price": {
+        "amount": 19.99,
+        "currency": "GBP",
+        "note": "frame only (Postery); the public-domain print is self-sourced"
+      },
+      "description": "Framed print of Castle and Sun (Burg und Sonne), Paul Klee, 1928 (public domain). A mosaic of small coloured rectangles, triangles and half-circles in warm reds, oranges, ochres, greens and dusky blue stacked like a castle town, with a round orange-red sun at upper left against a dark red-brown sky. Light oak frame with a white mount.",
+      "geometryNotes": "Postery oak frame 30×40 hung landscape → outer 424×324×22. Artwork ratio 1.219 → panel 300×246.",
+      "images": [
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Burg_und_Sonne_-_Klee.jpg/1280px-Burg_und_Sonne_-_Klee.jpg",
+          "kind": "artwork"
+        }
+      ],
+      "category": "decor",
+      "role": "wall-art",
+      "mount": "wall"
+    },
+    {
+      "key": "print-schlemmer-bauhaus-stairway-1932",
+      "name": "Bauhaus Stairway, Oskar Schlemmer (framed)",
+      "variant": "70×100 cm portrait, black wood frame, white mount",
+      "url": "https://commons.wikimedia.org/wiki/File:Oskar_Schlemmer_-_Bauhaustreppe_1932.jpg",
+      "source": "Wikimedia Commons (public domain)",
+      "artist": "Oskar Schlemmer (1888–1943)",
+      "year": 1932,
+      "frame": {
+        "retailer": "Postery",
+        "name": "Picture Frame Wood Black",
+        "size": "70x100",
+        "url": "https://www.postery.com/en-gb/picture-frame-wood-black",
+        "price": 49.99,
+        "profileMm": {
+          "width": 12,
+          "depth": 22
+        }
+      },
+      "dims": {
+        "w": 724,
+        "d": 22,
+        "h": 1024
+      },
+      "price": {
+        "amount": 49.99,
+        "currency": "GBP",
+        "note": "frame only (Postery); the public-domain print is self-sourced"
+      },
+      "description": "Framed print of Bauhaus Stairway (Bauhaustreppe), Oskar Schlemmer, 1932 (public domain). Stylised mannequin-like figures climb a pale blue-grey staircase towards tall gridded windows; a figure in a bright red-orange top in the centre, others in browns, white and black, smooth rounded heads, soft light — a calm, architectural composition. Matte black wood frame with a white mount.",
+      "geometryNotes": "Postery black frame 70×100 → outer 724×1024×22. Artwork ratio 0.707 → panel 560×792.",
+      "images": [
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Oskar_Schlemmer_-_Bauhaustreppe_1932.jpg/1280px-Oskar_Schlemmer_-_Bauhaustreppe_1932.jpg",
+          "kind": "artwork"
+        }
+      ],
+      "category": "decor",
+      "role": "wall-art",
+      "mount": "wall"
+    },
+    {
+      "key": "print-moholy-nagy-construction-a-ii-1924",
+      "name": "Construction A II, László Moholy-Nagy (framed)",
+      "variant": "50×40 cm landscape, white wood frame, white mount",
+      "url": "https://commons.wikimedia.org/wiki/File:A_II_(Construction_A_II)_by_L%C3%A1szl%C3%B3_Moholy-Nagy,_1924.jpg",
+      "source": "Wikimedia Commons (public domain)",
+      "artist": "László Moholy-Nagy (1895–1946)",
+      "year": 1924,
+      "frame": {
+        "retailer": "Postery",
+        "name": "Picture Frame Wood White",
+        "size": "40x50",
+        "url": "https://www.postery.com/en-gb/picture-frame-wood-white",
+        "price": 29.99,
+        "profileMm": {
+          "width": 12,
+          "depth": 22
+        }
+      },
+      "dims": {
+        "w": 524,
+        "d": 22,
+        "h": 424
+      },
+      "price": {
+        "amount": 29.99,
+        "currency": "GBP",
+        "note": "frame only (Postery); the public-domain print is self-sourced"
+      },
+      "description": "Framed print of Construction A II, László Moholy-Nagy, 1924 (public domain). On a warm ochre-tan ground, overlapping translucent planes: a long black parallelogram band across the middle, a yellow diagonal bar, a red circle, pale grey and white transparent quadrilaterals layered over one another — crisp constructivist geometry. White wood frame with a white mount.",
+      "geometryNotes": "Postery white frame 40×50 hung landscape → outer 524×424×22. Artwork ratio 1.184 → panel 380×321.",
+      "images": [
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/2/24/A_II_%28Construction_A_II%29_by_L%C3%A1szl%C3%B3_Moholy-Nagy%2C_1924.jpg",
+          "kind": "artwork"
+        }
+      ],
+      "category": "decor",
+      "role": "wall-art",
+      "mount": "wall"
+    },
+    {
+      "key": "print-kandinsky-several-circles-1926",
+      "name": "Several Circles, Wassily Kandinsky (framed)",
+      "variant": "50×50 cm square, black wood frame, white passe-partout",
+      "url": "https://commons.wikimedia.org/wiki/File:Vassily_Kandinsky,_1926_-_Several_Circles,_Gugg_0910_25.jpg",
+      "source": "Wikimedia Commons (public domain)",
+      "artist": "Wassily Kandinsky (1866–1944)",
+      "year": 1926,
+      "frame": {
+        "retailer": "Postery",
+        "name": "Picture Frame Wood Black 50x50 (with passe-partout)",
+        "size": "50x50",
+        "url": "https://www.postery.com/en-gb/picture-frame-wood-black-50x50",
+        "price": 40.99,
+        "profileMm": {
+          "width": 12,
+          "depth": 22
+        }
+      },
+      "dims": {
+        "w": 524,
+        "d": 22,
+        "h": 524
+      },
+      "price": {
+        "amount": 40.99,
+        "currency": "GBP",
+        "note": "frame only (Postery); the public-domain print is self-sourced"
+      },
+      "description": "Framed print of Several Circles, Wassily Kandinsky, 1926 (public domain). Translucent overlapping circles float on a deep blue-black ground: a large black disc ringed in blue with a glowing halo at upper left of centre, smaller circles in pink, violet, turquoise, yellow and red scattered around it. Matte black wood frame with a white passe-partout.",
+      "geometryNotes": "Postery 50×50 square frame with passe-partout → outer 524×524×22. Artwork ratio 0.982 → panel 360×367.",
+      "images": [
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Vassily_Kandinsky%2C_1926_-_Several_Circles%2C_Gugg_0910_25.jpg/1280px-Vassily_Kandinsky%2C_1926_-_Several_Circles%2C_Gugg_0910_25.jpg",
+          "kind": "artwork"
+        }
+      ],
+      "category": "decor",
+      "role": "wall-art",
+      "mount": "wall"
+    },
+    {
+      "key": "print-kandinsky-bauhaus-ausstellung-postcard-1923",
+      "name": "Bauhaus Ausstellung postcard, Wassily Kandinsky (framed)",
+      "variant": "30×40 cm portrait, oak frame, white mount",
+      "url": "https://commons.wikimedia.org/wiki/File:Postkarte_Bauhaus_Wassily_Kandinsky_Postkarte_f%C3%BCr_die_Bauhaus-Ausstellung.jpg",
+      "source": "Wikimedia Commons (public domain)",
+      "artist": "Wassily Kandinsky (1866–1944)",
+      "year": 1923,
+      "frame": {
+        "retailer": "Postery",
+        "name": "Picture Frame Oak",
+        "size": "30x40",
+        "url": "https://www.postery.com/en-gb/picture-frame-oak",
+        "price": 19.99,
+        "profileMm": {
+          "width": 12,
+          "depth": 22
+        }
+      },
+      "dims": {
+        "w": 324,
+        "d": 22,
+        "h": 424
+      },
+      "price": {
+        "amount": 19.99,
+        "currency": "GBP",
+        "note": "frame only (Postery); the public-domain print is self-sourced"
+      },
+      "description": "Framed print of Kandinsky's postcard for the 1923 Bauhaus Ausstellung, Weimar (public domain). On cream paper, a large dark maroon disc at lower left crossed by a red arc, a black-and-white chequered flag beside it, a blue disc ringed in black near the top centre, and a fan of fine black lines and a ladder-like track radiating across the right half; BAU-HAUS- in black capitals at top left, AUSSTELLUNG and WEIMAR in black capitals down the left, JULI - SEPTEMBER 1923 along the bottom. Light oak frame with a white mount.",
+      "geometryNotes": "Postery oak frame 30×40 → outer 324×424×22. Artwork ratio 0.67 → panel 200×299 in a wide white mount.",
+      "images": [
+        {
+          "url": "https://upload.wikimedia.org/wikipedia/commons/4/41/Postkarte_Bauhaus_Wassily_Kandinsky_Postkarte_f%C3%BCr_die_Bauhaus-Ausstellung.jpg",
+          "kind": "artwork"
+        }
+      ],
+      "category": "decor",
+      "role": "wall-art",
+      "mount": "wall"
+    },
+    {
+      "key": "print-papiers-decoupes-orange-70x100",
+      "name": "Papiers Découpés Orange poster, Postery (framed)",
+      "variant": "70×100 cm portrait, Picture Frame Wood White",
+      "url": "https://www.postery.com/en-gb/papiers-decoupes-orange?variant=344006",
+      "source": "Postery",
+      "artist": "Postery studio",
+      "year": null,
+      "frame": {
+        "retailer": "Postery",
+        "name": "Picture Frame Wood White",
+        "size": "70x100",
+        "url": "https://www.postery.com/en-gb/picture-frame-wood-white",
+        "price": 49.99,
+        "profileMm": {
+          "width": 12,
+          "depth": 22
+        }
+      },
+      "dims": {
+        "w": 724,
+        "d": 22,
+        "h": 1024
+      },
+      "price": {
+        "amount": 87.98,
+        "currency": "GBP",
+        "poster": 37.99,
+        "frame": 49.99
+      },
+      "description": "Framed mid-century cut-out poster 'Papiers Découpés Orange': a coral-orange seaweed-like leaf shape (Matisse-style paper cut-out) on a periwinkle-blue rectangle, set on a warm cream sheet with 'PAPIERS DÉCOUPÉS' in black capitals above and '1955' and 'GALERIE D'ART' in small black type below. Slim white wood frame, no mount.",
+      "geometryNotes": "Postery white wood frame 70×100 (12mm profile, 22mm deep) → outer 724×1024×22. The poster fills the frame: cream sheet with a 440×560 blue panel centred slightly above middle.",
+      "images": [
+        {
+          "url": "https://www.postery.com/__media-service/orig/product/3440-papiers-decoueps-orange-poster-1.jpg",
+          "kind": "artwork"
+        },
+        {
+          "url": "https://www.postery.com/__media-service/orig/product/3440-papiers-decoupes-orange-poster-3.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "category": "decor",
+      "role": "wall-art",
+      "mount": "wall"
+    },
+    {
+      "key": "print-golden-dusk-30x40",
+      "name": "Golden Dusk poster, Postery (framed)",
+      "variant": "30×40 cm portrait, Picture Frame Wood Black",
+      "url": "https://www.postery.com/en-gb/golden-dusk?variant=396202",
+      "source": "Postery",
+      "artist": "Postery studio",
+      "year": null,
+      "frame": {
+        "retailer": "Postery",
+        "name": "Picture Frame Wood Black",
+        "size": "30x40",
+        "url": "https://www.postery.com/en-gb/picture-frame-wood-black",
+        "price": 19.99,
+        "profileMm": {
+          "width": 12,
+          "depth": 22
+        }
+      },
+      "dims": {
+        "w": 324,
+        "d": 22,
+        "h": 424
+      },
+      "price": {
+        "amount": 32.98,
+        "currency": "GBP",
+        "poster": 12.99,
+        "frame": 19.99
+      },
+      "description": "Framed colour-field poster 'Golden Dusk': a tall rectangle of smooth gradient from warm golden orange at the top to deep red-orange at the bottom, Rothko-like, on a cream border. Slim matte black wood frame, no mount.",
+      "geometryNotes": "Postery black frame 30×40 → outer 324×424×22. Cream sheet with a 240×350 gradient field.",
+      "images": [
+        {
+          "url": "https://www.postery.com/__media-service/orig/product/3962-golden-dusk-1.jpg",
+          "kind": "artwork"
+        },
+        {
+          "url": "https://www.postery.com/__media-service/orig/product/3962-golden-dusk-3.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "category": "decor",
+      "role": "wall-art",
+      "mount": "wall"
+    },
+    {
+      "key": "print-neutral-canvas-50x70",
+      "name": "Neutral Canvas poster, Postery (framed)",
+      "variant": "50×70 cm portrait, Picture Frame Oak",
+      "url": "https://www.postery.com/en-gb/neutral-canvas?variant=465605",
+      "source": "Postery",
+      "artist": "Postery studio",
+      "year": null,
+      "frame": {
+        "retailer": "Postery",
+        "name": "Picture Frame Oak",
+        "size": "50x70",
+        "url": "https://www.postery.com/en-gb/picture-frame-oak",
+        "price": 35.99,
+        "profileMm": {
+          "width": 12,
+          "depth": 22
+        }
+      },
+      "dims": {
+        "w": 524,
+        "d": 22,
+        "h": 724
+      },
+      "price": {
+        "amount": 66.98,
+        "currency": "GBP",
+        "poster": 30.99,
+        "frame": 35.99
+      },
+      "description": "Framed abstract poster 'Neutral Canvas': soft brushed blocks of pale grey, sand and warm white overlapping like a modernist collage, crossed by long thin graphite arcs and curves that sweep across their edges. Quiet, neutral, gallery-like. Slim light oak frame, no mount.",
+      "geometryNotes": "Postery oak frame 50×70 → outer 524×724×22. Poster fills the frame edge to edge.",
+      "images": [
+        {
+          "url": "https://www.postery.com/__media-service/orig/product/4656-neutral-canvas-1.jpg",
+          "kind": "artwork"
+        },
+        {
+          "url": "https://www.postery.com/__media-service/orig/product/4656-neutral-canvas-3.jpg",
+          "kind": "lifestyle"
+        }
+      ],
+      "category": "decor",
+      "role": "wall-art",
+      "mount": "wall"
+    },
+    {
+      "key": "plant-olive-tree-standard-160",
+      "name": "Olive tree standard 150–160cm in terracotta pot",
+      "url": "https://www.patchplants.com/products/plants-olive-tree/?v=PLANT-2-022-005",
+      "variant": "Olive tree 150–160cm (nursery 27cm) + Terracotta pot with saucer 30cm, Natural",
+      "plantPrice": 105.0,
+      "pot": {
+        "name": "Terracotta pot with saucer",
+        "size": "30cm",
+        "colour": "Natural",
+        "price": 32.0,
+        "url": "https://www.patchplants.com/products/pots-terracotta-pot-with-saucer/"
+      },
+      "heightListed": "150-160cm including pot",
+      "dims": {
+        "w": 451,
+        "d": 389,
+        "h": 1594
+      },
+      "stockNote": "listed out of stock on 2026-10-11",
+      "description": "Olive tree (Olea europaea) trained as a lollipop standard: a slim straight grey-brown trunk about 1m tall topped by an airy round head of narrow silvery grey-green leaves, in a classic natural terracotta flowerpot with rolled rim on a matching saucer.",
+      "geometryNotes": "Silhouette from the 150–160cm studio photo scaled to 1600: head ~420 wide from y 1000 to 1600 (densest at 1200–1300), bare trunk ~25 thick from the pot to y 1000; pot replaced by the 30cm terracotta pot with saucer (~Ø330 × 290 with rim, saucer Ø300).",
+      "images": [
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/phmxzvnswukcldyabqefrtoj.jpg?v=1744295984&width=1200",
+          "kind": "cutout-front (in charcoal nursery/decor pot)"
+        },
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/nniktthq1jat5xnqkwfu_56956798-f093-4b9c-9266-8267b63f25ea.jpg?v=1744026818&width=1200",
+          "kind": "pot-cutout"
+        },
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/1OLLIE-TERRACOTTA_1.jpg?v=1781620850&width=1200",
+          "kind": "lifestyle (small size, terracotta pot)"
+        }
+      ],
+      "mount": "floor",
+      "category": "decor",
+      "role": "plant",
+      "retailer": "Patch Plants",
+      "source": "Patch Plants",
+      "price": {
+        "amount": 137.0,
+        "currency": "GBP",
+        "plant": 105.0,
+        "pot": 32.0
+      },
+      "dimsNote": "Height from the listing (incl. pot); spread estimated from the studio photo silhouette",
+      "photoEstimateDims": {
+        "w": 440,
+        "d": 420,
+        "h": 1600
+      }
+    },
+    {
+      "key": "plant-fiddle-leaf-fig-tree-160",
+      "name": "Fiddle-leaf fig tree 150–160cm in clay pot",
+      "url": "https://www.patchplants.com/products/plants-fiddle-leaf-fig-tree/",
+      "variant": "Fiddle-leaf fig 150–160cm (nursery 34cm) + Clay pot 38cm, Clay washed",
+      "plantPrice": 250.0,
+      "pot": {
+        "name": "Clay pot",
+        "size": "38cm",
+        "colour": "Clay washed",
+        "price": 120.0,
+        "url": "https://www.patchplants.com/products/pots-clay-pot/"
+      },
+      "heightListed": "150-160cm including pot",
+      "dims": {
+        "w": 698,
+        "d": 650,
+        "h": 1580
+      },
+      "description": "Fiddle-leaf fig (Ficus lyrata) grown as a small branching tree: a bare woody trunk splitting low into a few stems, carrying a tall loose column of very large glossy dark-green violin-shaped leaves from knee height to the top, in a wide tapered sand-coloured clay-washed pot.",
+      "geometryNotes": "Photo silhouette at 1600: pot ~Ø400 × 400; bare trunk 400–600; leaf column 600–1600 about 450–600 wide (widest ~1100–1200), leaves ~250–300 long.",
+      "images": [
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/mywaksozukbbziwoknau_aa9c1b12-e839-40be-a7d7-af834fcfe7d1.jpg?v=1739292150&width=1200",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/claywash19cm.jpg?v=1752838864&width=1200",
+          "kind": "pot-cutout"
+        }
+      ],
+      "mount": "floor",
+      "category": "decor",
+      "role": "plant",
+      "retailer": "Patch Plants",
+      "source": "Patch Plants",
+      "price": {
+        "amount": 370.0,
+        "currency": "GBP",
+        "plant": 250.0,
+        "pot": 120.0
+      },
+      "dimsNote": "Height from the listing (incl. pot); spread estimated from the studio photo silhouette",
+      "photoEstimateDims": {
+        "w": 680,
+        "d": 600,
+        "h": 1600
+      }
+    },
+    {
+      "key": "plant-strelitzia-nicolai-170",
+      "name": "Strelitzia nicolai (bird of paradise) 160–170cm in terracotta egg pot",
+      "url": "https://www.patchplants.com/products/plants-strelitzia-nicolai/",
+      "variant": "Strelitzia nicolai 160–170cm (nursery 27cm) + Terracotta egg pot with saucer 35cm, Natural",
+      "plantPrice": 145.0,
+      "pot": {
+        "name": "Terracotta egg pot with saucer",
+        "size": "35cm",
+        "colour": "Natural",
+        "price": 65.0,
+        "url": "https://www.patchplants.com/products/pots-terracotta-egg-pot-with-saucer/"
+      },
+      "heightListed": "160-170cm including pot",
+      "dims": {
+        "w": 956,
+        "d": 742,
+        "h": 1702
+      },
+      "description": "Giant white bird of paradise (Strelitzia nicolai): a fan of long upright stems carrying huge paddle-shaped, banana-like leaves, some split along the veins, splaying outward in an open vase shape, in a rounded natural terracotta egg pot on a saucer.",
+      "geometryNotes": "Photo silhouette at 1700: spread ~900 between 750 and 1100; stems rise from a ~300 pot; paddle blades ~450–600 long × 200–250 wide on 300–600 petioles, tips to 1700.",
+      "images": [
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/uz2pverrmomkgiijitxffgy.jpg?v=1759937576&width=1200",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/gu2h4osrzdnpvusbzrhv_972d4880-90dd-4527-89f9-958430a21e3d.jpg?v=1744022711&width=1200",
+          "kind": "pot-cutout"
+        }
+      ],
+      "mount": "floor",
+      "category": "decor",
+      "role": "plant",
+      "retailer": "Patch Plants",
+      "source": "Patch Plants",
+      "price": {
+        "amount": 210.0,
+        "currency": "GBP",
+        "plant": 145.0,
+        "pot": 65.0
+      },
+      "dimsNote": "Height from the listing (incl. pot); spread estimated from the studio photo silhouette",
+      "photoEstimateDims": {
+        "w": 900,
+        "d": 760,
+        "h": 1700
+      }
+    },
+    {
+      "key": "plant-kentia-palm-175",
+      "name": "Kentia palm 160–180cm in rope basket",
+      "url": "https://www.patchplants.com/products/plants-kentia-palm/",
+      "variant": "Kentia palm 160–180cm (nursery 27cm) + Rope basket 29cm, Cream",
+      "plantPrice": 155.0,
+      "pot": {
+        "name": "Rope basket",
+        "size": "29cm",
+        "colour": "Cream",
+        "price": 18.0,
+        "url": "https://www.patchplants.com/products/pots-rope-basket/"
+      },
+      "heightListed": "160-180cm including pot",
+      "dims": {
+        "w": 829,
+        "d": 754,
+        "h": 1806
+      },
+      "description": "Kentia palm (Howea forsteriana): several slender green canes rising from the pot, each carrying long arching feathery fronds of narrow drooping leaflets, forming a tall, airy, gently weeping crown, in a natural woven seagrass rope basket with dark vertical stitching.",
+      "geometryNotes": "Photo silhouette at 1750: pot ~Ø280 × 330; canes to ~1000; fronds arch out to ~740 spread at 900–1500 and tips droop; crown top 1750.",
+      "images": [
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/s1tqeehmlgi38ade1fzb_1.jpg?v=1755185668&width=1200",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/rvrardz9n9klt7i8ykno_64140208-3d74-47db-ac13-f32cf87ca7c4.jpg?v=1738163042&width=1200",
+          "kind": "pot-cutout"
+        }
+      ],
+      "mount": "floor",
+      "category": "decor",
+      "role": "plant",
+      "retailer": "Patch Plants",
+      "source": "Patch Plants",
+      "price": {
+        "amount": 173.0,
+        "currency": "GBP",
+        "plant": 155.0,
+        "pot": 18.0
+      },
+      "dimsNote": "Height from the listing (incl. pot); spread estimated from the studio photo silhouette",
+      "photoEstimateDims": {
+        "w": 760,
+        "d": 700,
+        "h": 1750
+      }
+    },
+    {
+      "key": "plant-monstera-deliciosa-80",
+      "name": "Monstera deliciosa 70–80cm in ribbed cream pot",
+      "url": "https://www.patchplants.com/products/plants-monstera-deliciosa/",
+      "variant": "Swiss cheese plant 70–80cm (nursery 21cm) + Ceramic ribbed pot 24cm, Cream",
+      "plantPrice": 35.0,
+      "pot": {
+        "name": "Ceramic ribbed pot",
+        "size": "24cm",
+        "colour": "Cream",
+        "price": 45.0,
+        "url": "https://www.patchplants.com/products/pots-ceramic-ribbed-pot/"
+      },
+      "heightListed": "70-80cm including pot",
+      "dims": {
+        "w": 756,
+        "d": 806,
+        "h": 819
+      },
+      "description": "Swiss cheese plant (Monstera deliciosa): a wide bushy mound of large glossy dark-green heart-shaped leaves with deep splits and holes, held on long arching stems that spill outward, in a cream ceramic pot with fine vertical ribs.",
+      "geometryNotes": "Photo silhouette at 800: pot ~Ø260 × 250; leaf mound widest (~640–700) at 500–650, leaves ~250–300 across, top ~800.",
+      "images": [
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/weyurkhxe1zhmgfzdnfv_88b2c23a-b31e-4251-b221-c90389121297.jpg?v=1742307650&width=1200",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/Ceramic_ribbed_cream_24_POT-2-043-005_0229_RT.jpg?v=1743779953&width=1200",
+          "kind": "pot-cutout"
+        }
+      ],
+      "mount": "floor",
+      "category": "decor",
+      "role": "plant",
+      "retailer": "Patch Plants",
+      "source": "Patch Plants",
+      "price": {
+        "amount": 80.0,
+        "currency": "GBP",
+        "plant": 35.0,
+        "pot": 45.0
+      },
+      "dimsNote": "Height from the listing (incl. pot); spread estimated from the studio photo silhouette",
+      "photoEstimateDims": {
+        "w": 720,
+        "d": 640,
+        "h": 800
+      }
+    },
+    {
+      "key": "plant-rubber-plant-95",
+      "name": "Rubber plant 90–100cm in terracotta pot",
+      "url": "https://www.patchplants.com/products/plants-rubber-plant/",
+      "variant": "Rubber plant 90–100cm (nursery 27cm) + Terracotta pot with saucer 30cm, Natural",
+      "plantPrice": 60.0,
+      "pot": {
+        "name": "Terracotta pot with saucer",
+        "size": "30cm",
+        "colour": "Natural",
+        "price": 32.0,
+        "url": "https://www.patchplants.com/products/pots-terracotta-pot-with-saucer/"
+      },
+      "heightListed": "90-100cm including pot",
+      "dims": {
+        "w": 595,
+        "d": 522,
+        "h": 995
+      },
+      "description": "Rubber plant (Ficus elastica): several upright woody stems with large oval, thick, glossy deep-green leaves held outward at all levels, a bushy shrub shape, in a natural terracotta flowerpot on a saucer.",
+      "geometryNotes": "Photo silhouette at 1000: pot ~Ø300 × 280; leafy from 250 up, widest ~670 at 450–650; oval leaves ~200–250 long; top 1000.",
+      "images": [
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/vc28qckd3pzilmmu4amv_c6d45918-7538-4df8-a2ce-c125f501bd1a.jpg?v=1744105614&width=1200",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/nniktthq1jat5xnqkwfu_56956798-f093-4b9c-9266-8267b63f25ea.jpg?v=1744026818&width=1200",
+          "kind": "pot-cutout"
+        }
+      ],
+      "mount": "floor",
+      "category": "decor",
+      "role": "plant",
+      "retailer": "Patch Plants",
+      "source": "Patch Plants",
+      "price": {
+        "amount": 92.0,
+        "currency": "GBP",
+        "plant": 60.0,
+        "pot": 32.0
+      },
+      "dimsNote": "Height from the listing (incl. pot); spread estimated from the studio photo silhouette",
+      "photoEstimateDims": {
+        "w": 720,
+        "d": 620,
+        "h": 1000
+      }
+    },
+    {
+      "key": "plant-snake-plant-laurentii-75",
+      "name": "Snake plant 70–80cm in terracotta pot",
+      "url": "https://www.patchplants.com/products/plants-sansevieria-laurentii/",
+      "variant": "Snake plant (Sansevieria laurentii) 70–80cm (nursery 21cm) + Terracotta pot with saucer 25cm, Natural",
+      "plantPrice": 60.0,
+      "pot": {
+        "name": "Terracotta pot with saucer",
+        "size": "25cm",
+        "colour": "Natural",
+        "price": 22.0,
+        "url": "https://www.patchplants.com/products/pots-terracotta-pot-with-saucer/"
+      },
+      "heightListed": "70-80cm including pot",
+      "dims": {
+        "w": 483,
+        "d": 429,
+        "h": 798
+      },
+      "description": "Snake plant (Sansevieria trifasciata 'Laurentii'): a dense clump of stiff, upright sword-shaped leaves with dark green banding and yellow edges, slightly fanning outward, in a natural terracotta flowerpot on a saucer.",
+      "geometryNotes": "Photo silhouette at 800: pot ~Ø230 × 230; blades from the pot top to 800, fanning to ~400 wide at 600–700.",
+      "images": [
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/products_snake-plant-cc1865_1.jpg?v=1752499497&width=1200",
+          "kind": "cutout-front"
+        },
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/tb5fv6ijxtmpjjxl7yvg_98381e1c-debd-4267-96dd-3b701288356d.jpg?v=1744026818&width=1200",
+          "kind": "pot-cutout"
+        },
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/products_snake-plant-e154d4.jpg?width=1200",
+          "kind": "cutout (smaller size, terracotta pot)"
+        }
+      ],
+      "mount": "floor",
+      "category": "decor",
+      "role": "plant",
+      "retailer": "Patch Plants",
+      "source": "Patch Plants",
+      "price": {
+        "amount": 82.0,
+        "currency": "GBP",
+        "plant": 60.0,
+        "pot": 22.0
+      },
+      "dimsNote": "Height from the listing (incl. pot); spread estimated from the studio photo silhouette",
+      "photoEstimateDims": {
+        "w": 420,
+        "d": 380,
+        "h": 800
+      }
+    },
+    {
+      "key": "plant-zz-plant-rope-basket",
+      "name": "ZZ plant 40–50cm in rope basket",
+      "url": "https://www.patchplants.com/products/bundles-cassie-rope-basket/",
+      "variant": "ZZ plant & basket bundle: Zamioculcas 40–50cm (nursery 12cm) + Rope basket, Cream (15cm ext. width)",
+      "plantPrice": null,
+      "bundlePrice": 15.0,
+      "pot": {
+        "name": "Rope basket (in bundle)",
+        "size": "15cm external width, 13cm external height",
+        "colour": "Cream",
+        "price": 0.0,
+        "url": "https://www.patchplants.com/products/bundles-cassie-rope-basket/"
+      },
+      "heightListed": "40-50cm including nursery pot",
+      "dims": {
+        "w": 281,
+        "d": 246,
+        "h": 480
+      },
+      "description": "ZZ plant (Zamioculcas zamiifolia): upright arching stems lined with pairs of small, glossy, waxy dark-green oval leaflets, like a loose bunch of feathers, in a natural woven seagrass rope basket with dark vertical stitching. Small enough for a sideboard or floor corner.",
+      "geometryNotes": "Photo silhouette scaled so the basket is ~150 wide: basket ~Ø160 top / 125 base × 160; stems fan to ~290 wide at the top (y 400–480).",
+      "images": [
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/2Bundle_Cassie_40-50_rope_basket_studio.jpg?v=1765829183&width=1200",
+          "kind": "cutout-front"
+        }
+      ],
+      "mount": "floor",
+      "category": "decor",
+      "role": "plant",
+      "retailer": "Patch Plants",
+      "source": "Patch Plants",
+      "price": {
+        "amount": 15.0,
+        "currency": "GBP",
+        "plant": null,
+        "pot": 0.0
+      },
+      "dimsNote": "Height from the listing (incl. pot); spread estimated from the studio photo silhouette",
+      "photoEstimateDims": {
+        "w": 290,
+        "d": 260,
+        "h": 480
+      }
+    },
+    {
+      "key": "plant-satin-pothos-trailing",
+      "name": "Satin pothos trailing plant in clay pot",
+      "url": "https://www.patchplants.com/products/plants-satin-pothos/",
+      "variant": "Satin pothos 30–40cm (nursery 15cm) + Clay pot 16cm, Clay washed",
+      "plantPrice": 20.0,
+      "pot": {
+        "name": "Clay pot",
+        "size": "16cm",
+        "colour": "Clay washed",
+        "price": 18.0,
+        "url": "https://www.patchplants.com/products/pots-clay-pot/"
+      },
+      "heightListed": "30-40cm including pot",
+      "dims": {
+        "w": 386,
+        "d": 423,
+        "h": 363
+      },
+      "description": "Satin pothos (Scindapsus pictus): a low mound of heart-shaped matte dark-green leaves splashed with silver, with long trailing vines that spill over the pot rim and drape down the front and sides — a shelf or sideboard trailer — in a sand-coloured clay-washed pot.",
+      "geometryNotes": "Lifestyle photo only. Pot Ø~180 × 160; leaf mound to ~360; trailing strands drape down to the base level at the front and sides (the asset can't hang below its support).",
+      "images": [
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/1iyn8nyjisggcfnaa4f9o_a82c92f5-cfc0-48ef-89ae-70fb08ebd521.jpg?v=1785340951&width=1200",
+          "kind": "lifestyle"
+        },
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/claywash16cm.jpg?v=1752838864&width=1200",
+          "kind": "pot-cutout"
+        }
+      ],
+      "mount": "floor",
+      "category": "decor",
+      "role": "plant",
+      "retailer": "Patch Plants",
+      "source": "Patch Plants",
+      "price": {
+        "amount": 38.0,
+        "currency": "GBP",
+        "plant": 20.0,
+        "pot": 18.0
+      },
+      "dimsNote": "Height from the listing (incl. pot); spread estimated from the studio photo silhouette",
+      "photoEstimateDims": {
+        "w": 600,
+        "d": 420,
+        "h": 360
+      }
+    },
+    {
+      "key": "plant-cactus-succulent-trio",
+      "name": "Cactus and succulent trio in light clay pots",
+      "url": "https://www.patchplants.com/products/bundles-suri-in-clay-pot/",
+      "variant": "Composite: golden barrel cactus + Mammillaria + Haworthia (Suri), each in a light clay pot",
+      "plantPrice": null,
+      "bundlePrice": 23.0,
+      "pot": {
+        "name": "Light clay pot (6.5cm int., 9cm ext.)",
+        "size": "9cm external width, 8cm external height",
+        "colour": "Light grey",
+        "price": 4.0,
+        "url": "https://www.patchplants.com/products/pots-clay-pot/"
+      },
+      "components": [
+        {
+          "name": "Golden barrel cactus",
+          "url": "https://www.patchplants.com/products/plants-golden-barrel-cactus/",
+          "price": 5.0
+        },
+        {
+          "name": "Mammillaria polythele (columnar cactus)",
+          "url": "https://www.patchplants.com/products/plants-near-thornless-columnar-cactus/",
+          "price": 5.0
+        },
+        {
+          "name": "Haworthia in light clay pot (bundle)",
+          "url": "https://www.patchplants.com/products/bundles-suri-in-clay-pot/",
+          "price": 9.0
+        }
+      ],
+      "heightListed": "5-10cm plants; pots 8cm external height",
+      "dims": {
+        "w": 320,
+        "d": 90,
+        "h": 136
+      },
+      "description": "A tabletop trio of small desert plants in matching pale grey stone-effect clay pots set in a row: a round golden barrel cactus ribbed with yellow spines, a short upright columnar Mammillaria cactus, and a spiky zebra-striped Haworthia rosette.",
+      "geometryNotes": "Three pots Ø90 × 80 at 115mm centres; barrel cactus sphere ~Ø75, columnar cactus ~Ø50 × 75, haworthia rosette of pointed blades ~110 wide × 70 tall.",
+      "images": [
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/itmdamxtirvjb8fisodk_8e5a583a-7d78-4490-becd-2bda074d31ea.jpg?v=1738163026&width=1200",
+          "kind": "cutout-front (haworthia in light clay pot)"
+        },
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/cxx8sosoopbglnop90ye_8c8705bc-3eb3-48a6-aad1-ebf89fd4f940.jpg?v=1738163054&width=1200",
+          "kind": "lifestyle (barrel cactus)"
+        },
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/dxi2a3zhuxsxfjfhacag_c4b7a6f8-6218-4573-9f96-6935ffb9a223.jpg?v=1738163052&width=1200",
+          "kind": "lifestyle (columnar cactus)"
+        }
+      ],
+      "mount": "floor",
+      "category": "decor",
+      "role": "plant",
+      "retailer": "Patch Plants",
+      "source": "Patch Plants",
+      "price": {
+        "amount": 23.0,
+        "currency": "GBP",
+        "plant": null,
+        "pot": 4.0
+      },
+      "dimsNote": "Height from the listing (incl. pot); spread estimated from the studio photo silhouette",
+      "photoEstimateDims": {
+        "w": 320,
+        "d": 100,
+        "h": 150
+      }
+    },
+    {
+      "key": "plant-string-of-hearts-hanging",
+      "name": "String of hearts in hanging clay pot",
+      "url": "https://www.patchplants.com/products/plants-ceropegia-woodii/",
+      "variant": "String of hearts 20–30cm (nursery 12cm) + Clay pot 16cm, Grey, Hanging",
+      "plantPrice": 18.0,
+      "pot": {
+        "name": "Clay hanging pot",
+        "size": "16cm",
+        "colour": "Grey (pale stone)",
+        "price": 22.0,
+        "url": "https://www.patchplants.com/products/pots-clay-pot/"
+      },
+      "heightListed": "20-30cm including pot (plus trailing strands)",
+      "dims": {
+        "w": 216,
+        "d": 210,
+        "h": 846
+      },
+      "mount": "ceiling",
+      "description": "String of hearts (Ceropegia woodii) in a hanging planter: long fine purple-grey strands of small silver-marbled heart-shaped leaves cascading 30–40cm below a pale stone-grey clay pot, which hangs from tan leather straps gathered to a brass ring on a single cord from the ceiling.",
+      "geometryNotes": "Ceiling mount, h 850 for a 2450 ceiling: trailing strands end at ~1600 above the floor, pot bottom ~1950 (pot Ø180 × 150), straps converge ~2280, single cord to the ceiling.",
+      "images": [
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/wtwjxndffczouhd1scct_c86d0af9-6ff8-435f-a791-587deb787c46.jpg?v=1738162995&width=1200",
+          "kind": "lifestyle"
+        },
+        {
+          "url": "https://cdn.shopify.com/s/files/1/0621/8157/2697/files/m7egpnesgkdwkvvsy5pm_e03accd5-694c-4b05-9907-d02f86fb4dbd.jpg?v=1770142737&width=1200",
+          "kind": "pot-cutout (hanging)"
+        }
+      ],
+      "category": "decor",
+      "role": "plant",
+      "retailer": "Patch Plants",
+      "source": "Patch Plants",
+      "price": {
+        "amount": 40.0,
+        "currency": "GBP",
+        "plant": 18.0,
+        "pot": 22.0
+      },
+      "dimsNote": "Height from the listing (incl. pot); spread estimated from the studio photo silhouette",
+      "photoEstimateDims": {
+        "w": 300,
+        "d": 300,
+        "h": 850
+      }
+    }
+  ]
+}
