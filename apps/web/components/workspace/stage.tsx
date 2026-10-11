@@ -3,14 +3,16 @@ import { cn } from "@roomer/ui/lib/utils"
 /**
  * The viewer's stage: a drafting-paper field that holds the plan or 3D
  * viewer, with floating slots — `toolbar` top-centre (view mode), `controls`
- * bottom-right (zoom/fit), `overlay` bottom-left (legends, hover readouts) —
- * and a title-block `caption` strip along the bottom edge.
+ * bottom-right (zoom/fit), `overlay` bottom-left (legends, hover readouts),
+ * `panel` docked left (tools) — and a title-block `caption` strip along the
+ * bottom edge.
  */
 export function Stage({
   children,
   toolbar,
   controls,
   overlay,
+  panel,
   caption,
   className,
 }: {
@@ -19,6 +21,8 @@ export function Stage({
   toolbar?: React.ReactNode
   controls?: React.ReactNode
   overlay?: React.ReactNode
+  /** A tool panel docked on the left (e.g. the add-item picker). */
+  panel?: React.ReactNode
   caption?: React.ReactNode
   className?: string
 }) {
@@ -32,6 +36,11 @@ export function Stage({
         {toolbar ? (
           <div className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center px-14">
             <div className="pointer-events-auto">{toolbar}</div>
+          </div>
+        ) : null}
+        {panel ? (
+          <div className="absolute top-14 bottom-3 left-3 z-20 flex w-80 max-w-[calc(100%-1.5rem)] flex-col">
+            {panel}
           </div>
         ) : null}
         {overlay ? (

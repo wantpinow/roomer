@@ -11,13 +11,14 @@ import { useToast } from "@roomer/ui/components/toast"
 
 import { appErrorOf, describeError } from "@/lib/app-error"
 import { previewOps, restoreOp } from "@/lib/plan-edit/optimistic"
-import { assetSpecs } from "@/lib/workspace/view-models"
+import { asId, assetSpecOf, assetSpecs } from "@/lib/workspace/view-models"
 
 /**
  * Layout edits from the UI, as the user. Every change goes through
  * `layouts.applyChanges` with an optimistic update that runs core's
- * `applyOps` on the cached layout, so the plan moves at once and snaps back
- * by itself if the server refuses. Revisions are bumped optimistically too,
+ * `applyOps` on the cached layout (with the models of newly added items from
+ * the cached asset queries), so the plan changes at once and snaps back by
+ * itself if the server refuses. Revisions are bumped optimistically too,
  * so quick successive edits (key repeats) each carry the right
  * `expectedRevision` — Convex runs one client's mutations in order.
  */
@@ -37,17 +38,34 @@ export function useLayoutEditor({
     })
     const room = store.getQuery(api.rooms.get, { roomId })
     if (!layout || !room) return
+    // Items new to the layout: take their models from the cached asset
+    // queries (the picker loaded them), so adds preview too.
+    const assets = { ...layout.assets }
+    for (const op of args.ops) {
+      if (op.op !== "add" || assets[op.asset]) continue
+      const row = store.getQuery(api.assets.get, {
+        assetId: asId<"assets">(op.asset),
+      })
+      if (!row) continue
+      assets[row._id] = {
+        ...assetSpecOf(row),
+        _id: row._id,
+        key: row.key,
+        source: row.source,
+        primaryImageUrl: row.primaryImageUrl,
+      }
+    }
     const placements = previewOps({
       room: toRoomGeometry(room),
       placements: layout.placements,
-      assets: assetSpecs(layout.assets),
+      assets: assetSpecs(assets),
       ops: args.ops,
     })
     if (!placements) return
     store.setQuery(
       api.layouts.get,
       { layoutId: args.layoutId },
-      { ...layout, placements, revision: layout.revision + 1 }
+      { ...layout, assets, placements, revision: layout.revision + 1 }
     )
   })
 

@@ -21,9 +21,11 @@ import type { PlanDrag } from "@/components/plan/plan-view"
 import { Inspector, type InspectorTab } from "@/components/workspace/inspector"
 import { StageCaption } from "@/components/workspace/stage-caption"
 import type { ViewMode } from "@/components/workspace/view-mode-control"
+import { useHotkey } from "@/components/workspace/use-hotkey"
 import { WorkspaceFrame } from "@/components/workspace/workspace-frame"
 import { useLayoutEditor } from "@/hooks/use-layout-editor"
 import { useNow } from "@/hooks/use-now"
+import { useRecentAssets } from "@/hooks/use-recent-assets"
 import { useSafeQuery } from "@/hooks/use-safe-query"
 import { useSearchParam } from "@/hooks/use-search-param"
 import type { PlanKeyAction } from "@/lib/plan-edit/keyboard"
@@ -41,8 +43,10 @@ import {
   toRenderSummary,
 } from "@/lib/workspace/view-models"
 
+import { AssetPicker } from "./asset-picker"
 import { LayoutsRail } from "./layouts-rail"
 import { RendersPanel } from "./renders-panel"
+import { useItemPlacing } from "./use-item-placing"
 import { WorkspaceStage } from "./workspace-stage"
 
 /**
@@ -139,6 +143,33 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
     (issue) => issueKey(issue) === selectedIssueKey
   )
 
+  // Adding items: the picker, then placing a ghost on the plan.
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [recentAssets, rememberAsset] = useRecentAssets()
+  const placingItem = useItemPlacing({
+    room: geometry,
+    placements: serverPlacements,
+    assets,
+    revision: layout?.revision,
+    apply: editor.apply,
+    onPlaced: (placementId, asset) => {
+      rememberAsset(asset._id)
+      setSelectedId(placementId)
+      setSelectedIssueKey(undefined)
+    },
+    onCancelled: (viaDrag) => {
+      if (!viaDrag) setPickerOpen(true)
+    },
+  })
+  const openPicker = () => {
+    setMode("plan")
+    setDrag(null)
+    if (placingItem.asset) placingItem.stop()
+    setPickerOpen((open) => !open || placingItem.asset !== null)
+  }
+  const canAdd = layout !== undefined && layout !== null
+  useHotkey("a", openPicker, mode !== "walk" && canAdd)
+
   const selectLayout = (id: string) => {
     setSelectedId(null)
     setSelectedIssueKey(undefined)
@@ -214,7 +245,13 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
         geometry && room ? (
           <WorkspaceStage
             mode={mode}
-            onModeChange={setMode}
+            onModeChange={(next) => {
+              setMode(next)
+              if (next !== "plan") {
+                placingItem.stop()
+                setPickerOpen(false)
+              }
+            }}
             room={geometry}
             finishes={layout?.finishes ?? room.finishes}
             cameras={cameras}
@@ -244,6 +281,30 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
             onDrag={onDrag}
             onDrop={onDrop}
             onKeyAction={onKeyAction}
+            placing={mode === "plan" ? placingItem.placing : null}
+            pickerOpen={pickerOpen}
+            onAddItem={openPicker}
+            picker={
+              <AssetPicker
+                recentIds={recentAssets}
+                onClose={() => setPickerOpen(false)}
+                onPick={(asset) => {
+                  setPickerOpen(false)
+                  setSelectedId(null)
+                  placingItem.start(asset)
+                }}
+                onDragStart={(asset) => {
+                  setSelectedId(null)
+                  placingItem.start(asset, { viaDrag: true })
+                }}
+                onDragEnd={(dropped) => {
+                  // A drop has placed the item; a drag let go anywhere else
+                  // just stops, leaving the picker open.
+                  placingItem.stop()
+                  if (dropped) setPickerOpen(false)
+                }}
+              />
+            }
             caption={
               stats ? (
                 <StageCaption

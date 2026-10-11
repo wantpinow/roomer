@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 
-import type { RoomGeometry } from "@roomer/core/geometry"
-import { planSvg, type PlanSvgOptions } from "@roomer/core/plan"
+import type { Point, RoomGeometry } from "@roomer/core/geometry"
+import { planSvg } from "@roomer/core/plan"
 import type {
   AssetSpec,
   LintReport,
@@ -12,7 +12,8 @@ import type {
 } from "@roomer/core/schema"
 import { cn } from "@roomer/ui/lib/utils"
 
-import { designTokens } from "@/lib/design-tokens"
+import { SeverityIcon } from "@/components/common/severity-icon"
+import type { SnapTarget } from "@/lib/plan-edit/placing"
 import { planKeyAction, type PlanKeyAction } from "@/lib/plan-edit/keyboard"
 import {
   dragTarget,
@@ -26,14 +27,44 @@ import {
   zoomAt,
   type PlanViewport,
 } from "@/lib/plan-edit/viewport"
+import { planTheme } from "@/lib/plan-theme"
 import { planFootprints, svgPoints } from "@/lib/workspace/footprints"
-
-import { FootprintSketch, roomViewBox, RoomShellSketch } from "./room-outline"
 
 export interface PlanDrag {
   id: string
   x: number
   z: number
+}
+
+/** The item being placed, as the plan draws it under the pointer. */
+export interface PlanGhost {
+  /** Its outline in room mm (one ring per separate piece). */
+  outline: readonly (readonly Point[])[]
+  /** The worst lint severity it would cause, or null for none. */
+  severity: LintSeverity | null
+  /** The asset's name. */
+  label: string
+  /** The most severe issue it would cause, shown by the cursor. */
+  issue?: { code: string; message: string }
+  /** Where it will go, e.g. "Back to W6" or "On W2 · bottom at 680 mm". */
+  hint: string
+  /** What it snapped to: a wall is highlighted, a fitting ringed. */
+  snap: SnapTarget
+}
+
+/** Placing mode: a ghost follows the pointer and a click puts it down. */
+export interface PlanPlacing {
+  assetId: string
+  /** The asset's name. */
+  label: string
+  ghost: PlanGhost | null
+  /** The pointer's plan position (null when it leaves the plan). */
+  onMove: (point: Point | null, options: { free: boolean }) => void
+  /**
+   * Click or drop at `point` (room mm); `repeat` (Shift) keeps placing the
+   * same asset, `free` (Alt) skips the grid.
+   */
+  onPlace: (options: { point: Point; free: boolean; repeat: boolean }) => void
 }
 
 export interface PlanViewProps {
@@ -42,8 +73,6 @@ export interface PlanViewProps {
   /** Asset specs by asset id. */
   assets: Readonly<Record<string, AssetSpec>>
   lint?: LintReport
-  /** Display names by placement id (for the interim sketch's labels). */
-  labels?: Readonly<Record<string, string>>
   theme: "light" | "dark"
   viewport: PlanViewport
   onViewportChange: (viewport: PlanViewport) => void
@@ -61,10 +90,12 @@ export interface PlanViewProps {
   /** A finished drag: the item's new centre, snapped. */
   onDrop?: (drag: PlanDrag) => void
   onKeyAction?: (action: PlanKeyAction) => void
+  /** When set, the plan is placing a new item instead of editing. */
+  placing?: PlanPlacing | null
   className?: string
 }
 
-const STUB_VIEWBOX = "0 0 1 1"
+const VIEWBOX = /viewBox="([^"]+)"/
 
 type Gesture =
   | {
@@ -90,15 +121,18 @@ type Gesture =
  * Alt for free placement), and with an item selected the keyboard nudges,
  * turns and removes it. Empty space pans; ⌃/pinch-scroll zooms.
  *
- * While core's renderer is still a stub, the hit layer draws a plain sketch
- * of the room and furniture itself so the plan stays usable.
+ * In placing mode a ghost of the new item follows the pointer (or an asset
+ * dragged in from the picker), tinted by what lint would say, and a click
+ * or drop puts it down.
+ *
+ * The drawing's frame is fixed per room (the empty room's viewBox), so items
+ * dragged beyond the walls don't rescale the plan under the pointer.
  */
 export function PlanView({
   room,
   placements,
   assets,
   lint,
-  labels = {},
   theme,
   viewport,
   onViewportChange,
@@ -112,6 +146,7 @@ export function PlanView({
   onDrag,
   onDrop,
   onKeyAction,
+  placing = null,
   className,
 }: PlanViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -120,21 +155,35 @@ export function PlanView({
   const frame = useRef<number | null>(null)
   const hovered = useRef<string | null>(null)
   const [dragging, setDragging] = useState<string | null>(null)
+  const [cursor, setCursor] = useState<{
+    x: number
+    y: number
+    width: number
+  } | null>(null)
+  const pendingMove = useRef<{ point: Point; free: boolean } | null>(null)
 
-  const markup = useMemo(() => {
-    const options: PlanSvgOptions & { theme: unknown } = {
-      showDimensions: true,
-      showLabels: true,
-      highlight: [...highlightIds, ...(selectedId ? [selectedId] : [])],
-      // planSvg's palette (accepted once core's PlanTheme lands).
-      theme: designTokens.plan[theme],
-    }
-    return planSvg({ room, placements, assets, lint, options })
-  }, [room, placements, assets, lint, highlightIds, selectedId, theme])
-
-  const viewBoxMatch = /viewBox="([^"]+)"/.exec(markup)
-  const stub = !viewBoxMatch || viewBoxMatch[1] === STUB_VIEWBOX
-  const viewBox = stub ? roomViewBox(room.corners, 600) : viewBoxMatch[1]!
+  const palette = useMemo(() => planTheme(theme), [theme])
+  // The empty room's frame: stable while items move.
+  const viewBox = useMemo(
+    () =>
+      VIEWBOX.exec(planSvg({ room, options: { theme: palette } }))?.[1] ??
+      "0 0 1000 1000",
+    [room, palette]
+  )
+  const markup = useMemo(
+    () =>
+      planSvg({
+        room,
+        placements,
+        assets,
+        lint,
+        options: {
+          theme: palette,
+          highlight: [...highlightIds, ...(selectedId ? [selectedId] : [])],
+        },
+      }).replace(VIEWBOX, `viewBox="${viewBox}"`),
+    [room, placements, assets, lint, highlightIds, selectedId, palette, viewBox]
+  )
 
   const footprints = useMemo(
     () => planFootprints(placements, assets),
@@ -228,9 +277,47 @@ export function PlanView({
     onDrag?.(null)
   }
 
+  // Placing: report the pointer's plan position once per animation frame.
+  const movePlacing = (
+    clientX: number,
+    clientY: number,
+    free: boolean
+  ): void => {
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (rect) {
+      setCursor({
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+        width: rect.width,
+      })
+    }
+    const point = planPoint(clientX, clientY)
+    if (!point || !placing) return
+    pendingMove.current = { point, free }
+    if (frame.current !== null) return
+    frame.current = requestAnimationFrame(() => {
+      frame.current = null
+      const next = pendingMove.current
+      if (next) placing.onMove(next.point, { free: next.free })
+    })
+  }
+
+  const leavePlacing = () => {
+    pendingMove.current = null
+    setCursor(null)
+    placing?.onMove(null, { free: false })
+  }
+
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return
     containerRef.current?.focus({ preventScroll: true })
+    if (placing) {
+      const point = planPoint(event.clientX, event.clientY)
+      if (point) {
+        placing.onPlace({ point, free: event.altKey, repeat: event.shiftKey })
+      }
+      return
+    }
     const id = idAt(event.target)
     const placement = id ? placements.find((p) => p.id === id) : undefined
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -259,6 +346,10 @@ export function PlanView({
   }
 
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (placing) {
+      movePlacing(event.clientX, event.clientY, event.altKey)
+      return
+    }
     const current = gesture.current
     if (!current || current.pointerId !== event.pointerId) {
       setHover(idAt(event.target))
@@ -289,6 +380,8 @@ export function PlanView({
   }
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    // While placing, the workspace owns R / Shift+R / Esc.
+    if (placing) return
     if (event.key === "Escape" && gesture.current?.kind === "item") {
       event.preventDefault()
       endGesture(false)
@@ -315,7 +408,7 @@ export function PlanView({
       ref={containerRef}
       data-slot="plan-view"
       data-dragging={dragging ?? undefined}
-      data-plan-renderer={stub ? "sketch" : "core"}
+      data-placing={placing?.assetId}
       role="application"
       aria-label="Floor plan. Click an item to select it, drag to move it; arrows nudge, R turns, Delete removes, Escape deselects."
       tabIndex={0}
@@ -324,12 +417,38 @@ export function PlanView({
       onPointerUp={onPointerUp}
       onPointerCancel={() => endGesture(false)}
       onPointerLeave={() => {
-        if (!gesture.current) setHover(null)
+        if (placing) leavePlacing()
+        else if (!gesture.current) setHover(null)
+      }}
+      onDragOver={(event) => {
+        if (!placing || !event.dataTransfer.types.length) return
+        event.preventDefault()
+        event.dataTransfer.dropEffect = "copy"
+        movePlacing(event.clientX, event.clientY, event.altKey)
+      }}
+      onDragLeave={(event) => {
+        if (!placing) return
+        const next = event.relatedTarget
+        if (next instanceof Node && event.currentTarget.contains(next)) return
+        leavePlacing()
+      }}
+      onDrop={(event) => {
+        if (!placing) return
+        event.preventDefault()
+        const point = planPoint(event.clientX, event.clientY)
+        if (point) {
+          placing.onPlace({ point, free: event.altKey, repeat: false })
+        }
+        setCursor(null)
       }}
       onKeyDown={onKeyDown}
       className={cn(
         "relative size-full touch-none overflow-hidden outline-none select-none focus-visible:ring-1 focus-visible:ring-ring/25 focus-visible:ring-inset",
-        dragging ? "cursor-grabbing" : "cursor-default",
+        placing
+          ? "cursor-crosshair"
+          : dragging
+            ? "cursor-grabbing"
+            : "cursor-default",
         className
       )}
     >
@@ -341,29 +460,23 @@ export function PlanView({
         }}
       >
         <div className="relative size-full">
-          {stub ? null : (
-            <div
-              aria-hidden
-              className="absolute inset-0 [&>svg]:size-full"
-              // planSvg is our own pure renderer; its output is trusted.
-              dangerouslySetInnerHTML={{ __html: markup }}
-            />
-          )}
+          <div
+            aria-hidden
+            data-slot="plan-drawing"
+            className="absolute inset-0 [&>svg]:size-full [&>svg]:overflow-visible"
+            // planSvg is our own pure renderer; its output is trusted.
+            dangerouslySetInnerHTML={{ __html: markup }}
+          />
           <svg
             ref={overlayRef}
+            data-slot="plan-hit-layer"
             viewBox={viewBox}
             preserveAspectRatio="xMidYMid meet"
-            className="absolute inset-0 size-full overflow-visible"
+            className={cn(
+              "absolute inset-0 size-full overflow-visible",
+              placing && "[&_[data-hit-id]]:pointer-events-none"
+            )}
           >
-            {stub ? (
-              <>
-                <RoomShellSketch
-                  corners={room.corners}
-                  features={room.features}
-                />
-                <FootprintSketch footprints={footprints} />
-              </>
-            ) : null}
             {hitOrder.map((f) => {
               const isSelected = f.id === selectedId
               const isHighlighted = highlighted.has(f.id)
@@ -403,66 +516,125 @@ export function PlanView({
                     vectorEffect="non-scaling-stroke"
                     strokeLinejoin="round"
                   />
-                  {stub &&
-                  f.mount !== "ceiling" &&
-                  f.mount !== "floor-covering" ? (
-                    <PlanLabel
-                      outline={f.outline}
-                      text={labels[f.id] ?? f.id}
-                    />
-                  ) : null}
                 </g>
               )
             })}
+            {placing?.ghost ? <GhostShape ghost={placing.ghost} /> : null}
           </svg>
         </div>
       </div>
+      {placing?.ghost && cursor ? (
+        <GhostCaption ghost={placing.ghost} cursor={cursor} />
+      ) : null}
+    </div>
+  )
+}
+
+// Sage for a clean spot, then the severities. (Not clay: it reads too close
+// to brick at a glance.)
+const GHOST_TINT = {
+  none: "fill-sage-fill/20 stroke-sage-fill",
+  info: "fill-info-fill/20 stroke-info-fill",
+  warning: "fill-warning-fill/25 stroke-warning-fill",
+  error: "fill-error-fill/25 stroke-error-fill",
+} as const
+
+/** The new item's outline, tinted by lint, with its snap indicator. */
+function GhostShape({ ghost }: { ghost: PlanGhost }) {
+  const snap = ghost.snap
+  return (
+    <g
+      data-slot="plan-ghost"
+      data-severity={ghost.severity ?? "none"}
+      data-snap={
+        snap.kind === "wall"
+          ? `wall:${snap.wall.id}`
+          : snap.kind === "feature"
+            ? `feature:${snap.featureId}`
+            : "free"
+      }
+      className="pointer-events-none"
+    >
+      {snap.kind === "wall" ? (
+        <line
+          x1={snap.wall.start[0]}
+          y1={snap.wall.start[1]}
+          x2={snap.wall.end[0]}
+          y2={snap.wall.end[1]}
+          className="stroke-clay-fill"
+          strokeOpacity={0.55}
+          strokeWidth={5}
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      ) : null}
+      {snap.kind === "feature" ? (
+        <circle
+          cx={snap.at[0]}
+          cy={snap.at[1]}
+          r={160}
+          fill="none"
+          className="stroke-clay-fill"
+          strokeWidth={1.5}
+          strokeDasharray="3 3"
+          vectorEffect="non-scaling-stroke"
+        />
+      ) : null}
+      {ghost.outline.map((ring, i) => (
+        <polygon
+          key={i}
+          points={svgPoints(ring)}
+          className={GHOST_TINT[ghost.severity ?? "none"]}
+          strokeWidth={1.5}
+          strokeDasharray="5 3"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+    </g>
+  )
+}
+
+/** A small caption by the cursor: the item, and the worst issue it'd cause. */
+function GhostCaption({
+  ghost,
+  cursor,
+}: {
+  ghost: PlanGhost
+  cursor: { x: number; y: number; width: number }
+}) {
+  const flip = cursor.x > cursor.width - 300
+  return (
+    <div
+      data-slot="plan-ghost-caption"
+      className="pointer-events-none absolute z-10 flex max-w-72 flex-col gap-0.5 rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs shadow-float"
+      style={{
+        left: cursor.x + (flip ? -16 : 16),
+        top: cursor.y + 18,
+        transform: flip ? "translateX(-100%)" : undefined,
+      }}
+    >
+      <span className="truncate font-medium text-foreground">
+        {ghost.label}
+      </span>
+      <span className="text-2xs text-muted-foreground">{ghost.hint}</span>
+      {ghost.issue && ghost.severity ? (
+        <span className="flex items-start gap-1.5 pt-0.5 text-2xs leading-snug text-ink-soft">
+          <span className="flex h-4 items-center">
+            <SeverityIcon severity={ghost.severity} size={8} label={false} />
+          </span>
+          <span className="line-clamp-2">
+            <span className="font-mono text-muted-foreground">
+              {ghost.issue.code}
+            </span>{" "}
+            {ghost.issue.message}
+          </span>
+        </span>
+      ) : null}
     </div>
   )
 }
 
 function hitRank(mount: AssetSpec["mount"]): number {
   return mount === "ceiling" ? 0 : mount === "floor-covering" ? 1 : 2
-}
-
-/**
- * A label centred in an item, along its longer side, sized to the plan and
- * skipped if it won't fit.
- */
-function PlanLabel({
-  outline,
-  text,
-}: {
-  outline: readonly (readonly [number, number])[]
-  text: string
-}) {
-  const xs = outline.map(([x]) => x)
-  const zs = outline.map(([, z]) => z)
-  const width = Math.max(...xs) - Math.min(...xs)
-  const height = Math.max(...zs) - Math.min(...zs)
-  const vertical = height > width * 1.3
-  const along = vertical ? height : width
-  const across = vertical ? width : height
-  const size = Math.min(130, across * 0.3)
-  if (along < 380 || size < 60) return null
-  const maxChars = Math.floor((along * 0.85) / (size * 0.55))
-  const shown =
-    text.length > maxChars
-      ? `${text.slice(0, Math.max(1, maxChars - 1))}…`
-      : text
-  const cx = (Math.min(...xs) + Math.max(...xs)) / 2
-  const cz = (Math.min(...zs) + Math.max(...zs)) / 2
-  return (
-    <text
-      x={cx}
-      y={cz}
-      transform={vertical ? `rotate(-90 ${cx} ${cz})` : undefined}
-      textAnchor="middle"
-      dominantBaseline="central"
-      fontSize={size}
-      className="pointer-events-none fill-ink-soft font-sans"
-    >
-      {shown}
-    </text>
-  )
 }
