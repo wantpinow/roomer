@@ -75,7 +75,6 @@ export const MAX_LAYOUTS_PER_ROOM = 200
 /** Callers of public mutations are the agent or a person, never Roomer. */
 const zPublicActor = zActor.exclude(["system"])
 const vPublicActor = zodToConvex(zPublicActor)
-type PublicActor = z.infer<typeof zPublicActor>
 
 const zLayoutOps = z.array(zLayoutOp).min(1).max(MAX_LAYOUT_OPS)
 
@@ -366,7 +365,7 @@ export async function doCreateLayout(
     notes?: string
     status?: Doc<"layouts">["status"]
     fromLayoutId?: Id<"layouts">
-    actor?: PublicActor
+    actor?: Actor
   }
 ): Promise<{ layoutId: Id<"layouts">; lint: LintReport }> {
   const name = parseInput(zLabel, args.name, "layout name", ["name"])
@@ -421,7 +420,7 @@ export async function doUpdateLayout(
     status?: Doc<"layouts">["status"]
     /** A finishes override; null removes it. */
     finishes?: Finishes | null
-    actor?: PublicActor
+    actor?: Actor
     expectedRevision?: number
   }
 ): Promise<{ revision: number }> {
@@ -532,7 +531,7 @@ async function resolveAssets(
 export type ApplyChangesArgs = {
   layoutId: Id<"layouts">
   ops: z.input<typeof zLayoutOps>
-  actor: PublicActor
+  actor: Actor
   expectedRevision?: number
 }
 

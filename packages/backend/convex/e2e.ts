@@ -20,6 +20,7 @@ import type { TableNames } from "./_generated/dataModel"
 import { mutation } from "./_generated/server"
 import type { MutationCtx } from "./functions"
 import { doRecordHealthcheck } from "./health"
+import { doSeed, vSeedResult } from "./seed"
 
 // ---------------------------------------------------------------------------
 // Guard
@@ -111,5 +112,19 @@ export const recordHealthcheck = mutation({
   handler: async (ctx, args) => {
     assertE2E()
     return await doRecordHealthcheck(ctx, args)
+  },
+})
+
+/**
+ * The living room, the generic library and the "Starter" layout (the same
+ * data `pnpm seed` creates), returning their ids. Idempotent, so specs can
+ * call it after `reset` or on top of existing data.
+ */
+export const seedLivingRoom = mutation({
+  args: {},
+  returns: vSeedResult,
+  handler: async (ctx) => {
+    assertE2E()
+    return await doSeed(ctx)
   },
 })

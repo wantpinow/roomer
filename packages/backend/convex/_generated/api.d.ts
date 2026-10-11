@@ -17,6 +17,7 @@ import type * as health from "../health.js";
 import type * as layouts from "../layouts.js";
 import type * as renders from "../renders.js";
 import type * as rooms from "../rooms.js";
+import type * as seed from "../seed.js";
 import type * as validators from "../validators.js";
 
 import type {
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   layouts: typeof layouts;
   renders: typeof renders;
   rooms: typeof rooms;
+  seed: typeof seed;
   validators: typeof validators;
 }>;
 
