@@ -29,17 +29,22 @@ import {
   type TestConvex,
 } from "./setup"
 
-// Lint is core's job (and still a stub returning "ok"); here it is a spy so
-// tests can make it report issues and check the backend stores and reacts
-// to whatever it returns.
+// Lint is core's job and is tested there. Here it is a spy returning a
+// fixed report, so these tests check what the backend does with whatever
+// lint says — store it, return it, log count changes — independently of the
+// real rules.
 vi.mock("@roomer/core/lint", async (importOriginal) => {
   const original = await importOriginal<typeof import("@roomer/core/lint")>()
   return { ...original, lint: vi.fn(original.lint) }
 })
 const { lint } = await import("@roomer/core/lint")
-const { lint: realLint } =
-  await vi.importActual<typeof import("@roomer/core/lint")>("@roomer/core/lint")
 const lintSpy = vi.mocked(lint)
+
+const CLEAN: LintReport = {
+  ok: true,
+  counts: { error: 0, warning: 0, info: 0 },
+  issues: [],
+}
 
 const ONE_ERROR: LintReport = {
   ok: false,
@@ -57,10 +62,11 @@ const ONE_ERROR: LintReport = {
 
 beforeEach(() => {
   vi.useFakeTimers()
+  lintSpy.mockReturnValue(CLEAN)
 })
 afterEach(() => {
   vi.useRealTimers()
-  lintSpy.mockImplementation(realLint)
+  lintSpy.mockReset()
 })
 
 const SOFA_AGAINST_W6: AddOp = {
@@ -152,7 +158,7 @@ describe("doCreateLayout", () => {
       status: "draft",
       placements: [],
       revision: 0,
-      lint: { ok: true, counts: { error: 0, warning: 0, info: 0 } },
+      lint: CLEAN,
     })
     expect((await events(w.t, w.layoutId)).map((e) => e.summary)).toEqual([
       "Created layout 'Living'",
