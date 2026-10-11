@@ -21,6 +21,12 @@ import {
 } from "@roomer/core/room"
 import {
   DEFAULT_SKIRTING,
+  type Camera,
+  type Feature,
+  type Finishes,
+  type ShellMeasurements,
+  type ShellOp,
+  type Skirting,
   zCamera,
   zNewRoom,
   zRoomSpec,
@@ -35,6 +41,7 @@ import { v, type Infer } from "convex/values"
 import { z } from "zod"
 
 import type { Doc, Id } from "./_generated/dataModel"
+import { sameValue } from "./compare"
 import {
   appError,
   invalidInput,
@@ -389,6 +396,137 @@ export async function doAddReferencePhotos(
   }
   await ctx.db.patch(room._id, { referencePhotos, updatedAt: Date.now() })
   return { referencePhotos }
+}
+
+/** What `doSyncRoom` makes a room match. */
+export type RoomTarget = {
+  measurements: ShellMeasurements
+  ceilingHeight: number
+  skirting: Skirting
+  features: Feature[]
+  finishes: Finishes
+  /**
+   * The exact cameras to end with. Omitted: cameras stored under a default
+   * id are reset to today's defaults and custom ones are kept.
+   */
+  cameras?: Camera[]
+}
+
+/**
+ * Make a stored room match a target spec in place: it keeps its id, name,
+ * layouts and reference photos. Goes through the real helpers — a re-solve
+ * if the measurements differ, then one batch of shell ops computed from the
+ * difference (which validates the end state and re-lints the layouts) —
+ * then sets the cameras. Returns one sentence per change; none when the
+ * room already matched. Used by `pnpm seed --refresh` and `--import`.
+ */
+export async function doSyncRoom(
+  ctx: MutationCtx,
+  args: { roomId: Id<"rooms">; target: RoomTarget }
+): Promise<string[]> {
+  const { roomId, target } = args
+  const summaries: string[] = []
+  const original = await getRoomOrThrow(ctx, roomId)
+  const before = roomGeometry(original)
+
+  if (!sameValue(original.shell.measurements, target.measurements)) {
+    // Features that don't fit the new outline come back from the target
+    // through the ops below.
+    await doSetShell(ctx, {
+      roomId,
+      measurements: target.measurements,
+      dropInvalidFeatures: true,
+    })
+    summaries.push("Re-solved the outline from new measurements")
+  }
+  const current = await getRoomOrThrow(ctx, roomId)
+
+  const targetIds = new Set(target.features.map((f) => f.id))
+  const storedById = new Map(current.features.map((f) => [f.id, f]))
+  const ops: ShellOp[] = [
+    ...current.features
+      .filter((feature) => !targetIds.has(feature.id))
+      .map((feature): ShellOp => ({ op: "removeFeature", id: feature.id })),
+    ...target.features.flatMap((feature): ShellOp[] => {
+      const stored = storedById.get(feature.id)
+      if (!stored) return [{ op: "addFeature", feature }]
+      if (sameValue(stored, feature)) return []
+      const { id, ...replacement } = feature
+      return [{ op: "updateFeature", id, feature: replacement }]
+    }),
+  ]
+  if (current.ceilingHeight !== target.ceilingHeight) {
+    ops.push({ op: "setCeilingHeight", ceilingHeight: target.ceilingHeight })
+  }
+  if (!sameValue(current.skirting, target.skirting)) {
+    ops.push({ op: "setSkirting", skirting: target.skirting })
+  }
+  if (!sameValue(current.finishes, target.finishes)) {
+    // setFinishes merges; an empty string removes a finish the target lacks.
+    const cleared = Object.fromEntries(
+      Object.keys(current.finishes).map((key) => [key, ""])
+    )
+    ops.push({
+      op: "setFinishes",
+      finishes: { ...cleared, ...target.finishes },
+    })
+  }
+  if (ops.length > 0) {
+    const { changes } = await doApplyShellChanges(ctx, { roomId, ops })
+    summaries.push(...changes.map((change) => change.summary))
+  }
+
+  const synced = await getRoomOrThrow(ctx, roomId)
+  if (target.cameras) {
+    // Shell ops re-sync default cameras as they go, so compare with the
+    // cameras the room started with when deciding what to report.
+    if (!sameValue(synced.cameras, target.cameras)) {
+      const cameras = parseInput(
+        zRoomSpec.shape.cameras,
+        target.cameras,
+        "cameras",
+        ["cameras"]
+      )
+      await ctx.db.patch(roomId, { cameras, updatedAt: Date.now() })
+    }
+    if (!sameValue(original.cameras, target.cameras)) {
+      const count = target.cameras.length
+      summaries.push(
+        `Set the room's cameras (${count} camera${count === 1 ? "" : "s"})`
+      )
+    }
+    return summaries
+  }
+
+  // Default cameras: replace whatever is stored under a default id (it may
+  // come from older defaults) with today's; leave custom cameras alone.
+  const defaults = defaultCameras(roomGeometry(synced))
+  const defaultIds = new Set(
+    [...defaultCameras(before), ...defaults].map((camera) => camera.id)
+  )
+  let reset = 0
+  for (const camera of synced.cameras) {
+    if (
+      defaultIds.has(camera.id) &&
+      !defaults.some((d) => d.id === camera.id)
+    ) {
+      await doRemoveCamera(ctx, { roomId, cameraId: camera.id })
+      reset++
+    }
+  }
+  for (const camera of defaults) {
+    const stored = synced.cameras.find((c) => c.id === camera.id)
+    if (!stored || !sameValue(stored, camera)) {
+      await doUpsertCamera(ctx, { roomId, camera })
+      reset++
+    }
+  }
+  if (reset > 0) {
+    summaries.push(
+      `Reset ${reset} default camera${reset === 1 ? "" : "s"} to the current defaults`
+    )
+  }
+  return summaries
 }
 
 // ---------------------------------------------------------------------------

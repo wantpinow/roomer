@@ -18,9 +18,7 @@ import {
   TEST_ASSETS,
 } from "@roomer/core/fixtures"
 import { slugify } from "@roomer/core/placement"
-import { defaultCameras } from "@roomer/core/cameras"
-import { toRoomGeometry } from "@roomer/core/geometry"
-import type { AssetSpec, LayoutOp, ShellOp } from "@roomer/core/schema"
+import type { AssetSpec, LayoutOp } from "@roomer/core/schema"
 import { v } from "convex/values"
 
 import type { Doc, Id } from "./_generated/dataModel"
@@ -28,14 +26,7 @@ import { internalMutation } from "./_generated/server"
 import { doCreateAsset, getAssetByKey } from "./assets"
 import type { MutationCtx } from "./functions"
 import { doApplyChanges, doCreateLayout, MAX_LAYOUTS_PER_ROOM } from "./layouts"
-import {
-  doApplyShellChanges,
-  doCreateRoom,
-  doRemoveCamera,
-  doSetShell,
-  doUpsertCamera,
-  getRoomOrThrow,
-} from "./rooms"
+import { doCreateRoom, doSyncRoom } from "./rooms"
 
 export const SEED_LAYOUT_NAME = "Starter"
 
@@ -89,117 +80,25 @@ export type SeedResult = {
   refreshed: string[] | null
 }
 
-/** JSON with object keys sorted, so stored docs compare equal to literals. */
-function canonical(value: unknown): string {
-  return JSON.stringify(value, (_key, inner: unknown) =>
-    inner && typeof inner === "object" && !Array.isArray(inner)
-      ? Object.fromEntries(
-          Object.entries(inner).sort(([a], [b]) => (a < b ? -1 : 1))
-        )
-      : inner
-  )
-}
-
-const same = (a: unknown, b: unknown): boolean => canonical(a) === canonical(b)
-
 /**
- * Bring the stored living room back in line with the fixture, in place: the
- * room keeps its id, layouts, reference photos and custom cameras. Goes
- * through the real helpers — a re-solve if the measurements changed, then
- * one batch of shell ops (which validates the result and re-lints the
- * layouts) — and resets the default cameras, which earlier code may have
- * generated differently. Returns one sentence per change.
+ * Bring the stored living room back in line with the fixture, in place (see
+ * `doSyncRoom`): it keeps its id, layouts, reference photos and custom
+ * cameras, and its default cameras are reset to today's defaults.
  */
 export async function doRefreshLivingRoom(
   ctx: MutationCtx,
   room: Doc<"rooms">
 ): Promise<string[]> {
-  const summaries: string[] = []
-  const before = toRoomGeometry(room)
-
-  if (!same(room.shell.measurements, LIVING_ROOM_MEASUREMENTS)) {
-    // Features that don't fit the new outline are re-added from the fixture
-    // by the ops below.
-    await doSetShell(ctx, {
-      roomId: room._id,
+  return await doSyncRoom(ctx, {
+    roomId: room._id,
+    target: {
       measurements: LIVING_ROOM_MEASUREMENTS,
-      dropInvalidFeatures: true,
-    })
-    summaries.push("Re-solved the outline from the fixture's measurements")
-  }
-  const current = await getRoomOrThrow(ctx, room._id)
-
-  const fixtureIds = new Set(LIVING_ROOM_FEATURES.map((f) => f.id))
-  const storedById = new Map(current.features.map((f) => [f.id, f]))
-  const ops: ShellOp[] = [
-    ...current.features
-      .filter((feature) => !fixtureIds.has(feature.id))
-      .map((feature): ShellOp => ({ op: "removeFeature", id: feature.id })),
-    ...LIVING_ROOM_FEATURES.flatMap((feature): ShellOp[] => {
-      const stored = storedById.get(feature.id)
-      if (!stored) return [{ op: "addFeature", feature }]
-      if (same(stored, feature)) return []
-      const { id, ...replacement } = feature
-      return [{ op: "updateFeature", id, feature: replacement }]
-    }),
-  ]
-  if (current.ceilingHeight !== LIVING_ROOM_CEILING_HEIGHT) {
-    ops.push({
-      op: "setCeilingHeight",
       ceilingHeight: LIVING_ROOM_CEILING_HEIGHT,
-    })
-  }
-  if (!same(current.skirting, LIVING_ROOM_SKIRTING)) {
-    ops.push({ op: "setSkirting", skirting: LIVING_ROOM_SKIRTING })
-  }
-  if (!same(current.finishes, LIVING_ROOM_FINISHES)) {
-    // setFinishes merges; an empty string removes a finish the fixture lacks.
-    const cleared = Object.fromEntries(
-      Object.keys(current.finishes).map((key) => [key, ""])
-    )
-    ops.push({
-      op: "setFinishes",
-      finishes: { ...cleared, ...LIVING_ROOM_FINISHES },
-    })
-  }
-  if (ops.length > 0) {
-    const { changes } = await doApplyShellChanges(ctx, {
-      roomId: room._id,
-      ops,
-    })
-    summaries.push(...changes.map((change) => change.summary))
-  }
-
-  // Default cameras: replace whatever is stored under a default id (it may
-  // come from older defaults) with today's; leave custom cameras alone.
-  const refreshed = await getRoomOrThrow(ctx, room._id)
-  const defaults = defaultCameras(toRoomGeometry(refreshed))
-  const defaultIds = new Set(
-    [...defaultCameras(before), ...defaults].map((camera) => camera.id)
-  )
-  let reset = 0
-  for (const camera of refreshed.cameras) {
-    if (
-      defaultIds.has(camera.id) &&
-      !defaults.some((d) => d.id === camera.id)
-    ) {
-      await doRemoveCamera(ctx, { roomId: room._id, cameraId: camera.id })
-      reset++
-    }
-  }
-  for (const camera of defaults) {
-    const stored = refreshed.cameras.find((c) => c.id === camera.id)
-    if (!stored || !same(stored, camera)) {
-      await doUpsertCamera(ctx, { roomId: room._id, camera })
-      reset++
-    }
-  }
-  if (reset > 0) {
-    summaries.push(
-      `Reset ${reset} default camera${reset === 1 ? "" : "s"} to the current defaults`
-    )
-  }
-  return summaries
+      skirting: LIVING_ROOM_SKIRTING,
+      features: LIVING_ROOM_FEATURES,
+      finishes: LIVING_ROOM_FINISHES,
+    },
+  })
 }
 
 export async function doSeed(
