@@ -84,7 +84,10 @@ export function WalkController({
   keys: RefObject<Set<string>>
   /** Takes the mouse-look movement since the last frame (and resets it). */
   takeLook: () => LookDelta
-  /** False while the walk isn't engaged: keys are ignored. */
+  /**
+   * Walking (true) or paused (false): while paused the simulation is
+   * frozen — no keys, no mouse-look, no gravity — and the view held.
+   */
   active: boolean
   onBump: (bump: WalkBump) => void
   /** Receives a function that reads the current view (for photos). */
@@ -193,7 +196,7 @@ export function WalkController({
     const turn = turnFromKeys(held, delta)
     if (turn !== 0) e.y -= turn * DEG
     const { dx, dy } = takeLook()
-    if (dx !== 0 || dy !== 0) {
+    if (active && (dx !== 0 || dy !== 0)) {
       e.y -= dx * LOOK_SENSITIVITY
       e.x = Math.max(
         -MAX_PITCH,
@@ -203,12 +206,16 @@ export function WalkController({
     camera.quaternion.setFromEuler(e)
     camera.getWorldDirection(direction.current)
 
-    state.current = advanceWalk(
-      world,
-      state.current,
-      inputFromKeys(held, cameraHeading(direction.current)),
-      delta
-    )
+    if (active) {
+      state.current = advanceWalk(
+        world,
+        state.current,
+        inputFromKeys(held, cameraHeading(direction.current)),
+        delta
+      )
+    }
+    // Placed every frame, paused or not, so a teleport (debug handle) or a
+    // rebuilt world shows at once.
     const s = state.current
     camera.position.set(
       s.position[0] / 1000,

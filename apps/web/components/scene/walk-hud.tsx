@@ -1,7 +1,6 @@
 "use client"
 
 import { cn } from "@roomer/ui/lib/utils"
-import type { MouseEvent, PointerEvent, ReactNode } from "react"
 
 import {
   formatEyeHeight,
@@ -9,108 +8,67 @@ import {
   type WalkerSize,
 } from "@/lib/walk/stature"
 
-export type WalkMode = "idle" | "keys" | "locked"
-
 export const WALK_HINT =
-  "Click to walk · WASD · Space to jump · Shift to run · Esc to exit"
-
-/** Keeps a HUD control's clicks from capturing the mouse or the focus. */
-const hudControl = {
-  onPointerDown: (event: PointerEvent) => event.stopPropagation(),
-  onMouseDown: (event: MouseEvent) => event.preventDefault(),
-}
-
-function HudButton({
-  label,
-  onClick,
-  disabled,
-  children,
-}: {
-  label: string
-  onClick: () => void
-  disabled?: boolean
-  children: ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      disabled={disabled}
-      onClick={onClick}
-      {...hudControl}
-      className="grid size-6 place-items-center rounded-sm text-ink hover:bg-sunken disabled:opacity-35 disabled:hover:bg-transparent"
-    >
-      {children}
-    </button>
-  )
-}
+  "Enter photo · Shift+Enter save view · −/= height · Esc pause"
 
 /**
- * The walk view's overlay: a crosshair while walking, the controls hint
- * (bottom centre, clear of a host's top-centre controls; hidden on narrow
- * stages) and the walker's height setting (bottom left). Bumps are silent.
+ * The HUD while walking, kept minimal: a crosshair, a one-line hint (it
+ * fades once you've read it and comes back when you press a key) and a
+ * brief readout when the height changes.
  */
-export function WalkHud({
-  mode,
-  player,
-  onTaller,
-  onShorter,
-  canGrow,
-  canShrink,
+export function WalkingHud({
+  hintActive,
+  heightReadout,
+  dragToLook,
 }: {
-  mode: WalkMode
-  player: WalkerSize
-  onTaller: () => void
-  onShorter: () => void
-  canGrow: boolean
-  canShrink: boolean
+  /** Show the hint at full strength (recently pressed a key). */
+  hintActive: boolean
+  /** Just changed height: what it is now. */
+  heightReadout: WalkerSize | null
+  /** Walking without pointer lock: mention drag-to-look and Q/E. */
+  dragToLook: boolean
 }) {
   return (
-    <div className="pointer-events-none absolute inset-0 select-none">
-      {mode !== "idle" ? (
-        <div
-          aria-hidden
-          className="absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2"
-        >
-          <span className="absolute top-1/2 left-0 h-px w-full -translate-y-1/2 bg-ink/60" />
-          <span className="absolute top-0 left-1/2 h-full w-px -translate-x-1/2 bg-ink/60" />
-        </div>
-      ) : null}
+    <div
+      className="pointer-events-none absolute inset-0 select-none"
+      data-walk-hud
+    >
+      {/* Difference-blended so it reads on pale walls and dark wood alike. */}
       <div
-        role="group"
-        aria-label="Walker height"
-        data-walk-stature={player.height}
-        className="pointer-events-auto absolute bottom-4 left-4 flex items-center gap-0.5 rounded-md border border-hairline bg-surface/85 p-1 text-xs text-ink-soft shadow-sm"
+        aria-hidden
+        className="absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2 opacity-80 mix-blend-difference"
       >
-        <HudButton
-          label="Shorter by an inch (−)"
-          onClick={onShorter}
-          disabled={!canShrink}
-        >
-          <span aria-hidden>−</span>
-        </HudButton>
-        <span className="px-1.5 tabular-nums">
-          Height{" "}
-          <span className="text-ink">{formatStature(player.height)}</span>
-          {" · "}eyes {formatEyeHeight(player.eyeHeight)}
-        </span>
-        <HudButton
-          label="Taller by an inch (=)"
-          onClick={onTaller}
-          disabled={!canGrow}
-        >
-          <span aria-hidden>+</span>
-        </HudButton>
+        <span className="absolute top-1/2 left-0 h-px w-full -translate-y-1/2 bg-white" />
+        <span className="absolute top-0 left-1/2 h-full w-px -translate-x-1/2 bg-white" />
       </div>
       <p
+        data-walk-hint
         className={cn(
-          "absolute bottom-4 left-1/2 max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-md border border-hairline bg-surface/85 px-3 py-1.5 text-center text-xs whitespace-nowrap text-ink-soft shadow-sm transition-opacity duration-300 @max-2xl:hidden",
-          mode === "locked" && "opacity-60"
+          "absolute bottom-4 left-1/2 max-w-[calc(100%-2rem)] -translate-x-1/2 truncate rounded-md border border-hairline bg-surface/85 px-3 py-1.5 text-center text-xs text-ink-soft shadow-sm transition-opacity",
+          hintActive ? "opacity-100 duration-200" : "opacity-25 duration-1000"
         )}
       >
         {WALK_HINT}
-        {mode === "keys" ? " · Q/E to turn" : ""}
+        {dragToLook ? " · drag or Q/E to turn" : ""}
+      </p>
+      <p
+        role="status"
+        aria-live="polite"
+        data-walk-height-readout
+        className={cn(
+          "absolute bottom-4 left-4 rounded-md border border-hairline bg-surface/90 px-3 py-1.5 text-xs text-ink-soft tabular-nums shadow-sm transition-opacity duration-300",
+          heightReadout ? "opacity-100" : "opacity-0"
+        )}
+      >
+        {heightReadout ? (
+          <>
+            Height{" "}
+            <span className="text-ink">
+              {formatStature(heightReadout.height)}
+            </span>
+            {" · "}eyes {formatEyeHeight(heightReadout.eyeHeight)}
+          </>
+        ) : null}
       </p>
     </div>
   )

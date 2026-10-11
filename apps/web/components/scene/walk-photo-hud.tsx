@@ -1,7 +1,6 @@
 "use client"
 
 import { cn } from "@roomer/ui/lib/utils"
-import { BookmarkPlusIcon, CameraIcon } from "lucide-react"
 import type { MouseEvent, PointerEvent } from "react"
 
 import type { WalkPhoto } from "@/lib/walk/photo"
@@ -18,24 +17,23 @@ export interface WalkNote {
 }
 
 /**
- * Walk mode's camera: the shutter flash, the shutter and save-view buttons
- * (bottom right), a short note ("Photo taken — rendering…") and, when a
- * photo has rendered, a thumbnail that opens it.
+ * Walk mode's camera feedback, in every state: the shutter flash, a short
+ * note ("Photo taken — rendering…") and, when a photo has rendered, a
+ * thumbnail (bottom right) that opens it.
  */
 export function WalkPhotoHud({
   flashing,
   note,
   ready,
-  onShutter,
-  onSaveView,
+  onOpen,
 }: {
   /** The white shutter flash is up. */
   flashing: boolean
   note: WalkNote | null
   /** A finished photo to show as a thumbnail. */
   ready: WalkPhoto | null
-  onShutter?: () => void
-  onSaveView?: () => void
+  /** Open a finished photo in the host (else its image opens in a tab). */
+  onOpen?: (photo: WalkPhoto) => void
 }) {
   return (
     <>
@@ -54,6 +52,13 @@ export function WalkPhotoHud({
             rel="noreferrer"
             data-walk-photo-ready={ready.id}
             {...hudControl}
+            onClick={(event) => {
+              event.stopPropagation()
+              if (onOpen) {
+                event.preventDefault()
+                onOpen(ready)
+              }
+            }}
             className="pointer-events-auto block w-44 overflow-hidden rounded-md border border-hairline bg-surface shadow-md transition-transform hover:-translate-y-0.5"
           >
             {/* The render's own URL from Convex storage; no layout shift to manage. */}
@@ -80,34 +85,6 @@ export function WalkPhotoHud({
         >
           {note?.text ?? ""}
         </p>
-        {onShutter || onSaveView ? (
-          <div className="pointer-events-auto flex items-center gap-1 rounded-md border border-hairline bg-surface/85 p-1 shadow-sm">
-            {onSaveView ? (
-              <button
-                type="button"
-                aria-label="Save this viewpoint (Shift+Enter)"
-                title="Save this viewpoint (Shift+Enter)"
-                onClick={onSaveView}
-                {...hudControl}
-                className="grid size-7 place-items-center rounded-sm text-ink-soft hover:bg-sunken hover:text-ink"
-              >
-                <BookmarkPlusIcon className="size-4" aria-hidden />
-              </button>
-            ) : null}
-            {onShutter ? (
-              <button
-                type="button"
-                aria-label="Take a photo (Enter)"
-                title="Take a photo (Enter)"
-                onClick={onShutter}
-                {...hudControl}
-                className="grid size-7 place-items-center rounded-sm bg-clay-fill text-white hover:bg-clay"
-              >
-                <CameraIcon className="size-4" aria-hidden />
-              </button>
-            ) : null}
-          </div>
-        ) : null}
       </div>
     </>
   )

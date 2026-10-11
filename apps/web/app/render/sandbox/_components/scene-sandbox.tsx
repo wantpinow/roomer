@@ -6,6 +6,7 @@ import { useMemo, useState } from "react"
 
 import { buildFixtureScene, FIXTURE_CAMERAS } from "@/lib/scene/fixture-scene"
 import type { CameraView } from "@/lib/scene/types"
+import type { WalkPhoto } from "@/lib/walk/photo"
 import type { WalkBump } from "@/lib/walk/physics"
 
 const RoomViewer = dynamic(
@@ -37,11 +38,20 @@ const PASSES = ["clay", "id", "depth"] as const satisfies readonly RenderPass[]
 const buttonClass =
   "rounded-sm border border-black/10 px-2 py-0.5 aria-pressed:bg-neutral-800 aria-pressed:text-white disabled:opacity-40"
 
+/** A stand-in "rendered photo" for the sandbox. */
+function placeholderPhoto(name: string): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200"><rect width="300" height="200" fill="#e9e5df"/><text x="150" y="105" font-family="sans-serif" font-size="16" text-anchor="middle" fill="#5c554c">${name}</text></svg>`
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+}
+
 export function SceneSandbox() {
   const [viewName, setViewName] = useState<ViewName>("orbit")
   const [pass, setPass] = useState<RenderPass>("clay")
   const [selection, setSelection] = useState<string | null>(null)
   const [bumps, setBumps] = useState<WalkBump[]>([])
+  // No backend here: photos "render" in a moment as a placeholder card, so
+  // the walk's photo flow can be tried end to end.
+  const [photos, setPhotos] = useState<WalkPhoto[]>([])
   const walking = viewName === "walk"
   const scene = useMemo(
     () =>
@@ -98,6 +108,28 @@ export function SceneSandbox() {
           <WalkViewer
             scene={scene}
             onBump={(bump) => setBumps((all) => [bump, ...all].slice(0, 50))}
+            photos={photos}
+            onPhoto={(camera) => {
+              const id = camera.id
+              setPhotos((all) => [{ id, status: "pending" }, ...all])
+              setTimeout(() => {
+                setPhotos((all) =>
+                  all.map((p) =>
+                    p.id === id
+                      ? {
+                          ...p,
+                          status: "done",
+                          url: placeholderPhoto(camera.name),
+                        }
+                      : p
+                  )
+                )
+              }, 1500)
+            }}
+            onSaveView={(camera) => ({
+              ok: true,
+              message: `“${camera.name}” would be saved (sandbox)`,
+            })}
           />
         ) : (
           <RoomViewer

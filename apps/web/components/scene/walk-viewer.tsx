@@ -9,6 +9,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useReducer,
   useRef,
   useState,
 } from "react"
@@ -33,18 +34,24 @@ import {
   stepStature,
   walkerSize,
 } from "@/lib/walk/stature"
+import { INITIAL_WALK_SESSION, walkSession } from "@/lib/walk/session"
 import { buildWalkWorld } from "@/lib/walk/world"
 
 import { passCanvasProps } from "./canvas-config"
 import { RoomScene } from "./room-scene"
 import { type LookDelta, WalkController } from "./walk-controller"
-import { WalkHud, type WalkMode } from "./walk-hud"
+import { WalkingHud } from "./walk-hud"
+import { WalkPauseCard } from "./walk-pause-card"
 import { type WalkNote, WalkPhotoHud } from "./walk-photo-hud"
 
 /** How long a note ("Photo taken — rendering…") stays up, ms. */
 const NOTE_MS = 4000
 /** How long a finished photo's thumbnail stays up, ms. */
 const READY_MS = 8000
+/** The walking hint fades after this long without a key press, ms. */
+const HINT_MS = 3000
+/** How long the height readout shows after a change while walking, ms. */
+const HEIGHT_READOUT_MS = 1500
 
 /** Where the walker's height setting is remembered (per browser). */
 const STATURE_KEY = "roomer.walk.statureMm"
@@ -85,6 +92,12 @@ function WalkLens() {
   return null
 }
 
+/** What a host's photo or save-view handler returns (now or later). */
+type WalkActionOutcome =
+  | void
+  | WalkActionResult
+  | Promise<WalkActionResult | void>
+
 export interface WalkViewerProps {
   /** The room and what's in it (a RoomViewer `scene` works as-is). */
   scene: Pick<SceneContent, "room" | "placements" | "assets">
@@ -93,39 +106,44 @@ export interface WalkViewerProps {
    * useful for tests and debugging).
    */
   onBump?: (bump: WalkBump) => void
-  /** Called when the user leaves the walk (Esc). */
+  /**
+   * Called when the user leaves walk mode ("Exit to plan", or Esc while
+   * paused). Releasing the mouse only pauses. Without it, exiting returns
+   * to the start card.
+   */
   onExit?: () => void
   /**
    * The walker's starting height, mm (default: the height last chosen in
-   * this browser, else 6 ft). The HUD's −/+ control changes it from there.
+   * this browser, else 6 ft). −/= or the pause card change it from there.
    */
   statureMm?: number
   /**
-   * Take a photo (shutter button or Enter): the current view as a
-   * rectilinear Camera (eye position, 1 m ahead along the look direction,
-   * the view's vertical fov) and the viewport's aspect. Resolve to a
-   * failure to have it shown.
+   * Take a photo (Enter while walking, "Take photo" while paused): the
+   * current view as a rectilinear Camera (eye position, 1 m ahead along the
+   * look direction, the view's vertical fov) and the viewport's aspect.
+   * Resolve to a failure to have it shown.
    */
-  onPhoto?: (
-    camera: Camera,
-    aspect: number
-  ) => void | Promise<WalkActionResult | void>
+  onPhoto?: (camera: Camera, aspect: number) => WalkActionOutcome
   /**
    * Photos the host is rendering for this walk: pending ones show
    * "rendering…", a finished one shows as a thumbnail for a few seconds.
    */
   photos?: readonly WalkPhoto[]
-  /** Save the current view as a room camera (bookmark button, Shift+Enter). */
-  onSaveView?: (camera: Camera) => void | Promise<WalkActionResult | void>
+  /** Open a finished photo in the host (default: its image in a new tab). */
+  onOpenPhoto?: (renderId: string) => void
+  /** Save the current view as a room camera (Shift+Enter, pause card). */
+  onSaveView?: (camera: Camera) => WalkActionOutcome
   className?: string
 }
 
 /**
- * First-person walk through a room at a six-footer's eye height, in the
- * clay look with the ceiling on. Click to capture the mouse (Esc releases
- * it); WASD/arrows move, Space jumps, Shift runs. Where the browser refuses
- * pointer lock (embedded or automated browsers), drag to look; the keys
- * work whenever the view is focused, with Q/E to turn.
+ * First-person walk through a room at the walker's eye height, in the clay
+ * look with the ceiling on. It opens paused ("Click to start walking"); a
+ * click captures the mouse and you walk — WASD/arrows, Space to jump,
+ * Shift to run, Enter for a photo. Esc releases the mouse and pauses: the
+ * view holds, dimmed, under a card with the height, photo, save-view and
+ * exit controls; Esc again leaves walk mode. Where a browser refuses
+ * pointer lock, you walk with the keys and drag to look (Q/E turn).
  */
 export function WalkViewer({
   scene,
@@ -134,13 +152,19 @@ export function WalkViewer({
   statureMm,
   onPhoto,
   photos,
+  onOpenPhoto,
   onSaveView,
   className,
 }: WalkViewerProps) {
   const { room, placements, assets } = scene
+  const [session, dispatch] = useReducer(walkSession, INITIAL_WALK_SESSION)
+  const walking = session.phase === "walking"
+
+  // --- Height -------------------------------------------------------------
   const [stature, setStature] = useState(
     () => statureMm ?? storedStature() ?? DEFAULT_STATURE_MM
   )
+  const [heightReadout, setHeightReadout] = useState(false)
   const changeStature = useCallback((inches: number) => {
     setStature((current) => {
       const next = stepStature(current, inches)
@@ -152,10 +176,15 @@ export function WalkViewer({
     () => buildWalkWorld({ room, placements, assets, statureMm: stature }),
     [room, placements, assets, stature]
   )
+  useEffect(() => {
+    if (!heightReadout) return
+    const timer = setTimeout(() => setHeightReadout(false), HEIGHT_READOUT_MS)
+    return () => clearTimeout(timer)
+  }, [heightReadout, stature])
+
   const [spawnX, spawnZ] = world.spawn.position
   const spawnHeading = world.spawn.heading
   const content = useMemo((): SceneContent => {
-    const [x, z] = [spawnX, spawnZ]
     const [dx, dz] = directionOf(spawnHeading)
     // Only seeds the scene; WalkController drives the real camera.
     const eye = walkerSize().eyeHeight
@@ -170,20 +199,23 @@ export function WalkViewer({
         camera: {
           id: "walk",
           name: "Walk",
-          position: [Math.round(x), eye, Math.round(z)],
-          target: [Math.round(x + dx * 1000), eye, Math.round(z + dz * 1000)],
+          position: [Math.round(spawnX), eye, Math.round(spawnZ)],
+          target: [
+            Math.round(spawnX + dx * 1000),
+            eye,
+            Math.round(spawnZ + dz * 1000),
+          ],
           fov: INITIAL_WALK_VFOV,
         },
       },
     }
   }, [spawnX, spawnZ, spawnHeading, room, placements, assets])
 
+  // --- Session: walking, paused, exited -------------------------------------
   const root = useRef<HTMLDivElement>(null)
   const keys = useRef(new Set<string>())
   const look = useRef<LookDelta>({ dx: 0, dy: 0 })
   const dragging = useRef(false)
-  const locked = useRef(false)
-  const [mode, setMode] = useState<WalkMode>("idle")
   const onExitRef = useRef(onExit)
   const onBumpRef = useRef(onBump)
   useEffect(() => {
@@ -191,36 +223,70 @@ export function WalkViewer({
     onBumpRef.current = onBump
   }, [onExit, onBump])
 
-  const exit = useCallback(() => {
+  useEffect(() => {
+    if (session.phase !== "exited") return
     keys.current.clear()
-    setMode("idle")
-    onExitRef.current?.()
+    if (document.pointerLockElement === root.current) document.exitPointerLock()
+    if (onExitRef.current) onExitRef.current()
+    else dispatch({ type: "enter" })
+  }, [session.phase])
+
+  useEffect(() => {
+    if (walking) return
+    keys.current.clear()
+    // Paused by a key the browser didn't treat as "release the mouse"
+    // (Esc delivered to the page, automation): release it ourselves.
+    if (document.pointerLockElement === root.current) document.exitPointerLock()
+  }, [walking])
+
+  /** Ask for the mouse; a refusal (cooldown, iframe) means keys + drag. */
+  const requestLock = useCallback(() => {
+    const el = root.current
+    if (!el || document.pointerLockElement === el) return
+    try {
+      const request: Promise<void> | undefined = el.requestPointerLock()
+      request?.catch(() => dispatch({ type: "lockRefused" }))
+    } catch {
+      dispatch({ type: "lockRefused" })
+    }
   }, [])
 
-  // Pointer lock: mouse movement turns the view; leaving it (Esc) exits.
+  const resume = useCallback(() => {
+    dispatch({ type: "resume" })
+    // Keys need the focus whether or not the mouse is captured.
+    root.current?.focus({ preventScroll: true })
+    requestLock()
+  }, [requestLock])
+
+  const exit = useCallback(() => dispatch({ type: "exit" }), [])
+
   useEffect(() => {
     const el = root.current
     const onChange = () => {
-      const isLocked = el !== null && document.pointerLockElement === el
-      if (isLocked) setMode("locked")
-      else if (locked.current) exit()
-      locked.current = isLocked
+      if (el !== null && document.pointerLockElement === el) {
+        dispatch({ type: "lockAcquired" })
+      } else {
+        dispatch({ type: "lockLost", at: performance.now() })
+      }
     }
+    const onError = () => dispatch({ type: "lockRefused" })
     const onMove = (event: MouseEvent) => {
       if (el === null || document.pointerLockElement !== el) return
       look.current.dx += event.movementX
       look.current.dy += event.movementY
     }
     document.addEventListener("pointerlockchange", onChange)
+    document.addEventListener("pointerlockerror", onError)
     document.addEventListener("mousemove", onMove)
     return () => {
       document.removeEventListener("pointerlockchange", onChange)
+      document.removeEventListener("pointerlockerror", onError)
       document.removeEventListener("mousemove", onMove)
       if (el !== null && document.pointerLockElement === el) {
         document.exitPointerLock()
       }
     }
-  }, [exit])
+  }, [])
 
   const takeLook = useCallback((): LookDelta => {
     const delta = { ...look.current }
@@ -228,7 +294,26 @@ export function WalkViewer({
     return delta
   }, [])
 
-  // --- Photos -------------------------------------------------------------
+  // --- The walking hint -----------------------------------------------------
+  const lastKey = useRef(0)
+  const [hintActive, setHintActive] = useState(true)
+  const pokeHint = useCallback(() => {
+    lastKey.current = Date.now()
+    setHintActive(true)
+  }, [])
+  useEffect(() => {
+    if (!hintActive || !walking) return
+    let timer: ReturnType<typeof setTimeout>
+    const check = () => {
+      const left = HINT_MS - (Date.now() - lastKey.current)
+      if (left <= 0) setHintActive(false)
+      else timer = setTimeout(check, left)
+    }
+    timer = setTimeout(check, HINT_MS)
+    return () => clearTimeout(timer)
+  }, [hintActive, walking])
+
+  // --- Photos ---------------------------------------------------------------
   const readView = useRef<(() => WalkViewSnapshot) | null>(null)
   const registerView = useCallback((read: () => WalkViewSnapshot) => {
     readView.current = read
@@ -291,6 +376,8 @@ export function WalkViewer({
   const takePhoto = useCallback(() => {
     const read = readView.current
     if (!onPhoto || !read) return
+    // The camera is read straight from the walk (the scrim isn't in it: the
+    // photo is rendered server-side from this viewpoint).
     const view = read()
     setFlashing(true)
     setNote({ text: "Photo taken — rendering…", tone: "info" })
@@ -314,17 +401,12 @@ export function WalkViewer({
     onBumpRef.current?.(b)
   }, [])
 
+  // --- Input ----------------------------------------------------------------
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    const el = root.current
-    if (!el || document.pointerLockElement === el) return
-    // Some browsers return a promise, some nothing; a refusal (iframes,
-    // automation) leaves drag-to-look.
-    try {
-      const request: Promise<void> | undefined = el.requestPointerLock()
-      request?.catch(() => undefined)
-    } catch {
-      // drag-to-look instead
-    }
+    if (!walking || session.control === "lock") return
+    // Walking without the mouse captured: try again (the click is a user
+    // gesture), and drag to look meanwhile.
+    requestLock()
     dragging.current = true
     try {
       event.currentTarget.setPointerCapture(event.pointerId)
@@ -334,8 +416,9 @@ export function WalkViewer({
     }
   }
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (!dragging.current || document.pointerLockElement === root.current)
+    if (!dragging.current || document.pointerLockElement === root.current) {
       return
+    }
     look.current.dx += event.movementX
     look.current.dy += event.movementY
   }
@@ -346,12 +429,30 @@ export function WalkViewer({
     }
   }
 
+  const height = (inches: number) => {
+    changeStature(inches)
+    if (walking) setHeightReadout(true)
+  }
+
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (walking) pokeHint()
     if (event.code === "Escape") {
-      event.currentTarget.blur()
-      exit()
+      event.preventDefault()
+      dispatch({ type: "escape", at: performance.now() })
       return
     }
+    if (event.code === "Minus" || event.code === "NumpadSubtract") {
+      event.preventDefault()
+      height(-1)
+      return
+    }
+    if (event.code === "Equal" || event.code === "NumpadAdd") {
+      event.preventDefault()
+      height(1)
+      return
+    }
+    // Paused: the card's buttons have the keyboard (Enter presses them).
+    if (!walking) return
     if (event.code === "Enter" || event.code === "NumpadEnter") {
       event.preventDefault()
       if (event.repeat) return
@@ -359,47 +460,18 @@ export function WalkViewer({
       else takePhoto()
       return
     }
-    if (event.code === "Minus" || event.code === "NumpadSubtract") {
-      event.preventDefault()
-      changeStature(-1)
-      return
-    }
-    if (event.code === "Equal" || event.code === "NumpadAdd") {
-      event.preventDefault()
-      changeStature(1)
-      return
-    }
     if (!isWalkKey(event.code)) return
     event.preventDefault()
     keys.current.add(event.code)
-    if (mode === "idle") setMode("keys")
   }
   const onKeyUp = (event: KeyboardEvent<HTMLDivElement>) => {
     keys.current.delete(event.code)
   }
 
-  return (
-    <div
-      ref={root}
-      tabIndex={0}
-      aria-label="First-person walk view"
-      data-walk-viewer={mode}
-      className={cn(
-        "@container relative h-full w-full cursor-crosshair outline-none",
-        className
-      )}
-      onKeyDown={onKeyDown}
-      onKeyUp={onKeyUp}
-      onFocus={() => setMode((m) => (m === "idle" ? "keys" : m))}
-      onBlur={() => {
-        keys.current.clear()
-        setMode((m) => (m === "keys" ? "idle" : m))
-      }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
-    >
+  // The 3D view only re-renders when the room or walk does (not on HUD
+  // notes, flashes or hint fades).
+  const canvas = useMemo(
+    () => (
       <Canvas
         {...passCanvasProps("clay")}
         dpr={[1, 1.5]}
@@ -411,25 +483,72 @@ export function WalkViewer({
           world={world}
           keys={keys}
           takeLook={takeLook}
-          active={mode !== "idle"}
+          active={walking}
           onBump={handleBump}
           registerView={registerView}
         />
       </Canvas>
-      <WalkHud
-        mode={mode}
-        player={world.player}
-        onTaller={() => changeStature(1)}
-        onShorter={() => changeStature(-1)}
-        canGrow={statureInches(stature) < STATURE_RANGE_IN.max}
-        canShrink={statureInches(stature) > STATURE_RANGE_IN.min}
-      />
+    ),
+    [content, world, takeLook, walking, handleBump, registerView]
+  )
+
+  return (
+    <div
+      ref={root}
+      tabIndex={0}
+      aria-label="First-person walk view"
+      data-walk-viewer={session.phase}
+      data-walk-control={session.control}
+      className={cn(
+        "@container relative h-full w-full outline-none",
+        walking ? "cursor-crosshair" : "cursor-default",
+        className
+      )}
+      onKeyDown={onKeyDown}
+      onKeyUp={onKeyUp}
+      onBlur={(event) => {
+        // Focus moving into the pause card stays "in" the walk.
+        if (event.currentTarget.contains(event.relatedTarget)) return
+        keys.current.clear()
+      }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+    >
+      {canvas}
+      {walking ? (
+        <WalkingHud
+          hintActive={hintActive}
+          heightReadout={heightReadout ? world.player : null}
+          dragToLook={session.control === "keys"}
+        />
+      ) : (
+        <div
+          data-walk-scrim
+          // A click anywhere off the card resumes (and captures the mouse).
+          onClick={resume}
+          className="absolute inset-0 grid place-items-center bg-paper/35 backdrop-blur-[3px] transition-opacity"
+        >
+          <WalkPauseCard
+            started={session.started}
+            player={world.player}
+            canGrow={statureInches(stature) < STATURE_RANGE_IN.max}
+            canShrink={statureInches(stature) > STATURE_RANGE_IN.min}
+            onTaller={() => height(1)}
+            onShorter={() => height(-1)}
+            onResume={resume}
+            onExit={exit}
+            {...(onPhoto ? { onPhoto: takePhoto } : {})}
+            {...(onSaveView ? { onSaveView: saveView } : {})}
+          />
+        </div>
+      )}
       <WalkPhotoHud
         flashing={flashing}
         note={shownNote}
         ready={ready}
-        {...(onPhoto ? { onShutter: takePhoto } : {})}
-        {...(onSaveView ? { onSaveView: saveView } : {})}
+        {...(onOpenPhoto ? { onOpen: (p) => onOpenPhoto(p.id) } : {})}
       />
     </div>
   )
