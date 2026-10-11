@@ -21,7 +21,10 @@
     "E2E_CONVEX_PORT",
     "E2E_CONVEX_SITE_PORT",
     "E2E_RESET",
-    "E2E_PHOTOREAL_LIVE"
+    "E2E_PHOTOREAL_LIVE",
+    "PORT",
+    "RENDER_BASE_URL",
+    "ROOMER_RENDER_GL"
   ],
   "tasks": {
     "build": {
