@@ -11,8 +11,10 @@ import { buildContext, type LintThresholds } from "./context"
 import { lintItemCollisions, lintObstacleCollisions } from "./rules/collisions"
 import { lintDoorSwings, lintDoorways } from "./rules/doors"
 import { lintMounting, lintOutsideRoom } from "./rules/room"
+import { lintRoutes } from "./rules/routes"
 import { lintSupport } from "./rules/support"
 import { lintRadiators, lintWindows } from "./rules/zones"
+import { analyseWalkways } from "./walkway"
 
 // The layout linter (spec §7, architecture §3.5): a pure function from a
 // room, its placements and their assets to a list of plain-English issues
@@ -69,10 +71,10 @@ export function lint(input: LintInput): LintReport {
     ...lintDoorSwings(ctx),
     ...lintDoorways(ctx),
     ...lintMounting(ctx),
-    ...lintRadiators(ctx),
-    ...lintWindows(ctx),
-    ...lintSupport(ctx),
   ]
+  const walkway = ctx.doors.length > 0 ? analyseWalkways(ctx) : undefined
+  if (walkway) issues.push(...lintRoutes(ctx, walkway))
+  issues.push(...lintRadiators(ctx), ...lintWindows(ctx), ...lintSupport(ctx))
   issues.sort(compareIssues)
 
   const counts = { error: 0, warning: 0, info: 0 }
