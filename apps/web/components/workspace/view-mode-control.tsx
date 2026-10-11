@@ -1,6 +1,11 @@
 "use client"
 
-import { BoxIcon, CameraIcon, PencilRulerIcon } from "lucide-react"
+import {
+  BoxIcon,
+  CameraIcon,
+  FootprintsIcon,
+  PencilRulerIcon,
+} from "lucide-react"
 
 import { Kbd } from "@roomer/ui/components/kbd"
 import {
@@ -19,13 +24,16 @@ export const VIEW_MODES = [
   { value: "plan", label: "Plan", hotkey: "P", Icon: PencilRulerIcon },
   { value: "3d", label: "3D", hotkey: "3", Icon: BoxIcon },
   { value: "camera", label: "Camera", hotkey: "C", Icon: CameraIcon },
+  // W moves the walker, so first-person is F.
+  { value: "walk", label: "Walk", hotkey: "F", Icon: FootprintsIcon },
 ] as const
 
 export type ViewMode = (typeof VIEW_MODES)[number]["value"]
 
 /**
- * Plan / 3D / Camera — the stage's floating mode switch. Single-key
- * shortcuts (P, 3, C) work anywhere outside a text field.
+ * Plan / 3D / Camera / Walk — the stage's floating mode switch. Single-key
+ * shortcuts (P, 3, C, F) work anywhere outside a text field; pass
+ * `hotkeys={false}` while something else owns the keyboard (walking).
  */
 export function ViewModeControl({
   value,
@@ -41,6 +49,7 @@ export function ViewModeControl({
   useHotkey("p", () => onValueChange("plan"), hotkeys)
   useHotkey("3", () => onValueChange("3d"), hotkeys)
   useHotkey("c", () => onValueChange("camera"), hotkeys)
+  useHotkey("f", () => onValueChange("walk"), hotkeys)
 
   return (
     <SegmentedControl<ViewMode>
