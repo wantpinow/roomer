@@ -439,7 +439,7 @@ describe("resolvePosition: centerOn", () => {
     expectPlacementError(
       () => resolve({ mode: "centerOn", feature: "L9" }, PENDANT_LAMP),
       "UNKNOWN_FEATURE",
-      "Feature L9 doesn't exist. This room's features are: D1, D2, WIN1, OB1, RAD1, L1, L2, S1, S2, S3, S4."
+      "Feature L9 doesn't exist. This room's features are: D1, D2, WIN1, OB1, RAD1, BM1, L1, L2, S1, S2, S3, S4."
     )
   })
 

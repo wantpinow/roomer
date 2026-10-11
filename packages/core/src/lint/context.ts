@@ -130,6 +130,7 @@ export const SILL_THICKNESS_MM = 30
 export const SWING_SEGMENTS = 24
 
 const FEATURE_WORDS: Record<Feature["type"], string> = {
+  beam: "beam",
   door: "door",
   window: "window",
   opening: "opening",

@@ -1,11 +1,12 @@
 import { assetLocalBounds, type Aabb3 } from "../assets/bounds"
-import { normalizeBearing, type Point } from "../geometry/angles"
+import { bearingOf, normalizeBearing, type Point } from "../geometry/angles"
 import { formatDegrees, formatMm } from "../geometry/format"
 import { placementTransform } from "../geometry/transform"
 import { dot } from "../geometry/vec"
 import { cornerAngles, wallPoint, type Wall } from "../geometry/walls"
 import {
   DEFAULT_FACING,
+  isBeamFeature,
   isCeilingFeature,
   isWallFeature,
   type AgainstPosition,
@@ -314,6 +315,22 @@ function resolveCenterOn(
       throw new PlacementError(
         "WALL_FEATURE_TARGET",
         `${id} is a ${feature.type} on wall ${feature.wall}, so there's nothing to centre on. Use mode "against" or "onWall" with wall ${feature.wall} at ${formatMm(feature.offset + feature.width / 2)} (its middle) instead.`
+      )
+    }
+    if (isBeamFeature(feature)) {
+      // Centre on the beam's midpoint, facing across it.
+      const mid: [number, number] = [
+        (feature.start[0] + feature.end[0]) / 2,
+        (feature.start[1] + feature.end[1]) / 2,
+      ]
+      const across = bearingOf([
+        -(feature.end[1] - feature.start[1]),
+        feature.end[0] - feature.start[0],
+      ])
+      return pose(
+        [mid[0] + offset[0], mid[1] + offset[1]],
+        position.facing ?? across,
+        elevation()
       )
     }
     const featureFacing = isCeilingFeature(feature)

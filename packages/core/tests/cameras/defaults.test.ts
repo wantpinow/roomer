@@ -59,12 +59,12 @@ describe("defaultCameras", () => {
     // D1 is centred 1,550mm along W1 (the top wall); the room runs down.
     expect(cameras[0]).toMatchObject({
       position: [1550, DEFAULT_EYE_HEIGHT, 300],
-      target: [1550, 1200, 7690],
+      target: [1550, DEFAULT_EYE_HEIGHT, 7690],
     })
     // D2 is centred 5,630mm down W2 (the right wall); it looks left at W6.
     expect(cameras[1]).toMatchObject({
       position: [2980 - 300, DEFAULT_EYE_HEIGHT, 5630],
-      target: [0, 1200, 5630],
+      target: [0, DEFAULT_EYE_HEIGHT, 5630],
     })
   })
 
@@ -72,7 +72,7 @@ describe("defaultCameras", () => {
     const [cx, cz] = polygonCentroid(LIVING_ROOM_CORNERS)
     expect(cameras[2]).toMatchObject({
       position: [283, DEFAULT_EYE_HEIGHT, 283],
-      target: [Math.round(cx), 1200, Math.round(cz)],
+      target: [Math.round(cx), DEFAULT_EYE_HEIGHT, Math.round(cz)],
     })
   })
 
@@ -102,7 +102,8 @@ describe("defaultCameras", () => {
     expect(low).toHaveLength(4)
     for (const camera of low) {
       expect(camera.position[1]).toBe(1400)
-      expect(camera.target[1]).toBe(1200)
+      // Level, estate-agent style: the camera looks straight ahead.
+      expect(camera.target[1]).toBe(1400)
     }
   })
 

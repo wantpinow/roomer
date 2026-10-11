@@ -6,6 +6,7 @@ import {
   zMm,
   zNonNegativeMm,
   zPositiveMm,
+  zVec2,
   zWallId,
 } from "./primitives"
 
@@ -157,6 +158,17 @@ export const zSmokeAlarmFeature = z.object({
   ...ceilingMounted,
 })
 
+export const zBeamFeature = z.object({
+  type: z.literal("beam"),
+  ...featureCommon,
+  start: zVec2.describe(
+    "One end of the beam's centreline on the plan (usually on a wall)"
+  ),
+  end: zVec2.describe("The other end of the beam's centreline"),
+  width: zPositiveMm.describe("Beam width on the plan"),
+  drop: zPositiveMm.describe("How far the beam hangs below the ceiling"),
+})
+
 export const zFeature = z.discriminatedUnion("type", [
   zDoorFeature,
   zWindowFeature,
@@ -175,6 +187,7 @@ export const zFeature = z.discriminatedUnion("type", [
   zCeilingLightFeature,
   zSpotlightFeature,
   zSmokeAlarmFeature,
+  zBeamFeature,
 ])
 
 export type DoorFeature = z.infer<typeof zDoorFeature>
@@ -185,6 +198,7 @@ export type WallObstacleFeature = z.infer<typeof zWallObstacleFeature>
 export type SocketFeature = z.infer<typeof zSocketFeature>
 export type HearthFeature = z.infer<typeof zHearthFeature>
 export type PendantFeature = z.infer<typeof zPendantFeature>
+export type BeamFeature = z.infer<typeof zBeamFeature>
 export type Feature = z.infer<typeof zFeature>
 export type FeatureType = Feature["type"]
 
@@ -243,7 +257,12 @@ export const FEATURE_ID_PREFIX = {
   "ceiling-light": "L",
   spotlight: "SP",
   "smoke-alarm": "SA",
+  beam: "BM",
 } as const satisfies Record<FeatureType, string>
+
+export function isBeamFeature(feature: Feature): feature is BeamFeature {
+  return feature.type === "beam"
+}
 
 export function isWallFeature(feature: Feature): feature is WallFeature {
   return "wall" in feature

@@ -101,6 +101,16 @@ export const LIVING_ROOM_FEATURES: Feature[] = [
     assumed: true,
   },
   {
+    type: "beam",
+    id: "BM1",
+    label: "Ceiling beam (old dividing wall)",
+    start: [0, 2650],
+    end: [2980, 2650],
+    width: 250,
+    drop: 230,
+    assumed: true,
+  },
+  {
     type: "pendant",
     id: "L1",
     label: "Pendant (kitchen end)",
@@ -163,10 +173,10 @@ export const LIVING_ROOM_FEATURES: Feature[] = [
 ]
 
 export const LIVING_ROOM_FINISHES: Finishes = {
-  walls: "soft warm white, matt",
-  floor: "light natural oak boards, matt finish",
+  walls: "warm white, matt",
+  floor: "pale natural oak herringbone, matt",
   ceiling: "white",
-  skirting: "warm white, satin",
+  skirting: "white, satin",
   notes:
     "Calm, warm, Scandinavian-leaning interior: natural oak and walnut, boucle and linen, cream, sand and terracotta accents, soft daylight.",
 }

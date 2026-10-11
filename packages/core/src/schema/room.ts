@@ -56,7 +56,15 @@ export const zCamera = z.object({
     .number()
     .min(10)
     .max(120)
-    .describe("Vertical field of view in degrees (≈50 matches a phone camera)"),
+    .describe(
+      "Vertical field of view of the final image, degrees. 70 ≈ an estate-agent wide-angle (16mm full-frame); 50 ≈ a phone's main camera"
+    ),
+  projection: z
+    .enum(["rectilinear", "fisheye"])
+    .optional()
+    .describe(
+      "rectilinear (default) keeps straight lines straight, like estate-agent photos; fisheye bends them to fit more of the room near the camera into frame"
+    ),
 })
 
 export const zRoomSpec = z.object({
@@ -76,5 +84,7 @@ export type RoomSpec = z.infer<typeof zRoomSpec>
 
 export const DEFAULT_SKIRTING: Skirting = { height: 150, depth: 18 }
 export const DEFAULT_CEILING_HEIGHT = 2400
-export const DEFAULT_EYE_HEIGHT = 1600
-export const DEFAULT_CAMERA_FOV = 50
+/** Camera height for room photos (estate agents shoot at ~1.3–1.5m). */
+export const DEFAULT_EYE_HEIGHT = 1500
+/** Vertical fov ≈ a 16mm full-frame wide-angle (~93° horizontal at 3:2). */
+export const DEFAULT_CAMERA_FOV = 70

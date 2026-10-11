@@ -1,6 +1,7 @@
 import { formatMm, formatNumber } from "../geometry/format"
 import type { RoomGeometry } from "../geometry/room-geometry"
 import {
+  isBeamFeature,
   isWallFeature,
   type Feature,
   type Finishes,
@@ -65,9 +66,13 @@ export class ShellOpError extends Error {
 const n = (value: number): string => formatNumber(value)
 
 function where(feature: Feature): string {
-  return isWallFeature(feature)
-    ? `on ${feature.wall} at ${formatMm(feature.offset)}`
-    : `at (${n(feature.x)}, ${n(feature.z)})`
+  if (isWallFeature(feature)) {
+    return `on ${feature.wall} at ${formatMm(feature.offset)}`
+  }
+  if (isBeamFeature(feature)) {
+    return `from (${n(feature.start[0])}, ${n(feature.start[1])}) to (${n(feature.end[0])}, ${n(feature.end[1])})`
+  }
+  return `at (${n(feature.x)}, ${n(feature.z)})`
 }
 
 /** "a door", "an opening". */

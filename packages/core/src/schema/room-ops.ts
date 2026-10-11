@@ -2,6 +2,7 @@ import { z } from "zod"
 
 import {
   zAerialFeature,
+  zBeamFeature,
   zCeilingLightFeature,
   zDataFeature,
   zDoorFeature,
@@ -48,6 +49,7 @@ export const zFeatureInput = z
     zCeilingLightFeature.partial({ id: true }),
     zSpotlightFeature.partial({ id: true }),
     zSmokeAlarmFeature.partial({ id: true }),
+    zBeamFeature.partial({ id: true }),
   ])
   .describe(
     "A room feature. Leave out `id` to get a readable one (D1, WIN1, RAD1, …)"
@@ -72,6 +74,7 @@ export const zFeatureReplacement = z
     zCeilingLightFeature.omit({ id: true }),
     zSpotlightFeature.omit({ id: true }),
     zSmokeAlarmFeature.omit({ id: true }),
+    zBeamFeature.omit({ id: true }),
   ])
   .describe("The feature's complete new definition (every field, minus id)")
 

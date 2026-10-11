@@ -20,8 +20,6 @@ import {
 export const DOOR_CAMERA_INSET_MM = 300
 /** How far from a corner (along its bisector) a corner camera stands. */
 export const CORNER_CAMERA_INSET_MM = 400
-/** Height cameras look at: slightly down, like a photo of a room. */
-export const CAMERA_TARGET_HEIGHT_MM = 1200
 /** Keep cameras at least this far below the ceiling. */
 const CEILING_CLEARANCE_MM = 100
 
@@ -61,7 +59,9 @@ export function defaultCameras(
   const centroid = polygonCentroid(outline)
   const ceilingLimit = room.ceilingHeight - CEILING_CLEARANCE_MM
   const eye = Math.min(DEFAULT_EYE_HEIGHT, ceilingLimit)
-  const lookAt = Math.min(CAMERA_TARGET_HEIGHT_MM, ceilingLimit)
+  // Look level, like an estate-agent photo: a level camera keeps vertical
+  // edges vertical (two-point perspective).
+  const lookAt = eye
   const taken = new Set<string>()
   const cameras: Camera[] = []
 

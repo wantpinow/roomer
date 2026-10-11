@@ -7,9 +7,11 @@ import { localRectToPlan, placementTransform } from "../geometry/transform"
 import { deriveWalls, type Wall } from "../geometry/walls"
 import {
   DEFAULT_FACING,
+  isBeamFeature,
   isCeilingFeature,
   isFloorFeature,
   isWallFeature,
+  type BeamFeature,
   type Feature,
   type WallFeature,
 } from "../schema"
@@ -127,12 +129,44 @@ function overlappingOpeningProblems(
   return problems
 }
 
+function beamProblems(
+  beam: BeamFeature,
+  polygon: readonly Point[],
+  ceilingHeight: number
+): FeatureProblem[] {
+  const name = capitalise(featureName(beam))
+  const problems: FeatureProblem[] = []
+  for (const end of [beam.start, beam.end]) {
+    if (isOutside(polygon, [end[0], end[1]])) {
+      problems.push({
+        featureIds: [beam.id],
+        message: `${name} ends at (${n(end[0])}, ${n(end[1])}), outside the room's outline. Beam ends must lie inside the room or on a wall.`,
+      })
+    }
+  }
+  if (beam.start[0] === beam.end[0] && beam.start[1] === beam.end[1]) {
+    problems.push({
+      featureIds: [beam.id],
+      message: `${name} starts and ends at the same point. Give it a start and end, usually on two opposite walls.`,
+    })
+  }
+  if (beam.drop >= ceilingHeight) {
+    problems.push({
+      featureIds: [beam.id],
+      message: `${name} drops ${formatMm(beam.drop)} below a ${formatMm(ceilingHeight)} ceiling, which would reach the floor.`,
+    })
+  }
+  return problems
+}
+
 function floorAndCeilingProblems(
   feature: Feature,
   polygon: readonly Point[],
   ceilingHeight: number
 ): FeatureProblem[] {
   const name = capitalise(featureName(feature))
+  if (isBeamFeature(feature))
+    return beamProblems(feature, polygon, ceilingHeight)
   if (isCeilingFeature(feature)) {
     return isOutside(polygon, [feature.x, feature.z])
       ? [

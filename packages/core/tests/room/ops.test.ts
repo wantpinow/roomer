@@ -162,7 +162,7 @@ describe("applyShellOps", () => {
       const error = shellOpError(() => applyShellOps(ROOM, [ADD_DOOR, op]))
       expect(error.opIndex).toBe(1)
       expect(error.message).toBe(
-        `ops[1] (${op.op}): There's no feature D9 (existing features: D1, D2, WIN1, OB1, RAD1, L1, L2, S1, S2, S3, S4, D3).`
+        `ops[1] (${op.op}): There's no feature D9 (existing features: D1, D2, WIN1, OB1, RAD1, BM1, L1, L2, S1, S2, S3, S4, D3).`
       )
     }
   })
