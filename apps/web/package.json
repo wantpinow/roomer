@@ -17,6 +17,7 @@
     "render:fixture": "tsx scripts/render-fixture.ts"
   },
   "dependencies": {
+    "@ai-sdk/gateway": "4.0.110",
     "@next/env": "16.3.8",
     "@react-three/drei": "10.7.9",
     "@react-three/fiber": "9.8.1",
@@ -26,6 +27,7 @@
     "@roomer/core": "workspace:*",
     "@roomer/ui": "workspace:*",
     "@t3-oss/env-nextjs": "^0.13.11",
+    "ai": "7.0.137",
     "convex": "1.46.0",
     "convex-helpers": "0.1.128",
     "lucide-react": "^0.577.0",
