@@ -154,7 +154,11 @@ async function modelPictures(
     notes.push(
       "No product photos yet, so no comparison sheet — add them with imageUrls or add_asset_images."
     )
-  } else if (front && iso) {
+  } else if (!front || !iso) {
+    notes.push(
+      "Render the front and iso views too for the comparison sheet with the product photos."
+    )
+  } else {
     const { photos, problems } = await loadPhotos(deps, photoUrls)
     notes.push(...problems)
     if (photos.length > 0) {

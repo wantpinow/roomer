@@ -326,35 +326,41 @@ function bevelledExtrudeGeometry(part: ExtrudePart): BufferGeometry {
   }
   // In (u, v, e), a positive-area outline's sides face out when each quad
   // runs along the outline and then up the axis; a negative one is reversed.
+  // Each outline edge is its own strip: shading is smooth along the strip
+  // (round the bevel) and stays sharp at the outline's corners.
   const outward = signedArea(rings[0]!.points) >= 0
-  const positions: number[] = []
-  const push = (...points: Vector3[]) => {
-    for (const p of points) positions.push(p.x, p.y, p.z)
-  }
-  for (let j = 0; j + 1 < rings.length; j++) {
-    const lower = rings[j]!
-    const upper = rings[j + 1]!
-    const n = lower.points.length
-    for (let i = 0; i < n; i++) {
-      const k = (i + 1) % n
-      const a = place(lower.points[i]!, lower.e)
-      const b = place(lower.points[k]!, lower.e)
-      const c = place(upper.points[k]!, upper.e)
-      const d = place(upper.points[i]!, upper.e)
-      if (outward) push(a, b, c, a, c, d)
-      else push(a, c, b, a, d, c)
+  const n = rings[0]!.points.length
+  const strips: BufferGeometry[] = []
+  for (let i = 0; i < n; i++) {
+    const k = (i + 1) % n
+    const positions: number[] = []
+    for (const ring of rings) {
+      for (const p of [
+        place(ring.points[i]!, ring.e),
+        place(ring.points[k]!, ring.e),
+      ]) {
+        positions.push(p.x, p.y, p.z)
+      }
     }
-  }
-  const sides = new BufferGeometry()
-  sides.setAttribute("position", new Float32BufferAttribute(positions, 3))
-  sides.computeVertexNormals()
-  sides.setAttribute(
-    "uv",
-    new Float32BufferAttribute(
-      new Array<number>((positions.length / 3) * 2).fill(0),
-      2
+    const index: number[] = []
+    for (let j = 0; j + 1 < rings.length; j++) {
+      const [a, b, c, d] = [2 * j, 2 * j + 1, 2 * j + 3, 2 * j + 2]
+      if (outward) index.push(a, b, c, a, c, d)
+      else index.push(a, c, b, a, d, c)
+    }
+    const strip = new BufferGeometry()
+    strip.setAttribute("position", new Float32BufferAttribute(positions, 3))
+    strip.setIndex(index)
+    strip.computeVertexNormals()
+    strip.setAttribute(
+      "uv",
+      new Float32BufferAttribute(
+        new Array<number>((positions.length / 3) * 2).fill(0),
+        2
+      )
     )
-  )
+    strips.push(strip)
+  }
   const axis = place([0, 0], 1)
     .sub(place([0, 0], 0))
     .normalize()
@@ -365,7 +371,7 @@ function bevelledExtrudeGeometry(part: ExtrudePart): BufferGeometry {
       normal
     )
   return merged([
-    sides,
+    ...strips,
     end(rings[0]!, axis.clone().negate()),
     end(rings[rings.length - 1]!, axis),
   ])

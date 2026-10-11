@@ -113,41 +113,56 @@ export function markerArrows(
   })
 }
 
-/** The marker's SVG: a small panel in the bottom-left corner. */
+/** The marker's SVG: a small panel in the bottom-left corner, sized to fit. */
 export function markerSvg(
   arrows: ReturnType<typeof markerArrows>,
   height: number
 ): string {
-  const size = 132
   const length = 40
-  const ox = 16 + size / 2
-  const oy = height - 16 - size / 2
-  const parts = [
-    `<rect x="16" y="${height - 16 - size}" width="${size}" height="${size}" rx="10" fill="#ffffff" fill-opacity="0.82" stroke="${MUTED}" stroke-opacity="0.5"/>`,
-    `<circle cx="${ox}" cy="${oy}" r="3" fill="${INK}"/>`,
-  ]
-  for (const arrow of arrows) {
-    const tx = ox + arrow.dx * length
-    const ty = oy + arrow.dy * length
+  const head = 8
+  const pad = 12
+  const margin = 16
+  // Lay the arrows out around (0, 0) first, labels just beyond the tips
+  // (13px text is about 7.5px a character), then fit a panel round them.
+  const laid = arrows.map((arrow) => {
+    const tx = arrow.dx * length
+    const ty = arrow.dy * length
     const norm = Math.hypot(arrow.dx, arrow.dy) || 1
     const [ux, uy] = [arrow.dx / norm, arrow.dy / norm]
-    const head = 8
-    const width = arrow.bold ? 3 : 2
-    const left = `${tx - ux * head - uy * head * 0.5},${ty - uy * head + ux * head * 0.5}`
-    const right = `${tx - ux * head + uy * head * 0.5},${ty - uy * head - ux * head * 0.5}`
-    parts.push(
-      `<line x1="${ox}" y1="${oy}" x2="${tx - ux * head * 0.6}" y2="${ty - uy * head * 0.6}" stroke="${arrow.colour}" stroke-width="${width}" stroke-linecap="round"/>`,
-      `<polygon points="${tx},${ty} ${left} ${right}" fill="${arrow.colour}"/>`
-    )
-    // Labels beyond the tip, nudged so they stay inside the panel.
-    const lx = Math.min(
-      16 + size - 4,
-      Math.max(20, tx + ux * 12 - (ux < -0.3 ? 4 : 0))
-    )
-    const ly = Math.min(height - 20, Math.max(height - size, ty + uy * 12 + 4))
     const anchor = ux > 0.3 ? "start" : ux < -0.3 ? "end" : "middle"
+    const width = arrow.label.length * 7.5
+    const lx = tx + ux * 10
+    const ly = ty + uy * 12 + (uy > 0.3 ? 8 : 4)
+    const left =
+      anchor === "end" ? lx - width : anchor === "middle" ? lx - width / 2 : lx
+    return { arrow, tx, ty, ux, uy, anchor, lx, ly, left, right: left + width }
+  })
+  const xs = [0, ...laid.flatMap((a) => [a.tx, a.left, a.right])]
+  const ys = [0, ...laid.flatMap((a) => [a.ty, a.ly - 11, a.ly + 3])]
+  const minX = Math.min(...xs) - pad
+  const maxX = Math.max(...xs) + pad
+  const minY = Math.min(...ys) - pad
+  const maxY = Math.max(...ys) + pad
+  const panelW = Math.max(110, maxX - minX)
+  const panelH = Math.max(90, maxY - minY)
+  const x0 = margin
+  const y0 = height - margin - panelH
+  // Origin so the drawing sits centred in the panel.
+  const ox = x0 + (panelW - (maxX - minX)) / 2 - minX
+  const oy = y0 + (panelH - (maxY - minY)) / 2 - minY
+  const parts = [
+    `<rect x="${x0}" y="${y0}" width="${panelW}" height="${panelH}" rx="10" fill="#ffffff" fill-opacity="0.85" stroke="${MUTED}" stroke-opacity="0.5"/>`,
+    `<circle cx="${ox}" cy="${oy}" r="3" fill="${INK}"/>`,
+  ]
+  for (const { arrow, tx, ty, ux, uy, anchor, lx, ly } of laid) {
+    const [px, py] = [ox + tx, oy + ty]
+    const stroke = arrow.bold ? 3 : 2
+    const left = `${px - ux * head - uy * head * 0.5},${py - uy * head + ux * head * 0.5}`
+    const right = `${px - ux * head + uy * head * 0.5},${py - uy * head - ux * head * 0.5}`
     parts.push(
-      `<text x="${lx}" y="${ly}" font-family="${FONT}" font-size="13" font-weight="${arrow.bold ? 700 : 500}" fill="${arrow.colour}" text-anchor="${anchor}">${escapeXml(arrow.label)}</text>`
+      `<line x1="${ox}" y1="${oy}" x2="${px - ux * head * 0.6}" y2="${py - uy * head * 0.6}" stroke="${arrow.colour}" stroke-width="${stroke}" stroke-linecap="round"/>`,
+      `<polygon points="${px},${py} ${left} ${right}" fill="${arrow.colour}"/>`,
+      `<text x="${ox + lx}" y="${oy + ly}" font-family="${FONT}" font-size="13" font-weight="${arrow.bold ? 700 : 500}" fill="${arrow.colour}" text-anchor="${anchor}">${escapeXml(arrow.label)}</text>`
     )
   }
   return `<g class="orientation">${parts.join("")}</g>`
