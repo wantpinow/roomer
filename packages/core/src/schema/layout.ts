@@ -158,6 +158,11 @@ export const zNudgeOp = z.object({
   id: zPlacementId,
   dx: zMm.optional().describe("World x shift in mm"),
   dz: zMm.optional().describe("World z shift in mm"),
+  dy: zMm
+    .optional()
+    .describe(
+      "Raise (+) or lower (−) by this many mm; the bottom can't go below the floor"
+    ),
   rotate: zDegrees
     .optional()
     .describe("Turn clockwise on the plan by this many degrees"),
@@ -179,6 +184,11 @@ export const zSetOp = z.object({
     .optional()
     .describe("New label; empty string clears it"),
   mirrored: z.boolean().optional(),
+  elevation: zNonNegativeMm
+    .optional()
+    .describe(
+      "Height of the item's bottom above the floor, mm (0 = on the floor)"
+    ),
 })
 
 export const zRemoveOp = z.object({

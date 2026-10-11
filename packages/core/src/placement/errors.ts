@@ -32,6 +32,7 @@ export type OpErrorCode =
   | "UNKNOWN_ASSET"
   | "DUPLICATE_ID"
   | "NOTHING_TO_SET"
+  | "BELOW_FLOOR"
 
 /** A layout op that couldn't be applied; `index` points into the ops list. */
 export class OpError extends Error {

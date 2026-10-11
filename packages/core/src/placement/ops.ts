@@ -104,7 +104,7 @@ export function describePosition(position: PlacementPosition): string {
   }
 }
 
-function nudgeSummary(id: string, op: NudgeOp): string {
+function nudgeSummary(id: string, op: NudgeOp, dy: number): string {
   const dx = op.dx ?? 0
   const dz = op.dz ?? 0
   const rotate = op.rotate ?? 0
@@ -113,6 +113,8 @@ function nudgeSummary(id: string, op: NudgeOp): string {
     moves.push(`${formatMm(Math.abs(dx))} ${dx > 0 ? "right" : "left"}`)
   if (dz !== 0)
     moves.push(`${formatMm(Math.abs(dz))} ${dz > 0 ? "down" : "up"}`)
+  if (dy !== 0)
+    moves.push(`${formatMm(Math.abs(dy))} ${dy > 0 ? "higher" : "lower"}`)
   const turn = `${formatDegrees(Math.abs(rotate))} ${rotate > 0 ? "clockwise" : "anticlockwise"}`
   if (moves.length > 0 && rotate !== 0) {
     return `Moved ${id} ${moves.join(" and ")} and turned it ${turn}`
@@ -123,6 +125,25 @@ function nudgeSummary(id: string, op: NudgeOp): string {
 }
 
 function setSummary(id: string, op: SetOp): string {
+  const parts = [labelOrMirrorSummary(id, op)].filter(
+    (part): part is string => part !== undefined
+  )
+  if (op.elevation !== undefined) {
+    const height =
+      op.elevation === 0
+        ? `put ${id} on the floor`
+        : `set ${id}'s bottom ${formatMm(op.elevation)} above the floor`
+    parts.push(parts.length === 0 ? capitalise(height) : height)
+  }
+  return parts.join(", and ")
+}
+
+function capitalise(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+function labelOrMirrorSummary(id: string, op: SetOp): string | undefined {
+  if (op.label === undefined && op.mirrored === undefined) return undefined
   const labelPart =
     op.label === undefined
       ? undefined
@@ -199,6 +220,14 @@ export function applyOps(input: ApplyOpsInput): ApplyOpsResult {
           return applyMove(op)
         case "nudge": {
           const existing = findPlacement(op.id)
+          const dy = op.dy ?? 0
+          const elevation = existing.elevation + dy
+          if (elevation < 0) {
+            throw fail(
+              "BELOW_FLOOR",
+              `'${existing.id}' is ${formatMm(existing.elevation)} off the floor, so it can be lowered by at most ${formatMm(existing.elevation)} (dy: -${existing.elevation}), not ${formatMm(-dy)}.`
+            )
+          }
           replace(
             makePlacement(
               {
@@ -206,26 +235,31 @@ export function applyOps(input: ApplyOpsInput): ApplyOpsResult {
                 x: existing.x + (op.dx ?? 0),
                 z: existing.z + (op.dz ?? 0),
                 facing: roundFacing(existing.facing + (op.rotate ?? 0)),
+                elevation,
               },
               existing.label,
               existing.mirrored
             )
           )
-          return record(existing.id, nudgeSummary(existing.id, op))
+          return record(existing.id, nudgeSummary(existing.id, op, dy))
         }
         case "swap":
           return applySwap(op)
         case "set": {
           const existing = findPlacement(op.id)
-          if (op.label === undefined && op.mirrored === undefined) {
+          if (
+            op.label === undefined &&
+            op.mirrored === undefined &&
+            op.elevation === undefined
+          ) {
             throw fail(
               "NOTHING_TO_SET",
-              `nothing to change on '${op.id}'. Give a label (empty string clears it) and/or mirrored.`
+              `nothing to change on '${op.id}'. Give a label (empty string clears it), mirrored and/or elevation.`
             )
           }
           replace(
             makePlacement(
-              existing,
+              { ...existing, elevation: op.elevation ?? existing.elevation },
               op.label === undefined ? existing.label : op.label,
               op.mirrored ?? existing.mirrored
             )

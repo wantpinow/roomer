@@ -450,7 +450,7 @@ describe("applyOps: set", () => {
       index: 0,
       code: "NOTHING_TO_SET",
       message:
-        "ops[0] (set): nothing to change on 'sofa'. Give a label (empty string clears it) and/or mirrored.",
+        "ops[0] (set): nothing to change on 'sofa'. Give a label (empty string clears it), mirrored and/or elevation.",
     })
   })
 })
@@ -545,6 +545,61 @@ describe("describePosition", () => {
     ).toBe("centred on L1 offset by (100, -50)")
     expect(describePosition({ mode: "inCorner", corner: "C1" })).toBe(
       "in corner C1"
+    )
+  })
+})
+
+describe("applyOps: vertical moves", () => {
+  const LAMP_ON_SIDEBOARD: Placement = {
+    id: "lamp",
+    assetId: "a-table",
+    x: 1500,
+    z: 2000,
+    facing: 180,
+    elevation: 750,
+  }
+
+  it("raises and lowers with nudge dy and says so", () => {
+    const up = run([{ op: "nudge", id: "sofa", dy: 120 }], [SOFA_ON_W6])
+    expect(up.placements[0]!.elevation).toBe(120)
+    expect(up.changes[0]!.summary).toBe("Moved sofa 120mm higher")
+    const down = run(
+      [{ op: "nudge", id: "lamp", dy: -50, dx: 10 }],
+      [LAMP_ON_SIDEBOARD]
+    )
+    expect(down.placements[0]).toMatchObject({ elevation: 700, x: 1510 })
+    expect(down.changes[0]!.summary).toBe(
+      "Moved lamp 10mm right and 50mm lower"
+    )
+  })
+
+  it("refuses to push an item below the floor, saying how far it can go", () => {
+    expectOpError(
+      [{ op: "nudge", id: "lamp", dy: -800 }],
+      [LAMP_ON_SIDEBOARD],
+      {
+        index: 0,
+        code: "BELOW_FLOOR",
+        message:
+          "ops[0] (nudge): 'lamp' is 750mm off the floor, so it can be lowered by at most 750mm (dy: -750), not 800mm.",
+      }
+    )
+  })
+
+  it("sets an absolute elevation with set, alone or with a label", () => {
+    const floor = run(
+      [{ op: "set", id: "lamp", elevation: 0 }],
+      [LAMP_ON_SIDEBOARD]
+    )
+    expect(floor.placements[0]!.elevation).toBe(0)
+    expect(floor.changes[0]!.summary).toBe("Put lamp on the floor")
+    const both = run(
+      [{ op: "set", id: "sofa", label: "Sofa", elevation: 300 }],
+      [SOFA_ON_W6]
+    )
+    expect(both.placements[0]).toMatchObject({ elevation: 300, label: "Sofa" })
+    expect(both.changes[0]!.summary).toBe(
+      `Labelled sofa "Sofa", and set sofa's bottom 300mm above the floor`
     )
   })
 })
