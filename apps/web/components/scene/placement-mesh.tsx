@@ -1,6 +1,7 @@
 "use client"
 
 import type { AssetSpec, Placement } from "@roomer/core"
+import { expandParts } from "@roomer/core/assets"
 import { facingToRotationY } from "@roomer/core/geometry"
 import type { ThreeEvent } from "@react-three/fiber"
 import { useEffect, useMemo } from "react"
@@ -43,7 +44,7 @@ export function PlacementMesh({
 } & PlacementPointerHandlers) {
   const parts = useMemo(
     () =>
-      asset.geometry.parts.map((part) => ({
+      expandParts(asset.geometry.parts).map((part) => ({
         part,
         geometry: partGeometry(part),
         pose: partPose(part),

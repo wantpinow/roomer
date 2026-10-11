@@ -223,7 +223,7 @@ describe("create_asset", () => {
       [
         "Error INVALID_INPUT: Invalid input (2 problems):",
         "- spec.geometry.parts[1].size: Invalid input: expected tuple, received undefined",
-        "- spec.geometry.parts[2].shape: Invalid discriminator value. Expected 'box' | 'roundedBox' | 'cylinder' | 'sphere' | 'extrude' | 'lathe'",
+        "- spec.geometry.parts[2].shape: Invalid discriminator value. Expected 'box' | 'roundedBox' | 'cylinder' | 'sphere' | 'capsule' | 'torus' | 'extrude' | 'lathe'",
       ].join("\n")
     )
     expect(deps.api.assets.create).not.toHaveBeenCalled()

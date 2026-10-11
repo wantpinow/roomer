@@ -2,6 +2,7 @@ import { type Part, TEST_ASSETS } from "@roomer/core"
 import {
   type Aabb3,
   assetLocalBounds,
+  expandParts,
   partLocalBounds,
 } from "@roomer/core/assets"
 import type { BufferGeometry } from "three"
@@ -246,6 +247,241 @@ const CASES: { label: string; part: Part; tolerance?: number }[] = [
   },
 ]
 
+const C_PROFILE: [number, number][] = [
+  [300, 0],
+  [400, 0],
+  [400, 700],
+  [300, 700],
+  [300, 0],
+]
+
+const CUSHION_PROFILE: [number, number][] = [
+  [-300, -90],
+  [300, -90],
+  [300, 90],
+  [-300, 90],
+]
+
+/** Part vocabulary v2: every new shape and option, plain and turned. */
+const V2_CASES: { label: string; part: Part; tolerance?: number }[] = [
+  ...(
+    [
+      [0, 0, 0],
+      [0, 37, 0],
+      [12, -40, 25],
+    ] as [number, number, number][]
+  ).flatMap((rotation) => [
+    {
+      label: `stadium slab (vertical edges) turned ${rotation.join(",")}`,
+      part: {
+        ...base,
+        shape: "roundedBox",
+        position: [0, 400, 0],
+        size: [1200, 30, 600],
+        radius: 300,
+        edges: "vertical",
+        rotation,
+      } satisfies Part,
+    },
+    {
+      label: `capsule turned ${rotation.join(",")}`,
+      part: {
+        ...base,
+        shape: "capsule",
+        position: [0, 500, 100],
+        radius: 80,
+        length: 600,
+        rotation,
+      } satisfies Part,
+    },
+    {
+      label: `torus turned ${rotation.join(",")}`,
+      part: {
+        ...base,
+        shape: "torus",
+        position: [0, 700, -50],
+        radius: 360,
+        tube: 45,
+        rotation,
+      } satisfies Part,
+    },
+    {
+      label: `270° torus turned ${rotation.join(",")}`,
+      part: {
+        ...base,
+        shape: "torus",
+        position: [0, 700, -50],
+        radius: 360,
+        tube: 45,
+        arc: 270,
+        rotation,
+      } satisfies Part,
+    },
+    {
+      label: `C-shaped lathe [45, 270] turned ${rotation.join(",")}`,
+      part: {
+        ...base,
+        shape: "lathe",
+        position: [0, 0, 0],
+        profile: C_PROFILE,
+        arc: [45, 270],
+        rotation,
+      } satisfies Part,
+    },
+    {
+      label: `quarter lathe [100, 90] turned ${rotation.join(",")}`,
+      part: {
+        ...base,
+        shape: "lathe",
+        position: [0, 0, 0],
+        profile: VASE_PROFILE,
+        arc: [100, 90],
+        rotation,
+      } satisfies Part,
+    },
+    ...(["x", "y", "z"] as const).map((axis) => ({
+      label: `bevelled extrude (axis ${axis}) turned ${rotation.join(",")}`,
+      part: {
+        ...base,
+        shape: "extrude",
+        position: [0, 300, 0],
+        axis,
+        profile: CUSHION_PROFILE,
+        depth: 500,
+        bevel: 60,
+        rotation,
+      } satisfies Part,
+    })),
+    {
+      label: `bevelled L extrude turned ${rotation.join(",")}`,
+      part: {
+        ...base,
+        shape: "extrude",
+        position: [0, 300, 0],
+        axis: "y",
+        profile: L_PROFILE,
+        depth: 400,
+        bevel: 50,
+        rotation,
+      } satisfies Part,
+    },
+  ]),
+]
+
+describe("partGeometry: part vocabulary v2", () => {
+  it.each(V2_CASES)(
+    "$label matches core's partLocalBounds",
+    ({ part, tolerance }) => {
+      expectBoundsClose(meshBounds(part), partLocalBounds(part), tolerance)
+    }
+  )
+
+  it("makes a capsule length + 2 × radius tall", () => {
+    expectBoundsClose(
+      meshBounds({
+        ...base,
+        shape: "capsule",
+        position: [0, 380, 0],
+        radius: 80,
+        length: 600,
+      }),
+      { min: [-80, 0, -80], max: [80, 760, 80] }
+    )
+  })
+
+  it("lays a torus flat and starts its arc at +z, sweeping towards +x", () => {
+    expectBoundsClose(
+      meshBounds({
+        ...base,
+        shape: "torus",
+        position: [0, 0, 0],
+        radius: 360,
+        tube: 45,
+        arc: 90,
+      }),
+      { min: [0, -45, 0], max: [405, 45, 405] }
+    )
+  })
+
+  it("closes every new solid, with faces winding outward", () => {
+    const solids: Part[] = [
+      {
+        ...base,
+        shape: "roundedBox",
+        position: [0, 0, 0],
+        size: [1200, 30, 600],
+        radius: 300,
+        edges: "vertical",
+      },
+      {
+        ...base,
+        shape: "capsule",
+        position: [0, 0, 0],
+        radius: 80,
+        length: 600,
+      },
+      {
+        ...base,
+        shape: "torus",
+        position: [0, 0, 0],
+        radius: 360,
+        tube: 45,
+        arc: 200,
+      },
+      ...(["x", "y", "z"] as const).flatMap((axis) =>
+        [CUSHION_PROFILE, [...CUSHION_PROFILE].reverse()].map(
+          (profile): Part => ({
+            ...base,
+            shape: "extrude",
+            position: [0, 0, 0],
+            axis,
+            profile,
+            depth: 500,
+            bevel: 60,
+          })
+        )
+      ),
+    ]
+    for (const part of solids) {
+      expect(signedVolume(partGeometry(part)), part.shape).toBeGreaterThan(0)
+    }
+  })
+
+  it("keeps a bevelled cushion's volume just under its box", () => {
+    const volume = signedVolume(
+      partGeometry({
+        ...base,
+        shape: "extrude",
+        position: [0, 0, 0],
+        axis: "z",
+        profile: CUSHION_PROFILE,
+        depth: 500,
+        bevel: 60,
+      })
+    )
+    const box = 0.6 * 0.18 * 0.5
+    expect(volume).toBeLessThan(box)
+    expect(volume).toBeGreaterThan(box * 0.8)
+  })
+
+  it("builds every expanded copy of a repeated part where core puts it", () => {
+    const parts = expandParts([
+      {
+        ...base,
+        shape: "box",
+        position: [-300, 300, 0],
+        size: [20, 600, 20],
+        repeat: { count: 7, step: [100, 0, 0] },
+      },
+    ])
+    expect(parts).toHaveLength(7)
+    for (const part of parts) {
+      expectBoundsClose(meshBounds(part), partLocalBounds(part))
+    }
+    expect(meshBounds(parts[6]!).max[0]).toBeCloseTo(310)
+  })
+})
+
 describe("partGeometry", () => {
   it.each(CASES)(
     "$label matches core's partLocalBounds",
@@ -336,7 +572,7 @@ describe("partGeometry", () => {
 
   it("builds every fixture asset to its listed dims", () => {
     for (const asset of Object.values(TEST_ASSETS)) {
-      const meshes = asset.geometry.parts.map(meshBounds)
+      const meshes = expandParts(asset.geometry.parts).map(meshBounds)
       const min = [0, 1, 2].map((i) =>
         Math.min(...meshes.map((m) => m.min[i]!))
       )
