@@ -179,7 +179,9 @@ export default defineSchema({
     createdAt: v.number(),
   })
     // A layout's feed, in creation order.
-    .index("by_layout", ["layoutId"]),
+    .index("by_layout", ["layoutId"])
+    // A layout's latest change by a given actor ("is the agent active?").
+    .index("by_layout_actor", ["layoutId", "actor"]),
 
   // Rendered images of a layout: clay and id passes, and photoreal renders.
   renders: defineTable({

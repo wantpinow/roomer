@@ -8,9 +8,14 @@
  * @module
  */
 
+import type * as assets from "../assets.js";
 import type * as e2e from "../e2e.js";
+import type * as errors from "../errors.js";
 import type * as functions from "../functions.js";
 import type * as health from "../health.js";
+import type * as layouts from "../layouts.js";
+import type * as rooms from "../rooms.js";
+import type * as validators from "../validators.js";
 
 import type {
   ApiFromModules,
@@ -19,9 +24,14 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  assets: typeof assets;
   e2e: typeof e2e;
+  errors: typeof errors;
   functions: typeof functions;
   health: typeof health;
+  layouts: typeof layouts;
+  rooms: typeof rooms;
+  validators: typeof validators;
 }>;
 
 /**

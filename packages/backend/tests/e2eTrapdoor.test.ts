@@ -49,7 +49,15 @@ describe("doReset", () => {
       await doRecordHealthcheck(ctx, { note: "b" })
     })
     const deleted = await t.run(async (ctx) => doReset(ctx))
-    expect(deleted).toEqual({ healthchecks: 2 })
+    expect(deleted).toEqual({
+      healthchecks: 2,
+      renders: 0,
+      layoutEvents: 0,
+      layoutAssetRefs: 0,
+      layouts: 0,
+      assets: 0,
+      rooms: 0,
+    })
     const remaining = await t.run(async (ctx) =>
       ctx.db.query("healthchecks").collect()
     )
