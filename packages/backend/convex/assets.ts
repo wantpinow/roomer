@@ -515,7 +515,9 @@ export async function downloadImage(
     const response = await fetchImpl(parsed.href, {
       headers: {
         "User-Agent": DESKTOP_USER_AGENT,
-        Accept: "image/avif,image/webp,image/png,image/jpeg,image/*;q=0.8",
+        // Formats the image models accept; listing AVIF made CDNs with
+        // automatic formats (Cloudinary f_auto) send photos they reject.
+        Accept: "image/webp,image/png,image/jpeg;q=0.9,image/*;q=0.5",
       },
       redirect: "follow",
       signal: controller.signal,
