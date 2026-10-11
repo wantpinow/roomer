@@ -13,10 +13,10 @@ import {
 
 /**
  * Editing a layout in the plan, as the user: drag an item with the pointer
- * (snapped to the 10mm grid, linted live while it moves), nudge and turn it
- * from the keyboard, and lose gracefully when the agent edits the same
- * layout mid-drag. Every edit is checked against server truth, not just the
- * screen.
+ * (snapped to the 10mm grid, linted live while it moves), nudge, turn and
+ * remove it from the keyboard (with Undo), and lose gracefully when the
+ * agent edits the same layout mid-drag. Every edit is checked against
+ * server truth, not just the screen.
  */
 
 async function layoutOf(seed: SeedResult) {
@@ -256,4 +256,43 @@ test("a drop the page thinks is current is still refused by the server's revisio
   const box = await planHit(page, "coffee-table").boundingBox()
   expect(agentSpot.y).toBeGreaterThan(box!.y)
   expect(agentSpot.y).toBeLessThan(box!.y + box!.height)
+})
+
+test("Delete removes the selected item and Undo puts it back exactly", async ({
+  page,
+  livingRoom,
+}) => {
+  const table = await placementOf(livingRoom, "coffee-table")
+  const { revision } = await layoutOf(livingRoom)
+  await openWorkspace(page, livingRoom)
+
+  const at = await planToScreen(page, [table.x, table.z])
+  await page.mouse.click(at.x, at.y)
+  await expect(planHit(page, "coffee-table")).toHaveAttribute(
+    "data-selected",
+    "true"
+  )
+  await page.keyboard.press("Delete")
+  await expect(planHit(page, "coffee-table")).toHaveCount(0)
+  await expect
+    .poll(async () => (await layoutOf(livingRoom)).revision)
+    .toBe(revision + 1)
+  expect((await latestEvent(livingRoom))?.changes.map((c) => c.op)).toEqual([
+    "remove",
+  ])
+
+  const removed = toast(page, "Removed Generic coffee table")
+  await expect(removed).toBeVisible()
+  await removed.getByRole("button", { name: "Undo" }).click()
+  await expect(planHit(page, "coffee-table")).toHaveCount(1)
+  await expect
+    .poll(async () => (await layoutOf(livingRoom)).revision)
+    .toBe(revision + 2)
+  expect(await placementOf(livingRoom, "coffee-table")).toMatchObject({
+    x: table.x,
+    z: table.z,
+    facing: table.facing,
+    elevation: table.elevation,
+    assetId: table.assetId,
+  })
 })

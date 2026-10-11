@@ -11,15 +11,17 @@ import {
   planView,
   stageCanvas,
   stageRevision,
+  toast,
   viewMode,
 } from "../fixtures/workspace"
 
 /**
  * The room workspace as the user watches the agent work: the plan draws
- * every placement, layouts switch from the rail, lint issues explain
- * themselves and point at their items, the activity feed and the agent pill
- * follow edits as they land, the items list totals the price, and the 3D
- * and Camera views start.
+ * every placement, layouts switch (and start) from the rail, lint issues
+ * explain themselves and point at their items, the activity feed and the
+ * agent pill follow edits as they land, the items list totals the price,
+ * the 3D and Camera views start, and a render requested from the Renders
+ * tab lands in its gallery.
  *
  * State is arranged through the backend (the trapdoor seed, then the public
  * mutations the MCP server uses); only the seam under test goes through the
@@ -97,6 +99,33 @@ test("the rail switches between layouts", async ({ page, livingRoom }) => {
   await starter.getByRole("button", { name: "Starter", exact: true }).click()
   await expect(page).toHaveURL(new RegExp(`[?&]layout=${livingRoom.layoutId}`))
   await expect(planHits(page)).toHaveCount(3)
+})
+
+test("a new layout from the rail starts empty and opens", async ({
+  page,
+  livingRoom,
+}) => {
+  await openWorkspace(page, livingRoom)
+  await page.getByRole("button", { name: "New layout" }).click()
+
+  await expect(page).not.toHaveURL(
+    new RegExp(`[?&]layout=${livingRoom.layoutId}`)
+  )
+  const layouts = await convex.query(api.layouts.listByRoom, {
+    roomId: livingRoom.roomId,
+  })
+  const created = layouts.find((l) => l.name === "Untitled layout")
+  expect(created).toMatchObject({ status: "draft", placementCount: 0 })
+  await expect(page).toHaveURL(new RegExp(`[?&]layout=${created!._id}`))
+  await expect(layoutCard(page, created!._id)).toHaveAttribute(
+    "data-selected",
+    "true"
+  )
+  await expect(planHits(page)).toHaveCount(0)
+  await inspectorTab(page, "Items").click()
+  await expect(page.getByText("Nothing placed yet")).toBeVisible()
+  // The user made it, so the agent pill stays idle.
+  await expect(agentStatus(page)).toHaveText("Agent idle")
 })
 
 test("an overlap shows up as E001 and hovering it highlights both items", async ({
@@ -278,4 +307,48 @@ test("the Items tab lists every piece and totals the price live", async ({
     OAK_SIDEBOARD_PRICE
   )
   await expect(inspectorTab(page, "Items")).toContainText("4")
+})
+
+test("the Renders tab starts a render and shows it when it lands", async ({
+  page,
+  livingRoom,
+}) => {
+  await openWorkspace(page, livingRoom)
+  await inspectorTab(page, "Renders").click()
+  await expect(page.getByText("No renders yet")).toBeVisible()
+
+  // The free stub model, so this never costs anything whatever the server's
+  // config (e2e runs with PHOTOREAL_STUB=1 anyway).
+  await page.getByRole("combobox", { name: "Model" }).click()
+  await page.getByRole("option", { name: "stub renderer" }).click()
+  await expect(page.getByRole("combobox", { name: "Camera" })).toHaveText(
+    "From the kitchen door"
+  )
+  await page.getByRole("button", { name: "Render photoreal" }).click()
+  await expect(
+    toast(page, "Rendering from From the kitchen door")
+  ).toBeVisible()
+
+  // The record appears (pending, then done) through the live query.
+  const card = page.locator('[data-slot="render-card"]')
+  await expect(card).toHaveCount(1)
+  await expect(card).toHaveAttribute("data-status", "done", {
+    timeout: 60_000,
+  })
+  const [render] = await convex.query(api.renders.listByLayout, {
+    layoutId: livingRoom.layoutId,
+  })
+  expect(render).toMatchObject({
+    kind: "photoreal",
+    status: "done",
+    model: "stub",
+    quality: "low",
+  })
+  await expect(inspectorTab(page, "Renders")).toContainText("1")
+
+  // Finished renders open in the lightbox.
+  await card.getByRole("button", { name: /^Open .* render$/ }).click()
+  await expect(page.getByRole("dialog")).toBeVisible()
+  await page.keyboard.press("Escape")
+  await expect(page.getByRole("dialog")).toHaveCount(0)
 })
