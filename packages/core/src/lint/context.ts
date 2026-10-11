@@ -1,6 +1,10 @@
 import { assetLocalBounds, type Aabb3 } from "../assets/bounds"
 import type { Point } from "../geometry/angles"
-import { bounds, type Bounds2 } from "../geometry/polygon"
+import {
+  bounds,
+  ensureClockwiseOnPlan,
+  type Bounds2,
+} from "../geometry/polygon"
 import type { RoomGeometry } from "../geometry/room-geometry"
 import {
   localRectToPlan,
@@ -17,8 +21,10 @@ import { worldShapes } from "../placement/world"
 import {
   DEFAULT_FACING,
   LINT_THRESHOLDS,
+  isBeamFeature,
   isWallFeature,
   type AssetSpec,
+  type BeamFeature,
   type DoorFeature,
   type Feature,
   type OpeningFeature,
@@ -105,6 +111,14 @@ export interface DoorZone {
   swingSolids: Solid[]
 }
 
+/** A ceiling beam: its plan footprint between its underside and the ceiling. */
+export interface Beam {
+  feature: BeamFeature
+  /** Height of the beam's underside above the floor. */
+  underside: number
+  solid: Solid
+}
+
 export interface LintContext {
   room: RoomGeometry
   walls: Wall[]
@@ -114,6 +128,7 @@ export interface LintContext {
   items: LintItem[]
   obstacles: Obstacle[]
   doors: DoorZone[]
+  beams: Beam[]
   /**
    * What earlier rules reported, so later ones don't repeat it:
    * `E001:<a>:<b>` (both orders), `E002:<placement>:<feature>`,
@@ -384,6 +399,40 @@ function buildDoors(
   return zones
 }
 
+/** Plan footprint of a beam: its centreline widened by width/2 each side. */
+export function beamFootprint(
+  beam: Pick<BeamFeature, "start" | "end" | "width">
+): Point[] | undefined {
+  const [x0, z0] = beam.start
+  const [x1, z1] = beam.end
+  const length = Math.hypot(x1 - x0, z1 - z0)
+  if (length === 0) return undefined
+  const half = beam.width / 2
+  const nx = (-(z1 - z0) / length) * half
+  const nz = ((x1 - x0) / length) * half
+  return ensureClockwiseOnPlan([
+    [x0 + nx, z0 + nz],
+    [x1 + nx, z1 + nz],
+    [x1 - nx, z1 - nz],
+    [x0 - nx, z0 - nz],
+  ])
+}
+
+function buildBeams(room: RoomGeometry): Beam[] {
+  return room.features.filter(isBeamFeature).flatMap((feature) => {
+    const footprint = beamFootprint(feature)
+    if (!footprint) return []
+    const underside = room.ceilingHeight - feature.drop
+    return [
+      {
+        feature,
+        underside,
+        solid: makeSolid(footprint, underside, room.ceilingHeight),
+      },
+    ]
+  })
+}
+
 export function buildContext(
   room: RoomGeometry,
   placements: readonly Placement[],
@@ -401,6 +450,7 @@ export function buildContext(
     items: buildItems(placements, assets),
     obstacles: buildObstacles(room, walls),
     doors: buildDoors(room, walls, thresholds.doorwayDepthMm),
+    beams: buildBeams(room),
     reported: new Set(),
   }
 }

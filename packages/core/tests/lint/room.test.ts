@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest"
 
-import { codes, issuesOf, lintOps, lintRealistic, onlyIssue } from "./helpers"
+import {
+  boxAsset,
+  codes,
+  issuesOf,
+  lintOps,
+  lintRealistic,
+  onlyIssue,
+} from "./helpers"
 
 // E003 (item outside the room / through a wall) and E006 (item can't
 // physically be there).
@@ -136,5 +143,90 @@ describe("E006 item can't physically sit there", () => {
       },
     ])
     expect(report.issues).toEqual([])
+  })
+})
+
+describe("E006 ceiling beams", () => {
+  // BM1 runs across the room at z 2,650, 250mm wide, its underside 2,220mm
+  // up (230mm below the 2,450mm ceiling).
+  const bookcase = { "a-bookcase": boxAsset("Bookcase", [800, 350, 2300]) }
+
+  it("flags an item that reaches up into a beam", () => {
+    const { report } = lintOps(
+      [
+        {
+          op: "add",
+          id: "bookcase",
+          asset: "a-bookcase",
+          position: { mode: "at", x: 1500, z: 2650 },
+        },
+      ],
+      { extraAssets: bookcase }
+    )
+    expect(onlyIssue(report, "E006")).toMatchObject({
+      placementIds: ["bookcase"],
+      featureIds: ["BM1"],
+      message:
+        "Bookcase reaches 2,300mm, but ceiling beam BM1 is only 2,220mm above the floor here.",
+      hint: "Move Bookcase 300mm towards W5 (nudge bookcase dz: 300), or choose something under 2,220mm tall.",
+    })
+  })
+
+  it("leaves items clear of the beam, or low enough under it, alone", () => {
+    const { report } = lintOps(
+      [
+        {
+          op: "add",
+          id: "bookcase",
+          asset: "a-bookcase",
+          position: { mode: "at", x: 1500, z: 4000 },
+        },
+        {
+          op: "add",
+          id: "sideboard",
+          asset: "a-sideboard",
+          position: { mode: "at", x: 1500, z: 2650 },
+        },
+      ],
+      { extraAssets: bookcase }
+    )
+    expect(codes(report)).not.toContain("E006")
+  })
+
+  it("lets a pendant hang from the beam's underside, but not through it", () => {
+    const hung = lintOps([
+      {
+        op: "add",
+        id: "lamp",
+        asset: "a-pendant",
+        position: { mode: "at", x: 1490, z: 2650, elevation: 1320 },
+      },
+    ])
+    expect(hung.report.issues).toEqual([])
+    const through = lintOps([
+      {
+        op: "add",
+        id: "lamp",
+        asset: "a-pendant",
+        position: { mode: "at", x: 1490, z: 2650 },
+      },
+    ])
+    expect(onlyIssue(through.report, "E006").message).toBe(
+      "Test pendant lamp reaches 2,450mm, but ceiling beam BM1 is only 2,220mm above the floor here."
+    )
+    const dangling = lintOps([
+      {
+        op: "add",
+        id: "lamp",
+        asset: "a-pendant",
+        position: { mode: "at", x: 1490, z: 2650, elevation: 1000 },
+      },
+    ])
+    expect(onlyIssue(dangling.report, "E006")).toMatchObject({
+      featureIds: ["BM1"],
+      message:
+        "Test pendant lamp hangs from ceiling beam BM1, but its top is 320mm below it, so nothing holds it up.",
+      hint: "Set lamp's elevation to 1320 so its top meets the beam (or pick a longer drop).",
+    })
   })
 })

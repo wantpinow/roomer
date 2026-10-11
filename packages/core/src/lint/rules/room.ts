@@ -1,19 +1,26 @@
 import { bearingDelta, type Point } from "../../geometry/angles"
 import { pointSegmentDistance } from "../../geometry/distance"
+import { containsPoint } from "../../geometry/polygon"
 import { formatDegrees, formatMm } from "../../geometry/format"
 import { add, scale } from "../../geometry/vec"
 import { toWallFrame, type Wall } from "../../geometry/walls"
 import type { LintIssue } from "../../schema"
-import { makeSolid, type LintContext, type LintItem } from "../context"
+import {
+  makeSolid,
+  type Beam,
+  type LintContext,
+  type LintItem,
+} from "../context"
 import {
   conflictFor,
   moveText,
   nudgeText,
   outsideDepth,
+  suggestMove,
   type MoveSuggestion,
 } from "../moves"
 import { difference, minWidth, translate } from "../polygons"
-import { joinWords, makeIssue, regionsCentre } from "../shared"
+import { joinWords, makeIssue, regionsCentre, solidOverlap } from "../shared"
 
 // E003 (an item goes through a wall) and E006 (it can't physically be
 // there: above the ceiling, or a wall/ceiling item that isn't attached).
@@ -234,18 +241,74 @@ export function lintMounting(ctx: LintContext): LintIssue[] {
       const issue = wallMountIssue(ctx, item)
       if (issue) issues.push(issue)
     } else if (item.asset.mount === "ceiling") {
-      const below = ceiling - item.y1
+      // Under a beam, the beam's underside is what it hangs from.
+      const beam = beamOver(ctx, centre(item))
+      const fixing = beam ? beam.underside : ceiling
+      const below = fixing - item.y1
       if (below > ctx.thresholds.wallMountToleranceMm) {
+        const from = beam ? `ceiling beam ${beam.feature.id}` : "the ceiling"
         issues.push(
           makeIssue({
             code: "E006",
-            message: `${item.name} hangs from the ceiling, but its top is ${formatMm(Math.round(below))} below it, so nothing holds it up.`,
+            message: `${item.name} hangs from ${from}, but its top is ${formatMm(Math.round(below))} below it, so nothing holds it up.`,
             placementIds: [item.id],
-            hint: `Set ${item.id}'s elevation to ${Math.round(ceiling - height)} so its top meets the ceiling (or pick a longer drop).`,
+            featureIds: beam ? [beam.feature.id] : [],
+            hint: `Set ${item.id}'s elevation to ${Math.round(fixing - height)} so its top meets ${beam ? "the beam" : "the ceiling"} (or pick a longer drop).`,
             at: centre(item),
           })
         )
       }
+    }
+  }
+  issues.push(...beamIssues(ctx))
+  return issues
+}
+
+/** The lowest beam directly above a plan point, if any. */
+function beamOver(ctx: LintContext, point: Point): Beam | undefined {
+  return ctx.beams
+    .filter((beam) => containsPoint(beam.solid.footprint, point))
+    .sort((a, b) => a.underside - b.underside)[0]
+}
+
+/** E006: an item reaching up into a ceiling beam. */
+function beamIssues(ctx: LintContext): LintIssue[] {
+  const tolerance = ctx.thresholds.overlapToleranceMm
+  const issues: LintIssue[] = []
+  for (const beam of ctx.beams) {
+    for (const item of ctx.items) {
+      // Already above the ceiling: that error says enough.
+      if (item.y1 > ctx.room.ceilingHeight + tolerance) continue
+      const parts = item.parts.filter(
+        (part) => solidOverlap(part, beam.solid, tolerance) !== undefined
+      )
+      if (parts.length === 0) continue
+      // A ceiling item hung from the beam's underside is fine.
+      if (
+        item.asset.mount === "ceiling" &&
+        beamOver(ctx, [item.placement.x, item.placement.z]) === beam &&
+        item.y1 <= beam.underside + tolerance
+      ) {
+        continue
+      }
+      const top = Math.round(Math.max(...parts.map((p) => p.y1)))
+      const move = suggestMove(ctx, item, [beam.solid])
+      issues.push(
+        makeIssue({
+          code: "E006",
+          message: `${item.name} reaches ${formatMm(top)}, but ceiling beam ${beam.feature.id} is only ${formatMm(beam.underside)} above the floor here.`,
+          placementIds: [item.id],
+          featureIds: [beam.feature.id],
+          hint: move
+            ? `${moveText(ctx, move).replace(/\.$/, "")}, or choose something under ${formatMm(beam.underside)} tall.`
+            : `Choose something under ${formatMm(beam.underside)} tall.`,
+          at: regionsCentre(
+            parts.flatMap(
+              (part) => solidOverlap(part, beam.solid, tolerance)?.regions ?? []
+            )
+          ),
+        })
+      )
     }
   }
   return issues
