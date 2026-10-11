@@ -12,7 +12,7 @@ import { forMcp } from "../json-schema"
 import { createRoomerMcpHandler, SERVER_INFO } from "../server"
 import { ROOMER_TOOLS } from "../tools"
 
-import { fakeDeps, textOf } from "./fakes"
+import { fakeDeps, LAYOUT_ID, textOf } from "./fakes"
 
 const CONTRACT = [
   "get_overview",
@@ -29,6 +29,14 @@ const CONTRACT = [
   "update_asset",
   "preview_asset",
   "add_asset_images",
+  "list_layouts",
+  "get_layout",
+  "create_layout",
+  "update_layout",
+  "apply_changes",
+  "lint_layout",
+  "render_plan",
+  "render_view",
 ]
 
 describe("the tool registry", () => {
@@ -92,21 +100,19 @@ describe("the MCP handler", () => {
     const { tools } = await client.listTools()
     expect(tools.map((t) => t.name)).toEqual(CONTRACT)
     const result = await client.callTool({
-      name: "get_asset",
-      arguments: { asset: "generic-sofa" },
+      name: "lint_layout",
+      arguments: { layoutId: LAYOUT_ID },
     })
-    expect(textOf(result)).toMatch(/^Asset "Generic sofa"/)
-    expect(deps.api.assets.getByKey).toHaveBeenCalledWith({
-      key: "generic-sofa",
-    })
+    expect(textOf(result)).toMatch(/^Layout "Starter" at revision 3\./)
+    expect(deps.api.layouts.get).toHaveBeenCalledWith({ layoutId: LAYOUT_ID })
     await client.close()
   })
 
   it("returns schema failures as tool errors the agent can read", async () => {
     const { client } = await connect()
-    const result = await client.callTool({ name: "get_room", arguments: {} })
+    const result = await client.callTool({ name: "get_layout", arguments: {} })
     expect(result.isError).toBe(true)
-    expect(textOf(result)).toContain("roomId")
+    expect(textOf(result)).toContain("layoutId")
     await client.close()
   })
 })
