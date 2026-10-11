@@ -9,7 +9,7 @@ import {
 } from "@/lib/walk/stature"
 
 export const WALK_HINT =
-  "Enter photo · Shift+Enter save view · −/= height · Esc pause"
+  "Enter photo · Shift+Enter save view · −/= height · C sit · Z lie · Esc pause"
 
 /**
  * The HUD while walking, kept minimal: a crosshair, a one-line hint (it
@@ -20,6 +20,7 @@ export function WalkingHud({
   hintActive,
   heightReadout,
   dragToLook,
+  postureLabel,
 }: {
   /** Show the hint at full strength (recently pressed a key). */
   hintActive: boolean
@@ -27,6 +28,8 @@ export function WalkingHud({
   heightReadout: WalkerSize | null
   /** Walking without pointer lock: mention drag-to-look and Q/E. */
   dragToLook: boolean
+  /** "Sitting on Test three-seat sofa" while sitting or lying. */
+  postureLabel: string | null
 }) {
   return (
     <div
@@ -50,6 +53,20 @@ export function WalkingHud({
       >
         {WALK_HINT}
         {dragToLook ? " · drag or Q/E to turn" : ""}
+      </p>
+      <p
+        data-walk-posture={postureLabel ?? undefined}
+        className={cn(
+          "absolute bottom-14 left-4 rounded-md border border-hairline bg-surface/90 px-3 py-1.5 text-xs text-ink shadow-sm transition-opacity duration-300",
+          postureLabel ? "opacity-100" : "opacity-0"
+        )}
+      >
+        {postureLabel ? (
+          <>
+            {postureLabel}
+            <span className="text-ink-soft"> · Space to stand</span>
+          </>
+        ) : null}
       </p>
       <p
         role="status"

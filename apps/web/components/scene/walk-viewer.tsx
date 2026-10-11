@@ -17,7 +17,6 @@ import {
 import type { Camera } from "@roomer/core"
 
 import type { SceneContent } from "@/lib/scene/types"
-import { isWalkKey } from "@/lib/walk/keys"
 import { verticalFovFor, WALK_HFOV } from "@/lib/walk/lens"
 import type { WalkBump } from "@/lib/walk/physics"
 import {
@@ -34,6 +33,8 @@ import {
   stepStature,
   walkerSize,
 } from "@/lib/walk/stature"
+import { isWalkKey, WALK_KEYS } from "@/lib/walk/keys"
+import type { PostureTarget } from "@/lib/walk/posture"
 import { INITIAL_WALK_SESSION, walkSession } from "@/lib/walk/session"
 import { buildWalkWorld } from "@/lib/walk/world"
 
@@ -43,6 +44,14 @@ import { type LookDelta, WalkController } from "./walk-controller"
 import { WalkingHud } from "./walk-hud"
 import { WalkPauseCard } from "./walk-pause-card"
 import { type WalkNote, WalkPhotoHud } from "./walk-photo-hud"
+
+/** Keys that stand a sitting or lying walker up (with Space). */
+const MOVE_CODES: ReadonlySet<string> = new Set([
+  ...WALK_KEYS.forward,
+  ...WALK_KEYS.back,
+  ...WALK_KEYS.left,
+  ...WALK_KEYS.right,
+])
 
 /** How long a note ("Photo taken — rendering…") stays up, ms. */
 const NOTE_MS = 4000
@@ -401,6 +410,15 @@ export function WalkViewer({
     onBumpRef.current?.(b)
   }, [])
 
+  // --- Posture ----------------------------------------------------------------
+  const [settled, setSettled] = useState<PostureTarget | null>(null)
+  const onPosture = useCallback(
+    (target: PostureTarget | null) => setSettled(target),
+    []
+  )
+  const postureLabel =
+    session.posture === "standing" ? null : (settled?.label ?? null)
+
   // --- Input ----------------------------------------------------------------
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!walking || session.control === "lock") return
@@ -451,8 +469,27 @@ export function WalkViewer({
       height(1)
       return
     }
+    if (event.code === "KeyC") {
+      event.preventDefault()
+      dispatch({ type: "sit" })
+      return
+    }
+    if (event.code === "KeyZ") {
+      event.preventDefault()
+      dispatch({ type: "lie" })
+      return
+    }
     // Paused: the card's buttons have the keyboard (Enter presses them).
     if (!walking) return
+    // Sitting or lying: Space or a step stands you up (no jump).
+    if (
+      session.posture !== "standing" &&
+      (event.code === "Space" || MOVE_CODES.has(event.code))
+    ) {
+      event.preventDefault()
+      dispatch({ type: "stand" })
+      return
+    }
     if (event.code === "Enter" || event.code === "NumpadEnter") {
       event.preventDefault()
       if (event.repeat) return
@@ -484,12 +521,23 @@ export function WalkViewer({
           keys={keys}
           takeLook={takeLook}
           active={walking}
+          posture={session.posture}
           onBump={handleBump}
+          onPosture={onPosture}
           registerView={registerView}
         />
       </Canvas>
     ),
-    [content, world, takeLook, walking, handleBump, registerView]
+    [
+      content,
+      world,
+      takeLook,
+      walking,
+      session.posture,
+      handleBump,
+      onPosture,
+      registerView,
+    ]
   )
 
   return (
@@ -522,6 +570,7 @@ export function WalkViewer({
           hintActive={hintActive}
           heightReadout={heightReadout ? world.player : null}
           dragToLook={session.control === "keys"}
+          postureLabel={postureLabel}
         />
       ) : (
         <div
@@ -539,6 +588,11 @@ export function WalkViewer({
             onShorter={() => height(-1)}
             onResume={resume}
             onExit={exit}
+            posture={session.posture}
+            postureLabel={postureLabel}
+            onSit={() => dispatch({ type: "sit" })}
+            onLie={() => dispatch({ type: "lie" })}
+            onStand={() => dispatch({ type: "stand" })}
             {...(onPhoto ? { onPhoto: takePhoto } : {})}
             {...(onSaveView ? { onSaveView: saveView } : {})}
           />

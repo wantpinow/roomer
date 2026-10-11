@@ -245,7 +245,12 @@ export function WorkspaceStage({
     <Stage
       toolbar={
         <div className="flex items-center gap-2">
-          <ViewModeControl value={mode} onValueChange={onModeChange} />
+          <ViewModeControl
+            value={mode}
+            onValueChange={onModeChange}
+            // Walking owns the keyboard (C sits down, Z lies down).
+            hotkeys={mode !== "walk"}
+          />
           <Button
             variant="outline"
             size="sm"

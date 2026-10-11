@@ -18,13 +18,28 @@ import {
   type WalkState,
 } from "@/lib/walk/physics"
 import type { WalkViewSnapshot } from "@/lib/walk/photo"
+import { postureTarget, type PostureTarget } from "@/lib/walk/posture"
+import type { Posture } from "@/lib/walk/session"
 import type { WalkWorld } from "@/lib/walk/world"
+
+/** The camera as the walker sees it, in room mm and degrees. */
+export interface WalkPose {
+  posture: Posture
+  /** "Sitting on Test three-seat sofa", or "Standing". */
+  label: string
+  eye: [number, number, number]
+  heading: number
+  pitch: number
+}
 
 /** Dev-only handle for tests and agents driving the walk without a mouse. */
 export interface RoomerWalkDebug {
   world: WalkWorld
   state(): WalkState
-  /** Where the walker is: plan mm, feet/eye mm, heading degrees. */
+  /**
+   * Where the walker stands: plan mm, feet/eye mm, heading degrees. While
+   * sitting or lying this is the standing pose they'll return to.
+   */
   position(): {
     x: number
     z: number
@@ -33,6 +48,8 @@ export interface RoomerWalkDebug {
     heading: number
     grounded: boolean
   }
+  /** The view itself, whatever the posture (the target once it settles). */
+  pose(): WalkPose
   teleport(
     x: number,
     z: number,
@@ -54,6 +71,10 @@ const NO_KEYS: ReadonlySet<string> = new Set()
 const LOOK_SENSITIVITY = 0.0022
 /** Never look quite straight up or down. */
 const MAX_PITCH = 85 * DEG
+/** Lying on your back you can look along yourself, not into yourself. */
+const LYING_MIN_PITCH = 5 * DEG
+/** Sitting down, lying down and standing up take this long, seconds. */
+const EASE_SECONDS = 0.4
 
 /** Mouse movement (pixels) not yet applied to the camera. */
 export interface LookDelta {
@@ -66,17 +87,46 @@ function cameraHeading(direction: Vector3): number {
   return bearingOf([direction.x, direction.z])
 }
 
+interface Look {
+  /** Camera position, metres. */
+  position: Vector3
+  /** Euler "YXZ" yaw and pitch, radians. */
+  yaw: number
+  pitch: number
+}
+
+interface Ease {
+  from: Look
+  to: Look
+  /** Seconds elapsed. */
+  t: number
+}
+
+const smoothstep = (t: number) => t * t * (3 - 2 * t)
+
+/** Shortest-way angle interpolation (radians). */
+function lerpAngle(a: number, b: number, t: number): number {
+  let d = (b - a) % (2 * Math.PI)
+  if (d > Math.PI) d -= 2 * Math.PI
+  if (d < -Math.PI) d += 2 * Math.PI
+  return a + d * t
+}
+
 /**
  * Drives the default camera from the walk simulation: reads the held keys
  * and the camera's heading each frame, advances the physics in fixed steps
- * and puts the camera at eye height (with head-bob).
+ * and puts the camera at eye height (with head-bob). Sitting and lying
+ * freeze the physics and ease the camera to the posture's viewpoint;
+ * standing up eases back to exactly where you stood.
  */
 export function WalkController({
   world,
   keys,
   takeLook,
   active,
+  posture,
   onBump,
+  onPosture,
   registerView,
 }: {
   world: WalkWorld
@@ -89,7 +139,10 @@ export function WalkController({
    * frozen — no keys, no mouse-look, no gravity — and the view held.
    */
   active: boolean
+  posture: Posture
   onBump: (bump: WalkBump) => void
+  /** Reports what the walker sits or lies on (null when standing). */
+  onPosture?: (target: PostureTarget | null) => void
   /** Receives a function that reads the current view (for photos). */
   registerView?: (read: () => WalkViewSnapshot) => void
 }) {
@@ -99,9 +152,11 @@ export function WalkController({
   const pendingHeading = useRef<number | null>(world.spawn.heading)
   const lastBump = useRef<WalkBump | null>(null)
   const onBumpRef = useRef(onBump)
+  const onPostureRef = useRef(onPosture)
   useEffect(() => {
     onBumpRef.current = onBump
-  }, [onBump])
+    onPostureRef.current = onPosture
+  }, [onBump, onPosture])
 
   // A different room restarts the walk at its door; the same room rebuilt
   // (new stature, furniture moved by the agent) keeps the walker where they
@@ -119,19 +174,113 @@ export function WalkController({
     }
   }, [world])
 
+  // --- Posture --------------------------------------------------------------
+  const euler = useRef(new Euler(0, 0, 0, "YXZ"))
+  const direction = useRef(new Vector3())
+  const target = useRef<PostureTarget | null>(null)
+  /** The standing look to return to (yaw/pitch, radians). */
+  const standingLook = useRef<{ yaw: number; pitch: number } | null>(null)
+  const ease = useRef<Ease | null>(null)
+  const postureRef = useRef<Posture>("standing")
+
+  const currentLook = (): Look => {
+    const e = new Euler().setFromQuaternion(camera.quaternion, "YXZ")
+    return { position: camera.position.clone(), yaw: e.y, pitch: e.x }
+  }
+
+  useEffect(() => {
+    const was = postureRef.current
+    postureRef.current = posture
+    const s = state.current
+    if (posture === "standing") {
+      target.current = null
+      onPostureRef.current?.(null)
+      if (was === "standing") return
+      const back = standingLook.current ?? { yaw: currentLook().yaw, pitch: 0 }
+      standingLook.current = null
+      ease.current = {
+        from: currentLook(),
+        to: {
+          position: new Vector3(
+            s.position[0] / 1000,
+            (s.feet + world.player.eyeHeight) / 1000,
+            s.position[1] / 1000
+          ),
+          yaw: back.yaw,
+          pitch: back.pitch,
+        },
+        t: 0,
+      }
+      return
+    }
+    // Sitting or lying, from the standing pose (which the physics keeps).
+    if (was === "standing" || !standingLook.current) {
+      const look = currentLook()
+      standingLook.current = { yaw: look.yaw, pitch: look.pitch }
+    }
+    const heading = bearingOf([
+      -Math.sin(standingLook.current.yaw),
+      -Math.cos(standingLook.current.yaw),
+    ])
+    const next = postureTarget(world, posture, s.position, s.feet, heading)
+    target.current = next
+    onPostureRef.current?.(next)
+    ease.current = {
+      from: currentLook(),
+      to: {
+        position: new Vector3(
+          next.eye[0] / 1000,
+          next.eye[1] / 1000,
+          next.eye[2] / 1000
+        ),
+        yaw: -next.heading * DEG,
+        pitch: next.pitch * DEG,
+      },
+      t: 0,
+    }
+    // `camera` is stable for the canvas's life; world/posture drive this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posture, world])
+
+  const poseNow = (): WalkPose => {
+    const look = new Vector3()
+    camera.getWorldDirection(look)
+    const settled = ease.current?.to ?? null
+    const position = settled?.position ?? camera.position
+    return {
+      posture: postureRef.current,
+      label: target.current?.label ?? "Standing",
+      eye: [
+        Math.round(position.x * 1000),
+        Math.round(position.y * 1000),
+        Math.round(position.z * 1000),
+      ],
+      heading: settled
+        ? bearingOf([-Math.sin(settled.yaw), -Math.cos(settled.yaw)])
+        : cameraHeading(look),
+      pitch: settled
+        ? settled.pitch / DEG
+        : Math.asin(Math.max(-1, Math.min(1, look.y))) / DEG,
+    }
+  }
+
   useEffect(() => {
     if (!registerView) return
     registerView(() => {
       const s = state.current
       const look = new Vector3()
       camera.getWorldDirection(look)
+      const eye: [number, number, number] =
+        postureRef.current === "standing"
+          ? // The eye without head-bob: photos shouldn't wobble.
+            [s.position[0], s.feet + world.player.eyeHeight, s.position[1]]
+          : (target.current?.eye ?? [
+              camera.position.x * 1000,
+              camera.position.y * 1000,
+              camera.position.z * 1000,
+            ])
       return {
-        // The eye without head-bob: photos shouldn't wobble.
-        position: [
-          s.position[0],
-          s.feet + world.player.eyeHeight,
-          s.position[1],
-        ],
+        position: eye,
         direction: [look.x, look.y, look.z],
         fov: "isPerspectiveCamera" in camera ? camera.fov : 70,
         aspect: size.height > 0 ? size.width / size.height : 1,
@@ -152,6 +301,7 @@ export function WalkController({
         heading: state.current.heading,
         grounded: state.current.grounded,
       }),
+      pose: poseNow,
       teleport: (x, z, options = {}) => {
         state.current = teleport(
           world,
@@ -179,10 +329,9 @@ export function WalkController({
     return () => {
       if (window.__roomerWalk === handle) delete window.__roomerWalk
     }
+    // poseNow reads refs and the stable camera.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [world])
-
-  const euler = useRef(new Euler(0, 0, 0, "YXZ"))
-  const direction = useRef(new Vector3())
 
   useFrame((_, delta) => {
     const e = euler.current
@@ -192,19 +341,47 @@ export function WalkController({
       e.set(e.x, -pendingHeading.current * DEG, 0, "YXZ")
       pendingHeading.current = null
     }
-    const held = active ? keys.current : NO_KEYS
+    const standing = postureRef.current === "standing"
+    const easing = ease.current
+
+    if (easing) {
+      // Sitting down / lying down / standing up: glide, don't teleport.
+      takeLook()
+      easing.t = Math.min(EASE_SECONDS, easing.t + delta)
+      const k = smoothstep(easing.t / EASE_SECONDS)
+      camera.position.lerpVectors(easing.from.position, easing.to.position, k)
+      e.set(
+        easing.from.pitch + (easing.to.pitch - easing.from.pitch) * k,
+        lerpAngle(easing.from.yaw, easing.to.yaw, k),
+        0,
+        "YXZ"
+      )
+      camera.quaternion.setFromEuler(e)
+      if (easing.t >= EASE_SECONDS) ease.current = null
+      return
+    }
+
+    const held = active && standing ? keys.current : NO_KEYS
     const turn = turnFromKeys(held, delta)
     if (turn !== 0) e.y -= turn * DEG
     const { dx, dy } = takeLook()
     if (active && (dx !== 0 || dy !== 0)) {
+      const lying = postureRef.current === "lying"
       e.y -= dx * LOOK_SENSITIVITY
       e.x = Math.max(
-        -MAX_PITCH,
+        lying ? LYING_MIN_PITCH : -MAX_PITCH,
         Math.min(MAX_PITCH, e.x - dy * LOOK_SENSITIVITY)
       )
     }
     camera.quaternion.setFromEuler(e)
     camera.getWorldDirection(direction.current)
+
+    if (!standing) {
+      // Frozen in place: no physics, no head-bob.
+      const eye = target.current?.eye
+      if (eye) camera.position.set(eye[0] / 1000, eye[1] / 1000, eye[2] / 1000)
+      return
+    }
 
     if (active) {
       state.current = advanceWalk(

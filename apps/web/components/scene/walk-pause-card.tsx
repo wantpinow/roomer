@@ -3,14 +3,18 @@
 import { Button } from "@roomer/ui/components/button"
 import { Kbd } from "@roomer/ui/components/kbd"
 import {
+  ArmchairIcon,
+  BedIcon,
   BookmarkPlusIcon,
   CameraIcon,
   FootprintsIcon,
   MinusIcon,
+  PersonStandingIcon,
   PlusIcon,
 } from "lucide-react"
 import { useId } from "react"
 
+import type { Posture } from "@/lib/walk/session"
 import {
   formatEyeHeight,
   formatStature,
@@ -33,6 +37,11 @@ export function WalkPauseCard({
   onPhoto,
   onSaveView,
   onExit,
+  posture,
+  postureLabel,
+  onSit,
+  onLie,
+  onStand,
 }: {
   /** Has walked already ("Paused") or not yet ("Click to start walking"). */
   started: boolean
@@ -45,6 +54,12 @@ export function WalkPauseCard({
   onPhoto?: () => void
   onSaveView?: () => void
   onExit: () => void
+  posture: Posture
+  /** "Sitting on Test three-seat sofa" while sitting or lying. */
+  postureLabel: string | null
+  onSit: () => void
+  onLie: () => void
+  onStand: () => void
 }) {
   const titleId = useId()
   return (
@@ -65,9 +80,11 @@ export function WalkPauseCard({
         {started ? "Paused" : "Click to start walking"}
       </h2>
       <p className="mt-1.5 text-ui text-ink-soft">
-        {started
-          ? "Your view is held right where you stopped."
-          : "WASD or the arrows to move, the mouse to look, Space to jump, Shift to run."}
+        {!started
+          ? "WASD or the arrows to move, the mouse to look, Space to jump, Shift to run."
+          : postureLabel
+            ? `${postureLabel}. Your view is held.`
+            : "Your view is held right where you stopped."}
       </p>
 
       <Button
@@ -115,6 +132,32 @@ export function WalkPauseCard({
         >
           <PlusIcon />
         </Button>
+      </div>
+
+      <div
+        role="group"
+        aria-label="Posture"
+        className="mt-3 grid grid-cols-3 gap-1 rounded-md border border-hairline bg-sunken/60 p-1"
+      >
+        {(
+          [
+            ["standing", "Stand", PersonStandingIcon, onStand, undefined],
+            ["sitting", "Sit", ArmchairIcon, onSit, "C"],
+            ["lying", "Lie down", BedIcon, onLie, "Z"],
+          ] as const
+        ).map(([value, label, Icon, onClick, key]) => (
+          <Button
+            key={value}
+            variant={posture === value ? "secondary" : "ghost"}
+            size="sm"
+            aria-pressed={posture === value}
+            title={key ? `${label} (${key})` : label}
+            onClick={posture === value ? undefined : onClick}
+          >
+            <Icon data-icon="inline-start" />
+            {label}
+          </Button>
+        ))}
       </div>
 
       {onPhoto || onSaveView ? (
