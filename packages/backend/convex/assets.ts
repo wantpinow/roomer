@@ -554,14 +554,20 @@ export async function doAddImagesFromUrls(
     )
   }
 
-  const results: UrlResult[] = await Promise.all(
-    urls.map(async (url): Promise<UrlResult> => {
-      const download = await downloadImage(url, fetchImpl)
-      if (!download.ok) return { url, ok: false, error: download.error }
-      const storageId = await ctx.storage.store(download.blob)
-      return { url, ok: true, storageId }
-    })
+  // Download in parallel (the slow part); store one at a time.
+  const downloads = await Promise.all(
+    urls.map((url) => downloadImage(url, fetchImpl))
   )
+  const results: UrlResult[] = []
+  for (const [i, download] of downloads.entries()) {
+    const url = urls[i]!
+    if (!download.ok) {
+      results.push({ url, ok: false, error: download.error })
+    } else {
+      const storageId = await ctx.storage.store(download.blob)
+      results.push({ url, ok: true, storageId })
+    }
+  }
   const added = results.flatMap((result, i) =>
     result.ok
       ? [
