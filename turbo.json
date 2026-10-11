@@ -24,7 +24,8 @@
     "E2E_PHOTOREAL_LIVE",
     "PORT",
     "RENDER_BASE_URL",
-    "ROOMER_RENDER_GL"
+    "ROOMER_RENDER_GL",
+    "ROOMER_MCP_URL"
   ],
   "tasks": {
     "build": {
