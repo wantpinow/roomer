@@ -9,17 +9,26 @@ import {
 } from "../lens"
 
 describe("verticalFovFor", () => {
-  it("keeps the horizontal view at WALK_HFOV on a 16:9 screen", () => {
-    const vfov = verticalFovFor(WALK_HFOV, 16 / 9)
+  it("keeps the horizontal view at WALK_HFOV on a wide (2:1) screen", () => {
+    const vfov = verticalFovFor(WALK_HFOV, 2)
     expect(vfov).toBeGreaterThan(WALK_VFOV_MIN)
     expect(vfov).toBeLessThan(WALK_VFOV_MAX)
-    expect(horizontalFovFor(vfov, 16 / 9)).toBeCloseTo(WALK_HFOV, 6)
+    expect(horizontalFovFor(vfov, 2)).toBeCloseTo(WALK_HFOV, 6)
   })
 
-  it("is much wider than the old fixed 70° on a near-square stage", () => {
-    const vfov = verticalFovFor(WALK_HFOV, 1.05)
-    expect(horizontalFovFor(vfov, 1.05)).toBeGreaterThan(90)
-    expect(horizontalFovFor(70, 1.05)).toBeLessThan(75)
+  it("never looks more than 70° up and down, so the eye line feels right", () => {
+    expect(WALK_VFOV_MAX).toBe(70)
+    // 16:9 would need ≈72.5° vertical for the full 105° across.
+    expect(verticalFovFor(WALK_HFOV, 16 / 9)).toBe(70)
+    // The workspace stage (~1024 × 663) would need ≈80°.
+    expect(verticalFovFor(WALK_HFOV, 1024 / 663)).toBe(70)
+  })
+
+  it("narrows the horizontal view instead on squarer stages", () => {
+    const aspect = 1024 / 663
+    const hfov = horizontalFovFor(verticalFovFor(WALK_HFOV, aspect), aspect)
+    expect(hfov).toBeLessThan(WALK_HFOV)
+    expect(hfov).toBeGreaterThan(90)
   })
 
   it("clamps very tall and very wide viewports", () => {

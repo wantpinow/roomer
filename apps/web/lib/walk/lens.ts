@@ -1,15 +1,17 @@
 // The first-person lens. People take in roughly 100–110° horizontally at a
-// glance (first-person games use 90–110°), so the walk view fixes the
+// glance (first-person games use 90–110°), so the walk view aims for that
 // HORIZONTAL field of view and derives the vertical one from the viewport's
-// shape — a nearly square workspace stage would otherwise feel like tunnel
-// vision. The vertical angle is clamped so very wide or tall viewports don't
-// stretch the picture.
+// shape. The vertical angle is capped at 70°: more than that shows a lot of
+// floor at your feet and ceiling overhead, which reads as standing too high
+// (users said exactly that at ~80°). On squarer viewports the view is
+// therefore a little narrower than the target — width goes sideways, never
+// up and down.
 
 /** Horizontal field of view for walking, degrees. */
 export const WALK_HFOV = 105
 /** Bounds for the derived vertical field of view, degrees. */
 export const WALK_VFOV_MIN = 60
-export const WALK_VFOV_MAX = 95
+export const WALK_VFOV_MAX = 70
 
 /**
  * Vertical field of view (degrees) that shows `hfov` degrees across a
