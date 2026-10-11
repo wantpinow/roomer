@@ -6,7 +6,7 @@ import {
   LIVING_ROOM_FINISHES,
 } from "@roomer/core/fixtures"
 import { toRoomGeometry } from "@roomer/core/geometry"
-import type { Camera } from "@roomer/core/schema"
+import type { BeamFeature, Camera } from "@roomer/core/schema"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { api } from "../convex/_generated/api"
@@ -283,7 +283,8 @@ describe("doSetShell", () => {
       "S4",
     ])
     const room = await getRoom(t, roomId)
-    expect(room.features.map((f) => f.id)).toEqual(["D1", "L1", "S3"])
+    // BM1 spans x 0–2,980 at z 2,650, inside the 3,000 × 4,000 rectangle.
+    expect(room.features.map((f) => f.id)).toEqual(["D1", "BM1", "L1", "S3"])
   })
 
   it("schedules a re-lint of every layout in the room", async () => {
@@ -467,6 +468,85 @@ describe("doApplyShellChanges", () => {
     expect(ids).not.toContain("from-d2")
     expect(ids).toContain("from-d1")
     expect(room.cameras.at(-1)).toEqual(custom)
+  })
+})
+
+describe("ceiling beams", () => {
+  const beam: BeamFeature = {
+    type: "beam",
+    id: "BM2",
+    label: "Kitchen-end beam",
+    start: [0, 1000],
+    end: [2980, 1000],
+    width: 200,
+    drop: 180,
+  }
+
+  it("round-trips a room with a beam through create and get", async () => {
+    const t = createTestConvex()
+    const { roomId } = await t.mutation(api.rooms.create, {
+      name: "Beamed box",
+      ceilingHeight: 2400,
+      measurements: { kind: "rectangle", width: 2980, depth: 4000 },
+      features: [
+        beam,
+        { ...beam, id: undefined, start: [0, 3000], end: [2980, 3000] },
+      ],
+    })
+    const room = await t.query(api.rooms.get, { roomId })
+    expect(room?.features).toEqual([
+      beam,
+      { ...beam, id: "BM3", start: [0, 3000], end: [2980, 3000] },
+    ])
+  })
+
+  it("adds and removes a beam with applyShellChanges", async () => {
+    const t = createTestConvex()
+    const roomId = await createLivingRoom(t)
+    const { id: _id, ...unnamed } = beam
+    void _id
+    const added = await t.run(async (ctx) =>
+      doApplyShellChanges(ctx, {
+        roomId,
+        ops: [{ op: "addFeature", feature: unnamed }],
+      })
+    )
+    expect(added.changes.map((c) => c.summary)).toEqual([
+      "Added beam BM2 from (0, 1,000) to (2,980, 1,000)",
+    ])
+    expect((await getRoom(t, roomId)).features.at(-1)).toEqual({
+      ...beam,
+      id: "BM2",
+    })
+    await t.run(async (ctx) =>
+      doApplyShellChanges(ctx, {
+        roomId,
+        ops: [{ op: "removeFeature", id: "BM2" }],
+      })
+    )
+    const ids = (await getRoom(t, roomId)).features.map((f) => f.id)
+    expect(ids).not.toContain("BM2")
+    expect(ids).toContain("BM1")
+  })
+
+  it("rejects a beam that ends outside the room", async () => {
+    const t = createTestConvex()
+    const roomId = await createLivingRoom(t)
+    await expectAppError(
+      t.run(async (ctx) =>
+        doApplyShellChanges(ctx, {
+          roomId,
+          ops: [
+            {
+              op: "addFeature",
+              feature: { ...beam, start: [2500, 7400], end: [0, 7400] },
+            },
+          ],
+        })
+      ),
+      "INVALID_OP",
+      "Beam BM2 ends at (2,500, 7,400), outside the room's outline."
+    )
   })
 })
 

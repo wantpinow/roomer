@@ -51,6 +51,13 @@ describe("syncDefaultCameras", () => {
     expect(synced).toHaveLength(defaultCameras(taller).length)
   })
 
+  it("treats a default switched to fisheye as edited", () => {
+    const [first, ...rest] = defaultCameras(ROOM)
+    const fisheye: Camera = { ...first!, projection: "fisheye" }
+    const synced = syncDefaultCameras(ROOM, ROOM, [fisheye, ...rest])
+    expect(synced.filter((c) => c.id === fisheye.id)).toEqual([fisheye])
+  })
+
   it("adds the defaults when the stored cameras lack them", () => {
     expect(syncDefaultCameras(ROOM, ROOM, [SOFA_VIEW])).toEqual([
       ...defaultCameras(ROOM),

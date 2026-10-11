@@ -14,6 +14,7 @@ function sameCamera(a: Camera, b: Camera): boolean {
     a.id === b.id &&
     a.name === b.name &&
     a.fov === b.fov &&
+    (a.projection ?? "rectilinear") === (b.projection ?? "rectilinear") &&
     a.position.every((value, i) => value === b.position[i]) &&
     a.target.every((value, i) => value === b.target[i])
   )
