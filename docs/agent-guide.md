@@ -27,15 +27,17 @@ look at the plan, fix, repeat.
    face), features, cameras, finishes. Use `render_plan` to see the room.
 2. **Furniture from a product link:** read the page, extract W × D × H (convert cm → mm), a short
    visual description, and 1–3 clean product photos (white background, front or 3/4). Check
-   `search_assets` first — it may already exist.
-   - `create_asset` with a parts model: build it from boxes, rounded boxes, cylinders,
-     extrusions and lathes in item-local mm (origin = centre of the footprint on the floor,
-     +z = front, y up). The parts' bounding box must equal `dims` (±10mm) and be centred on the
-     origin; floor items must touch the floor. Name parts, use `tone` (light/mid/dark) to
-     separate e.g. cushions from legs.
-   - Compare the returned previews (front/side/top/iso) with the product photos; fix with
-     `update_asset`. Two or three rounds is plenty — a blockout, not a sculpture.
-   - `add_asset_images` with the photo URLs (the first is the primary reference).
+   `search_assets` first — search the product URL, the retailer or the name (it matches keys,
+   tags, retailer, variant and URL too; an exact key or URL comes first).
+   - Build a parts model (see **Building assets** below) and try it with
+     `create_asset { dryRun: true }`: it validates and renders without saving anything — also
+     the cheap way to settle a convention you're unsure of. Then `create_asset` for real, with
+     `imageUrls` (the first is the primary photo, sent to the image model).
+   - Look at the **comparison sheet** it returns (product photo(s) | clay front | clay iso) and
+     the previews; fix proportions with `update_asset` (which also takes `dryRun`). Two or three
+     rounds is plenty — a blockout, not a sculpture.
+   - `delete_asset` removes your own test or duplicate assets (never library ones, and not
+     while a layout places them — it lists those layouts).
 3. **Layouts:** `create_layout` (or fork an existing one with `fromLayoutId` to try a variation).
    `apply_changes` takes a batch of ops, applied in order and atomically:
    - `add` / `move` with a **position helper**:
@@ -54,6 +56,59 @@ look at the plan, fix, repeat.
    idea. Make 2–4 distinct candidates rather than one; the human compares them.
 6. `render_photoreal` for the candidates the human wants to see (default model is precise but
    takes ~30–90s; use `quality: "low"` for quick looks).
+
+## Building assets
+
+- **Frame:** item-local mm; origin = centre of the footprint on the floor; **+z = front**, **+x =
+  the item's right** as you face its front, +y = up. The parts' bounding box must equal `dims`
+  (±10mm) and be centred on the origin; floor items touch y = 0 (a dip of up to 3mm below is
+  only a warning). Positions are whole mm: centre odd sizes on the nearest mm.
+- **Wall items** (`mount: "wall"`): the back face at z = −d/2 goes against the wall, the front
+  (+z) faces the room. **Ceiling items:** y = 0 is the bottom and y = h touches the ceiling.
+- **Rotation** `[rx, ry, rz]` degrees is three.js Euler "XYZ": the part turns about z, then y,
+  then x (the item's fixed axes). Right-hand rule — a positive angle turns counter-clockwise
+  when you look from the axis's positive end: `[0, 90, 0]` turns the part's front (+z) to face
+  +x; `[90, 0, 0]` tips its top (+y) towards the front (a cylinder lying front-to-back);
+  `[0, 0, 90]` tips its top towards −x (a cylinder lying across).
+- **Angles round the vertical** (lathe and torus arcs): 0° = +z (front), increasing towards +x.
+- **Shapes** (every part: `name`, `position` = its centre, `rotation?`, `tone?`):
+  - `box`: `size [w, h, d]`.
+  - `roundedBox`: `size`, `radius`; `edges: "vertical"` rounds only the 4 upright edges — a flat
+    rounded-rectangle slab (radius = d/2 makes a stadium tabletop or a sled leg).
+  - `cylinder`: `radiusTop`, `radiusBottom`, `height` along local y (a 0 radius makes a cone).
+  - `sphere`: `radius`.
+  - `capsule`: `radius`, `length` = the straight middle along local y; total height =
+    length + 2 × radius (bolsters, rolled arms, rails).
+  - `torus`: `radius` (to the tube's middle), `tube`, `arc?` — flat in the x–z plane; the arc
+    starts at +z and sweeps towards +x, ends capped. A rim open at the front: `arc: 270` with
+    `rotation [0, 45, 0]`.
+  - `extrude`: `profile [[u, v], …]` (a closed outline relative to `position`, any winding, first
+    point not repeated) pushed along `axis` by `depth`, centred on `position`. Axis y: u = +x,
+    v = +z (a plan outline); axis x: u = +z, v = +y (a side profile); axis z: u = +x, v = +y (a
+    front profile). `bevel?` rounds the edges round both end faces (soft cushions and arms)
+    without changing the outer size.
+  - `lathe`: `profile [[radius ≥ 0, y], …]` relative to `position` — an open line revolved round
+    local y (start and end at radius 0 to close it; repeat the first point to revolve a closed
+    outline into a ring). `arc? [start, length]` for part of a turn: `[45, 270]` is a C open at
+    the front (a barrel chair's wall); the cut ends are capped.
+  - `repeat` on any part: `{ count, step: [dx, dy, dz] }` makes `count` copies, copy i at
+    position + i × step, named "<name> #i+1" (tambour slats, spindles, rails). At most 400 parts
+    after repeats.
+- `tone` (light/mid/dark) separates materials in the clay; use `dark` for wood or metal that
+  must stand out from light upholstery.
+- **Previews:** front, side (from the item's right), top (front faces down the image) and iso
+  (3/4 from front-right); top and iso carry a marker showing x, front (+z) and y. With photos you
+  also get the comparison sheet; `get_asset { includePhotos: true }` returns the photos.
+- **Clearance** is free floor the item needs, checked by lint (W102): nothing else may stand in
+  it. `clearance` puts strips along the bounding box's sides — seats: front 350–450 (the gap you
+  want to the coffee table), storage: front 500–600, dining chairs: back 350; tables need none
+  (their chairs carry it). For an L-shaped item use `clearanceZones`
+  (`[{ name, rect: [minX, minZ, maxX, maxZ] }]`, item-local, beside the item): they replace
+  `clearance`, e.g. legroom in front of a chaise sofa's seats only.
+- **Elevation** when placing: the item's bottom above the floor. Floor items default to 0,
+  ceiling items to ceiling height − h; wall items need `onWall` with an elevation. Anything
+  standing on furniture (a table lamp on a sideboard) takes `elevation` = the host's height in
+  `at`, `against` or `centerOn`.
 
 ## Design rules of thumb (UK homes)
 
