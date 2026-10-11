@@ -49,10 +49,21 @@ interface WalkCollider {
   y1: number
 }
 
+/** The view itself, whatever the posture (walk-controller.tsx's WalkPose). */
+export interface WalkerPose {
+  posture: "standing" | "sitting" | "lying"
+  label: string
+  /** Eye position [x, y, z], mm. */
+  eye: [number, number, number]
+  heading: number
+  pitch: number
+}
+
 interface WalkDebugHandle {
   world: { colliders: WalkCollider[]; spawn: { position: [number, number] } }
   state(): { bump: WalkBump | null }
   position(): WalkerPosition
+  pose(): WalkerPose
   teleport(
     x: number,
     z: number,

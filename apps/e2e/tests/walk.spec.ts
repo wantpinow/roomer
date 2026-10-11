@@ -330,3 +330,62 @@ test("Shift+Enter saves the view as one of the room's cameras", async ({
   expect(saved.id).toMatch(/^walk-\d+$/)
   expect(saved.name).toMatch(/^Walk view \d\d:\d\d$/)
 })
+
+test("C sits on the sofa facing the TV, Z lies down, Space stands back up", async ({
+  page,
+  livingRoom,
+}) => {
+  const { sofa } = await seededScene(livingRoom)
+  await startWalking(page, livingRoom)
+  await walkOn(page)
+  // Stand in front of the sofa, facing it.
+  const spot = { x: sofa.maxX + WALKER_RADIUS + 50, z: sofa.z }
+  await page.evaluate(
+    ({ x, z }) => window.__roomerWalk!.teleport(x, z, { heading: 270 }),
+    spot
+  )
+  const standing = await page.evaluate(() => window.__roomerWalk!.position())
+
+  // C: sit on its cushions, facing the way the sofa faces (the TV).
+  await page.keyboard.press("c")
+  await expect(viewMode(page, "Walk")).toHaveAttribute("aria-checked", "true")
+  const sofaTops = await page.evaluate(() =>
+    window
+      .__roomerWalk!.world.colliders.filter((c) => c.id === "sofa")
+      .map((c) => c.y1)
+  )
+  await expect
+    .poll(() => page.evaluate(() => window.__roomerWalk!.pose().posture))
+    .toBe("sitting")
+  const sitting = await page.evaluate(() => window.__roomerWalk!.pose())
+  // Eyes a seated six-footer's 805 mm above one of the sofa's seat tops.
+  const seatTop = sitting.eye[1] - Math.round(1830 * 0.44)
+  expect(sofaTops).toContain(seatTop)
+  expect(seatTop).toBeGreaterThanOrEqual(350)
+  expect(seatTop).toBeLessThanOrEqual(650)
+  expectNear(sitting.heading, sofa.facing, 0.5, "facing the TV")
+  expect(sitting.label).toBe(`Sitting on ${sofa.name}`)
+  await expect(page.locator("[data-walk-posture]")).toContainText(
+    `Sitting on ${sofa.name}`
+  )
+
+  // Z: lie down instead.
+  await page.keyboard.press("z")
+  await expect
+    .poll(() => page.evaluate(() => window.__roomerWalk!.pose().posture))
+    .toBe("lying")
+
+  // Space: up again, exactly where and how you stood — no jump.
+  await page.keyboard.press("Space")
+  await expect
+    .poll(() => page.evaluate(() => window.__roomerWalk!.pose().posture))
+    .toBe("standing")
+  await page.waitForTimeout(500)
+  const after = await page.evaluate(() => window.__roomerWalk!.position())
+  expectNear(after.x, standing.x, 1, "x")
+  expectNear(after.z, standing.z, 1, "z")
+  expect(after.feet).toBe(standing.feet)
+  expect(after.grounded).toBe(true)
+  const pose = await page.evaluate(() => window.__roomerWalk!.pose())
+  expectNear(pose.heading, 270, 0.5, "heading restored")
+})
