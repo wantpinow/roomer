@@ -355,9 +355,11 @@ All tools take and return whole mm. Every tool that changes something returns `{
 - Kitchens and fitted furniture, sloped ceilings, walls that lean, multiple rooms or whole houses.
 - Textures on models, collision checks against exact mesh shapes, and uploading 3D model files (the schema allows `glb`, but it isn't built yet).
 
-## 12. Open questions
+## 12. Open questions (answered 2026-10-11)
 
-1. Will the id-pass colours leak into the output (e.g. a magenta sofa)? If so, try sending the id pass only as a layout map, or use FLUX bounding boxes instead (M0).
-2. Should realistic renders be able to start from a **real photo** of the room, using the clay render only as a layout guide? This needs the 3D camera to match the real photo; maybe in a later version.
-3. Paint colour and flooring are set per room, and layouts can override them. Is that the right level, or should "finish options" be their own thing to compare?
-4. Do wall-mounted items (TV, shelves, art) need their own placement shortcut, `{ onWall, at, elevation }`, in v1, or can they wait?
+1. Will the id-pass colours leak into the output (e.g. a magenta sofa)? → Probably fine; we test it end-to-end ourselves with cheap low-quality renders and iterate on the prompt.
+2. Should realistic renders be able to start from a **real photo** of the room? → Later, not v1.
+3. Where do paint colour and flooring live? → Room-level solid wall colour and solid floor for v1 (layouts may override). Per-wall finishes come later, so the schema must leave room for them.
+4. Do wall-mounted items need their own placement shortcut in v1? → Yes: TVs, shelves and art get first-class wall-relative placement (`onWall`).
+
+See [2026-10-11-v1-architecture.md](2026-10-11-v1-architecture.md) for how v1 is built.
