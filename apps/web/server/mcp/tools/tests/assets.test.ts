@@ -228,7 +228,7 @@ describe("update_asset", () => {
       geometry: COFFEE_TABLE.geometry,
     })
     expect(imagesOf(result)).toBe(4)
-    expect(textOf(result)).toContain("Re-linting 1 layout that use it.")
+    expect(textOf(result)).toContain("Re-linting the layout that uses it.")
   })
 
   it("skips previews for a non-visual change and needs at least one field", async () => {

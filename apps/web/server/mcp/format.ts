@@ -68,20 +68,25 @@ const COMPASS = [
   "up-left",
 ] as const
 
+type CompassWord = (typeof COMPASS)[number]
+
+function compass(bearing: number): CompassWord {
+  return COMPASS[Math.round(normalizeBearing(bearing) / 45) % 8] ?? "up"
+}
+
 /** Nearest of eight plan directions: 0 → "up", 90 → "right", … */
 export function bearingWord(bearing: number): string {
-  const b = normalizeBearing(bearing)
-  return COMPASS[Math.round(b / 45) % 8]!
+  return compass(bearing)
 }
 
 /** "90° (right)"; off-axis bearings get "≈": "93° (≈right)". */
 export function bearing(value: number): string {
   const b = normalizeBearing(value)
   const exact = Math.abs(b - Math.round(b / 45) * 45) < 0.5
-  return `${formatDegrees(b)} (${exact ? "" : "≈"}${bearingWord(b)})`
+  return `${formatDegrees(b)} (${exact ? "" : "≈"}${compass(b)})`
 }
 
-const SIDE_OF_PLAN: Record<(typeof COMPASS)[number], string> = {
+const SIDE_OF_PLAN: Record<CompassWord, string> = {
   up: "bottom",
   "up-right": "bottom-left",
   right: "left",
@@ -94,19 +99,18 @@ const SIDE_OF_PLAN: Record<(typeof COMPASS)[number], string> = {
 
 /** Where a wall sits on the plan, from the way it faces: 180 → "top wall". */
 export function wallSide(inwardBearing: number): string {
-  const word = COMPASS[Math.round(normalizeBearing(inwardBearing) / 45) % 8]!
-  return `${SIDE_OF_PLAN[word]} wall`
+  return `${SIDE_OF_PLAN[compass(inwardBearing)]} wall`
 }
 
-function plural(count: number, word: string, many = `${word}s`): string {
-  return `${count} ${count === 1 ? word : many}`
+function plural(count: number, word: string): string {
+  return `${count} ${count === 1 ? word : `${word}s`}`
 }
 
 function quote(text: string): string {
   return `"${text}"`
 }
 
-/** Short id for long lists: the whole id, it's what the agent passes back. */
+/** Ids are always shown whole: they're what the agent passes back. */
 function idTag(id: string): string {
   return `id ${id}`
 }
@@ -146,8 +150,7 @@ export interface PriceLike {
 
 /** "£1,234", "£1,234 (+2 unpriced)", "no prices", "1,234 (mixed currencies)". */
 export function price(p: PriceLike, itemCount: number): string {
-  if (itemCount === 0) return "£0"
-  if (p.unpricedItems === itemCount) return "no prices"
+  if (p.unpricedItems >= itemCount) return "no prices"
   const total = p.mixedCurrencies
     ? `${n(p.amount)} (mixed currencies)`
     : formatPrice(p.amount, p.currency ?? undefined)
@@ -592,9 +595,13 @@ export function placementLine(
     placement.elevation > 0 ? `bottom ${mm(placement.elevation)} up` : null,
     placement.mirrored ? "mirrored" : null,
   ].filter(Boolean)
+  // The relation already ends "facing 90° (into the room)".
+  const position = where
+    ? `at ${point(placement.x, placement.z)} · ${where}`
+    : `at ${point(placement.x, placement.z)} facing ${bearing(placement.facing)}`
   return [
     `- ${placement.id}: ${title}${name}${size}`,
-    `    at ${point(placement.x, placement.z)} facing ${bearing(placement.facing)}${extras.length ? ` · ${extras.join(" · ")}` : ""}${where ? ` · ${where}` : ""}`,
+    `    ${position}${extras.length ? ` · ${extras.join(" · ")}` : ""}`,
   ].join("\n")
 }
 

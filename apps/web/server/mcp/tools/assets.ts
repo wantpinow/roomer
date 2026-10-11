@@ -244,7 +244,7 @@ export const updateAsset = defineTool({
       boundsLine(result.bounds, after.dims),
       ...result.warnings.map((w) => `Warning: ${w}`),
       result.relintedLayouts > 0
-        ? `Re-linting ${result.relintedLayouts} layout${result.relintedLayouts === 1 ? "" : "s"} that use it.`
+        ? `Re-linting the ${result.relintedLayouts === 1 ? "layout that uses" : `${result.relintedLayouts} layouts that use`} it.`
         : "No layout uses it yet.",
     ]
     const visual = VISUAL_FIELDS.some((field) => field in spec)

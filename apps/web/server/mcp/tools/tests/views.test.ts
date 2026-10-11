@@ -68,7 +68,7 @@ describe("render_view", () => {
     expect(Object.keys(scene.assets)).toHaveLength(3)
     expect(scene.room.finishes?.walls).toBe(roomSpec().finishes.walls)
     expect(textOf(result)).toContain(
-      `clay render of "Starter" (revision 3) from the camera ${camera.id}`
+      `Clay render of "Starter" (revision 3) from the camera ${camera.id}`
     )
   })
 

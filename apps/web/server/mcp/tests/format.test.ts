@@ -20,6 +20,7 @@ import {
   mm,
   outlineSize,
   overview,
+  placementLine,
   price,
   renderList,
   roomDetail as roomDetailText,
@@ -102,7 +103,7 @@ describe("price", () => {
         2
       )
     ).toBe("1,234 (mixed currencies)")
-    expect(price({ ...base, unpricedItems: 0 }, 0)).toBe("£0")
+    expect(price({ ...base, amount: 0, unpricedItems: 0 }, 0)).toBe("no prices")
   })
 })
 
@@ -386,11 +387,22 @@ describe("layouts", () => {
     expect(text).toContain(
       "- sofa: Generic sofa [generic-sofa] 2,200W × 950D × 820H mm"
     )
-    expect(text).toMatch(
-      /at \(493, 3,700\) facing 90° \(right\) · back against W6/
-    )
+    expect(text).toMatch(/at \(493, 3,700\) · back against W6/)
+    expect(text).toMatch(/facing 90° \(into the room\)/)
     expect(text).toContain('- rug: "Living rug" Generic rug')
     expect(text.indexOf("Lint:")).toBeGreaterThan(text.indexOf("- rug"))
+  })
+
+  it("falls back to the bearing when there is no wall relation", () => {
+    const layout = { ...layoutDetail(), relations: {} }
+    const elevated = {
+      ...layout.placements[0]!,
+      elevation: 400,
+      mirrored: true,
+    }
+    expect(placementLine(elevated, layout)).toContain(
+      "at (493, 3,700) facing 90° (right) · bottom 400mm up · mirrored"
+    )
   })
 
   it("invites the first apply_changes on an empty layout", () => {

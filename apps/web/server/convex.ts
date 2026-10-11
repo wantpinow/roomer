@@ -156,12 +156,14 @@ export function createRoomerApi(
   }
 }
 
-declare global {
-  var __roomerApi: RoomerApi | undefined
-}
+let shared: RoomerApi | undefined
 
-/** The process-wide facade (kept on globalThis so hot reload reuses it). */
+/**
+ * The server's facade. Module-scoped, not on globalThis: a ConvexHttpClient
+ * holds no connection, and a hot reload of this module should pick up its
+ * new code rather than keep serving the old one.
+ */
 export function getRoomerApi(): RoomerApi {
-  globalThis.__roomerApi ??= createRoomerApi(createConvexClient())
-  return globalThis.__roomerApi
+  shared ??= createRoomerApi(createConvexClient())
+  return shared
 }

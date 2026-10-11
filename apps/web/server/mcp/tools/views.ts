@@ -114,7 +114,7 @@ export const renderView = defineTool({
       passes
     )
     const lines = [
-      `${passes.join(" + ")} render of "${layout.name}" (revision ${layout.revision}) from the ${resolved.label}, ${width}×${height}px. Images in order: ${passes.join(", ")}.`,
+      `${passes.join(" + ").replace(/^c/, "C")} render of "${layout.name}" (revision ${layout.revision}) from the ${resolved.label}, ${width}×${height}px. Images in order: ${passes.join(", ")}.`,
     ]
     if (resolved.camera) lines.push(cameraLine(resolved.camera).slice(2))
     const id = rendered.find((r) => r.pass === "id")
