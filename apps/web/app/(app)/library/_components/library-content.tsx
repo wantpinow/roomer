@@ -99,7 +99,10 @@ export function LibraryContent() {
                 size="icon-xs"
                 aria-label="Clear search"
                 onClick={() => updateSearch("")}
-                className="absolute top-1/2 right-1 -translate-y-1/2"
+                // Inset, not centred with a translate: Button nudges itself
+                // with translate-y while pressed, which would undo a
+                // -translate-y-1/2 mid-click and drop the click.
+                className="absolute top-1 right-1"
               >
                 <XIcon />
               </Button>

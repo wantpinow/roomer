@@ -178,15 +178,22 @@ function NavButton({
   onClick: () => void
 }) {
   const Icon = side === "left" ? ChevronLeftIcon : ChevronRightIcon
+  // Centred by a wrapper: Button nudges itself with translate-y while
+  // pressed, which would undo a -translate-y-1/2 on the button mid-click
+  // and drop the click.
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      aria-label={label}
-      onClick={onClick}
-      className={`absolute top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/35 text-white hover:bg-black/55 hover:text-white ${side === "left" ? "left-3" : "right-3"}`}
+    <div
+      className={`absolute top-1/2 z-10 -translate-y-1/2 ${side === "left" ? "left-3" : "right-3"}`}
     >
-      <Icon />
-    </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label={label}
+        onClick={onClick}
+        className="rounded-full bg-black/35 text-white hover:bg-black/55 hover:text-white"
+      >
+        <Icon />
+      </Button>
+    </div>
   )
 }
