@@ -12,7 +12,7 @@ const BASE: PhotorealPromptInput = {
   roomSummary:
     "Living room, about 2.98 m × 7.69 m (roughly rectangular, with a step in the outline), ceiling 2.45 m",
   cameraDescription:
-    "Eye-level view (1.6 m) from just inside the hall door (D1), looking towards the front window (WIN1). Daylight comes from the front window (WIN1), straight ahead.",
+    "Eye-level view (1.6 m) from just inside the kitchen door (D1), looking towards the front window (WIN1). Daylight comes from the front window (WIN1), straight ahead.",
   legend: [
     {
       colorName: "red",
