@@ -198,8 +198,8 @@ export const LABELS: Record<string, string> = {
         ),
     ])
   ),
-  D1: "Hall door",
-  D2: "Kitchen door",
+  D1: "Kitchen door",
+  D2: "Hall door",
   S1: "Socket S1",
   WIN1: "Front window",
 }
@@ -218,8 +218,8 @@ export const ISSUES: LintIssue[] = [
   {
     code: "E004",
     severity: "error",
-    message: "Albie coffee table is inside the Kitchen door's swing by 270 mm.",
-    hint: "Move it 275 mm towards the hall, or rehang D2 to swing out.",
+    message: "Albie coffee table is inside the Hall door's swing by 270 mm.",
+    hint: "Move it 275 mm towards the kitchen end, or rehang D2 to swing out.",
     placementIds: ["coffee-table"],
     featureIds: ["D2"],
   },
@@ -227,7 +227,7 @@ export const ISSUES: LintIssue[] = [
     code: "W101",
     severity: "warning",
     message:
-      "The narrowest route from the Hall door to the Kitchen door is 640 mm, between Harper dining table and Harper sideboard.",
+      "The narrowest route from the Kitchen door to the Hall door is 640 mm, between Harper dining table and Harper sideboard.",
     hint: "Free another 60 mm — e.g. move Harper dining table 60 mm towards W6.",
     placementIds: ["dining-table", "sideboard"],
     featureIds: ["D1", "D2"],
@@ -347,7 +347,7 @@ export const EVENTS: ActivityEvent[] = [
   {
     id: "e10",
     actor: "system",
-    summary: "Re-checked after the kitchen door was moved 50 mm along W2",
+    summary: "Re-checked after the hall door was moved 50 mm along W2",
     revision: 10,
     createdAt: FIXTURE_NOW - 2 * HOUR,
     lintBefore: { error: 0, warning: 2, info: 1 },

@@ -10,7 +10,7 @@ export default function AppLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <Toaster>
+    <Toaster position="bottom-right">
       <AppShell status={<LiveAgentStatus />}>{children}</AppShell>
     </Toaster>
   )

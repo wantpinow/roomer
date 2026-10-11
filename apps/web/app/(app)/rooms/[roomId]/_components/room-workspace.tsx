@@ -155,6 +155,15 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
     const placement = serverPlacements.find((p) => p.id === done.id)
     setDrag(null)
     if (!placement || (placement.x === done.x && placement.z === done.z)) return
+    // The agent changed the layout mid-drag: the live query already shows
+    // it, so say so instead of sending a move the server would refuse.
+    if (
+      dragRevision.current !== undefined &&
+      layout?.revision !== dragRevision.current
+    ) {
+      editor.conflict()
+      return
+    }
     void editor.apply([moveOp(placement, done.x, done.z)], {
       expectedRevision: dragRevision.current,
     })

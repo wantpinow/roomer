@@ -44,7 +44,7 @@ export function PlanSketch({
       />
       <polygon points={outline} fill={p.floor} />
 
-      {/* D1 hall door (W1, swings out into the hall) */}
+      {/* D1 kitchen door (W1, swings out into the kitchen) */}
       <rect
         x={1150}
         y={-WALL - 5}
@@ -68,7 +68,7 @@ export function PlanSketch({
         strokeDasharray="40 40"
       />
 
-      {/* D2 kitchen door (W2, swings in) */}
+      {/* D2 hall door (W2, swings in) */}
       <rect x={2975} y={5250} width={WALL + 10} height={760} fill={p.paper} />
       <line
         x1={2980}

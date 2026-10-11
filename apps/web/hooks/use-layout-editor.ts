@@ -51,6 +51,15 @@ export function useLayoutEditor({
     )
   })
 
+  /** Tell the user the agent changed the layout under their edit. */
+  const conflict = useCallback(() => {
+    toast({
+      title: "The layout changed under you",
+      description:
+        "The agent edited it at the same time, so your change wasn't applied. You're looking at its latest version.",
+    })
+  }, [toast])
+
   /** Apply ops; resolves true on success. Conflicts and refusals toast. */
   const apply = useCallback(
     async (
@@ -69,11 +78,7 @@ export function useLayoutEditor({
       } catch (error) {
         const app = appErrorOf(error)
         if (app?.code === "CONFLICT") {
-          toast({
-            title: "The layout changed under you",
-            description:
-              "The agent edited it at the same time, so your change wasn't applied. You're looking at its latest version.",
-          })
+          conflict()
         } else {
           toast({
             tone: "error",
@@ -84,7 +89,7 @@ export function useLayoutEditor({
         return false
       }
     },
-    [applyChanges, layoutId, toast]
+    [applyChanges, conflict, layoutId, toast]
   )
 
   /** Remove an item, with an Undo that puts it back exactly. */
@@ -107,5 +112,5 @@ export function useLayoutEditor({
     [apply, toast]
   )
 
-  return { apply, remove }
+  return { apply, remove, conflict }
 }
