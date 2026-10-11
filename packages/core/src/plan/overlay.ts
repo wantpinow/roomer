@@ -6,7 +6,8 @@ import type { PlanItem } from "./furniture"
 import { el, num, ringsPath, text } from "./svg"
 
 // What sits on top of the drawing: highlighted items and features (the
-// selection), lint severities as coloured outlines on the items involved,
+// selection) as a dashed ink halo, lint severities as coloured, filled
+// outlines on the items involved (brick for errors, ochre for warnings),
 // and a marker with the issue code(s) at each issue's `at` point. A walking
 // route's pinch point also gets a dashed ring.
 
@@ -36,6 +37,9 @@ export function drawHighlights(
 ): string {
   if (highlight.size === 0) return ""
   const { theme, metrics } = ctx
+  // Ink, dashed and unfilled: lint owns the coloured, filled outlines.
+  const ink = theme.highlight ?? theme.text
+  const dashes = `${num(metrics.stroke * 4)} ${num(metrics.stroke * 2.5)}`
   const parts: string[] = []
   for (const item of items) {
     if (!highlight.has(item.placement.id)) continue
@@ -45,17 +49,19 @@ export function drawHighlights(
         el("path", {
           d,
           fill: "none",
-          stroke: theme.accent,
-          "stroke-opacity": 0.25,
-          "stroke-width": metrics.stroke * 5,
+          stroke: ink,
+          "stroke-opacity": 0.14,
+          "stroke-width": metrics.stroke * 7,
           "stroke-linejoin": "round",
         }),
         el("path", {
           d,
           fill: "none",
-          stroke: theme.accent,
-          "stroke-width": metrics.stroke * 2,
+          stroke: ink,
+          "stroke-width": metrics.stroke * 1.6,
+          "stroke-dasharray": dashes,
           "stroke-linejoin": "round",
+          "stroke-linecap": "round",
         }),
       ])
     )
@@ -69,10 +75,11 @@ export function drawHighlights(
         class: "highlight",
         "data-feature-id": feature.id,
         d: ringsPath([outline]),
-        fill: theme.accent,
-        "fill-opacity": 0.12,
-        stroke: theme.accent,
-        "stroke-width": metrics.stroke * 1.5,
+        fill: ink,
+        "fill-opacity": 0.06,
+        stroke: ink,
+        "stroke-width": metrics.stroke * 1.4,
+        "stroke-dasharray": dashes,
         "stroke-linejoin": "round",
       })
     )

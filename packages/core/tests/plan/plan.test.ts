@@ -277,7 +277,58 @@ describe("planSvg options", () => {
       groups(svg, /class="highlight" data-placement-id="sofa"/)
     ).toHaveLength(1)
     expect(svg).toMatch(/class="highlight" data-feature-id="D2"/)
-    expect(svg).toContain(DEFAULT_PLAN_THEME.accent)
+  })
+
+  it("draws highlights as a dashed ink halo, unlike lint's outlines", () => {
+    const report = lint({
+      room: ROOM,
+      placements: REALISTIC_LAYOUT,
+      assets: ASSETS,
+    })
+    const svg = planSvg({
+      room: ROOM,
+      placements: REALISTIC_LAYOUT,
+      assets: ASSETS,
+      lint: report,
+      options: { highlight: ["sofa"] },
+    })
+    const [group] = groups(svg, /class="highlight" data-placement-id="sofa"/)
+    expect(group).toContain(`stroke="${DEFAULT_PLAN_THEME.text}"`)
+    expect(group).toContain("stroke-dasharray")
+    expect(group).toContain('fill="none"')
+    for (const colour of [
+      DEFAULT_PLAN_THEME.error,
+      DEFAULT_PLAN_THEME.warning,
+      DEFAULT_PLAN_THEME.accent,
+    ]) {
+      expect(group).not.toContain(colour)
+    }
+    // A theme can choose the highlight colour.
+    const themed = planSvg({
+      room: ROOM,
+      placements: REALISTIC_LAYOUT,
+      assets: ASSETS,
+      options: { highlight: ["sofa"], theme: { highlight: "#123456" } },
+    })
+    expect(
+      groups(themed, /class="highlight" data-placement-id="sofa"/)[0]
+    ).toContain('stroke="#123456"')
+  })
+
+  it("matches the stored drawing of a highlighted item next to lint", async () => {
+    await expect(
+      planSvg({
+        room: ROOM,
+        placements: REALISTIC_LAYOUT,
+        assets: ASSETS,
+        lint: lint({
+          room: ROOM,
+          placements: REALISTIC_LAYOUT,
+          assets: ASSETS,
+        }),
+        options: { highlight: ["sofa", "coffee-table", "D2"] },
+      })
+    ).toMatchFileSnapshot("__snapshots__/living-room-highlight.svg")
   })
 
   it("takes theme overrides and an id prefix", () => {

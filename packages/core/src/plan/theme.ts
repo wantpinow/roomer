@@ -24,8 +24,14 @@ export interface PlanTheme {
   /** Radiators, sockets, lights and other fixtures. */
   fixture: string
   fixtureFill: string
-  /** Emphasis: highlighted items, the selection. */
+  /** Clay emphasis colour (kept for themes; highlights use `highlight`). */
   accent: string
+  /**
+   * Highlighted items and features (the selection, what the last change
+   * touched): a dashed halo, deliberately unlike lint's brick and ochre
+   * outlines so nobody mistakes "touched" for "wrong". Default: `text` ink.
+   */
+  highlight?: string
   error: string
   warning: string
   info: string
