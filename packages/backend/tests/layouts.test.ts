@@ -9,6 +9,7 @@ import {
   doApplyChanges,
   doCreateLayout,
   doGetLayout,
+  doLatestAgentActivity,
   doListEvents,
   doListLayouts,
   doRelintLayout,
@@ -784,6 +785,44 @@ describe("doListEvents", () => {
       doListEvents(ctx, { layoutId: w.layoutId, limit: 1000 })
     )
     expect(capped).toHaveLength(4)
+  })
+})
+
+describe("doLatestAgentActivity", () => {
+  it("is the agent's newest change in any room, ignoring users and Roomer", async () => {
+    vi.setSystemTime(new Date("2026-10-11T09:00:00Z"))
+    const w = await world()
+    const otherRoom = await createLivingRoom(w.t)
+    const elsewhere = await createLayout(w.t, otherRoom, "Elsewhere")
+    vi.setSystemTime(new Date("2026-10-11T10:00:00Z"))
+    await w.t.run(async (ctx) =>
+      doApplyChanges(ctx, {
+        layoutId: elsewhere,
+        actor: "agent",
+        ops: [SOFA_AGAINST_W6],
+      })
+    )
+    vi.setSystemTime(new Date("2026-10-11T10:05:00Z"))
+    await apply(w, [SOFA_AGAINST_W6], { actor: "user" })
+    lintSpy.mockReturnValue(ONE_ERROR)
+    await w.t.run(async (ctx) =>
+      doRelintLayout(ctx, { layoutId: w.layoutId, cause: "a test" })
+    )
+    expect(await w.t.query(api.layouts.latestAgentActivity, {})).toEqual({
+      at: Date.parse("2026-10-11T10:00:00Z"),
+      layoutId: elsewhere,
+      roomId: otherRoom,
+      summary: "Added Test three-seat sofa (sofa) against W6 at 3,700mm",
+    })
+  })
+
+  it("is null before the agent has done anything", async () => {
+    const t = createTestConvex()
+    const roomId = await createLivingRoom(t)
+    await t.run(async (ctx) =>
+      doCreateLayout(ctx, { roomId, name: "Mine", actor: "user" })
+    )
+    expect(await t.run(async (ctx) => doLatestAgentActivity(ctx))).toBeNull()
   })
 })
 

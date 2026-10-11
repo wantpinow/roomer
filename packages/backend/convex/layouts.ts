@@ -741,6 +741,34 @@ export async function doRoomActivity(
   }
 }
 
+export type AgentActivity = {
+  /** When the agent's latest change landed (ms since epoch). */
+  at: number
+  layoutId: Id<"layouts">
+  roomId: Id<"rooms">
+  summary: string
+}
+
+/** The agent's latest change anywhere in the app, for the global pill. */
+export async function doLatestAgentActivity(
+  ctx: QueryCtx
+): Promise<AgentActivity | null> {
+  const event = await ctx.db
+    .query("layoutEvents")
+    .withIndex("by_actor", (q) => q.eq("actor", "agent"))
+    .order("desc")
+    .first()
+  if (!event) return null
+  const layout = await ctx.db.get(event.layoutId)
+  if (!layout) return null
+  return {
+    at: event.createdAt,
+    layoutId: event.layoutId,
+    roomId: layout.roomId,
+    summary: event.summary,
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Convex function exports
 // ---------------------------------------------------------------------------
@@ -818,6 +846,13 @@ export const activity = appQuery({
   args: { roomId: v.id("rooms") },
   handler: async (ctx, args) => {
     return await doRoomActivity(ctx, args)
+  },
+})
+
+export const latestAgentActivity = appQuery({
+  args: {},
+  handler: async (ctx) => {
+    return await doLatestAgentActivity(ctx)
   },
 })
 
