@@ -37,6 +37,8 @@ const CONTRACT = [
   "lint_layout",
   "render_plan",
   "render_view",
+  "render_photoreal",
+  "list_renders",
 ]
 
 describe("the tool registry", () => {

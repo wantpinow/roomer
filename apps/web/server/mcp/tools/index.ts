@@ -3,6 +3,7 @@ import type { RoomerTool } from "../tool"
 import { assetTools } from "./assets"
 import { layoutTools } from "./layouts"
 import { overviewTools } from "./overview"
+import { renderTools } from "./renders"
 import { roomTools } from "./rooms"
 import { viewTools } from "./views"
 
@@ -13,4 +14,5 @@ export const ROOMER_TOOLS: readonly RoomerTool[] = [
   ...assetTools,
   ...layoutTools,
   ...viewTools,
+  ...renderTools,
 ]
