@@ -13,8 +13,15 @@ import type {
 import { cn } from "@roomer/ui/lib/utils"
 
 import { SeverityIcon } from "@/components/common/severity-icon"
-import type { SnapTarget } from "@/lib/plan-edit/placing"
+import {
+  groupBounds,
+  idsInRect,
+  rectFrom,
+  snapDelta,
+  type PlanRect,
+} from "@/lib/plan-edit/group"
 import { planKeyAction, type PlanKeyAction } from "@/lib/plan-edit/keyboard"
+import type { SnapTarget } from "@/lib/plan-edit/placing"
 import {
   dragTarget,
   exceedsDragThreshold,
@@ -30,10 +37,14 @@ import {
 import { planTheme } from "@/lib/plan-theme"
 import { planFootprints, svgPoints } from "@/lib/workspace/footprints"
 
+/**
+ * A drag in progress or just finished: the items moving and their offset
+ * (mm). One item snaps its centre to the grid; a group snaps the offset.
+ */
 export interface PlanDrag {
-  id: string
-  x: number
-  z: number
+  ids: readonly string[]
+  dx: number
+  dz: number
 }
 
 /** The item being placed, as the plan draws it under the pointer. */
@@ -76,7 +87,8 @@ export interface PlanViewProps {
   theme: "light" | "dark"
   viewport: PlanViewport
   onViewportChange: (viewport: PlanViewport) => void
-  selectedId?: string | null
+  /** The selection, in layout order. */
+  selectedIds?: readonly string[]
   /** Items to wash in `highlightSeverity`'s colour (an issue's items). */
   highlightIds?: readonly string[]
   highlightSeverity?: LintSeverity
@@ -84,10 +96,13 @@ export interface PlanViewProps {
   hoverIds?: readonly string[]
   editable?: boolean
   onHover?: (id: string | null) => void
-  onSelect?: (id: string | null) => void
+  /** A click: on an item (or null for empty floor); `toggle` with Shift. */
+  onSelect?: (id: string | null, options: { toggle: boolean }) => void
+  /** A marquee: the items it touched; `add` (Shift) extends the selection. */
+  onMarquee?: (ids: string[], options: { add: boolean }) => void
   /** Live drag preview (null when a drag ends or is cancelled). */
   onDrag?: (drag: PlanDrag | null) => void
-  /** A finished drag: the item's new centre, snapped. */
+  /** A finished drag. */
   onDrop?: (drag: PlanDrag) => void
   onKeyAction?: (action: PlanKeyAction) => void
   /** When set, the plan is placing a new item instead of editing. */
@@ -96,16 +111,30 @@ export interface PlanViewProps {
 }
 
 const VIEWBOX = /viewBox="([^"]+)"/
+/** A press that travels less than this (px) is a click. */
+const CLICK_SLOP_PX = 4
 
 type Gesture =
   | {
-      kind: "item"
-      id: string
+      kind: "move"
+      /** The items moving: one, or the whole selection. */
+      ids: readonly string[]
+      /** The item pressed (for a single item, its centre snaps). */
+      anchor: string
       pointerId: number
       client: readonly [number, number]
       start: DragStart
       dragging: boolean
       last: PlanDrag | null
+      /** Collapse a multi-selection to the pressed item if it's a click. */
+      collapseOnClick: boolean
+    }
+  | {
+      kind: "marquee"
+      pointerId: number
+      client: readonly [number, number]
+      start: Point
+      add: boolean
     }
   | {
       kind: "pan"
@@ -117,9 +146,16 @@ type Gesture =
 /**
  * The floor plan, editable. Draws core's `planSvg` (the same drawing the
  * agent sees) and lays a transparent hit layer over it in the same room-mm
- * coordinates: hover and click select items, dragging moves them (10mm grid,
- * Alt for free placement), and with an item selected the keyboard nudges,
- * turns and removes it. Empty space pans; ⌃/pinch-scroll zooms.
+ * coordinates:
+ * - click selects an item (Shift+click toggles it), click on the floor
+ *   clears; drag on the floor draws a marquee that selects what it touches
+ *   (Shift adds);
+ * - dragging an item moves it (its centre on the 10mm grid; Alt for free);
+ *   dragging any item of a multi-selection moves the whole group by one
+ *   snapped offset;
+ * - with a selection, the keyboard nudges, turns and removes it (⌘A selects
+ *   all, Esc clears);
+ * - Space+drag or middle-drag pans; scroll pans; ⌃/pinch-scroll zooms.
  *
  * In placing mode a ghost of the new item follows the pointer (or an asset
  * dragged in from the picker), tinted by what lint would say, and a click
@@ -136,13 +172,14 @@ export function PlanView({
   theme,
   viewport,
   onViewportChange,
-  selectedId,
+  selectedIds = [],
   highlightIds = [],
   highlightSeverity = "error",
   hoverIds = [],
   editable = true,
   onHover,
   onSelect,
+  onMarquee,
   onDrag,
   onDrop,
   onKeyAction,
@@ -154,12 +191,17 @@ export function PlanView({
   const gesture = useRef<Gesture | null>(null)
   const frame = useRef<number | null>(null)
   const hovered = useRef<string | null>(null)
+  const space = useRef(false)
   const [dragging, setDragging] = useState<string | null>(null)
+  const [marquee, setMarquee] = useState<PlanRect | null>(null)
+  const [panning, setPanning] = useState(false)
   const [cursor, setCursor] = useState<{
     x: number
     y: number
     width: number
   } | null>(null)
+  /** Screen px per plan mm at zoom 1 (for the group chip's size). */
+  const [fit, setFit] = useState(0)
   const pendingMove = useRef<{ point: Point; free: boolean } | null>(null)
 
   const palette = useMemo(() => planTheme(theme), [theme])
@@ -179,10 +221,19 @@ export function PlanView({
         lint,
         options: {
           theme: palette,
-          highlight: [...highlightIds, ...(selectedId ? [selectedId] : [])],
+          highlight: [...highlightIds, ...selectedIds],
         },
       }).replace(VIEWBOX, `viewBox="${viewBox}"`),
-    [room, placements, assets, lint, highlightIds, selectedId, palette, viewBox]
+    [
+      room,
+      placements,
+      assets,
+      lint,
+      highlightIds,
+      selectedIds,
+      palette,
+      viewBox,
+    ]
   )
 
   const footprints = useMemo(
@@ -194,6 +245,19 @@ export function PlanView({
     () => [...footprints].sort((a, b) => hitRank(a.mount) - hitRank(b.mount)),
     [footprints]
   )
+
+  // How big a plan millimetre is on screen at zoom 1, kept up to date as
+  // the stage resizes (the overlay "meets" its viewBox).
+  useEffect(() => {
+    const svg = overlayRef.current
+    if (!svg) return
+    const [, , width = 1, height = 1] = viewBox.split(/\s+/).map(Number)
+    const measure = () =>
+      setFit(Math.min(svg.clientWidth / width, svg.clientHeight / height))
+    const observer = new ResizeObserver(measure)
+    observer.observe(svg)
+    return () => observer.disconnect()
+  }, [viewBox])
 
   // Native, non-passive wheel listener: ⌃/pinch zooms about the cursor,
   // plain scroll pans. (React's onWheel is passive, so it can't stop the
@@ -260,18 +324,48 @@ export function PlanView({
     frame.current = requestAnimationFrame(() => {
       frame.current = null
       const current = gesture.current
-      if (current?.kind === "item" && current.last) onDrag?.(current.last)
+      if (current?.kind === "move" && current.last) onDrag?.(current.last)
     })
   }
 
-  const endGesture = (commit: boolean) => {
+  const endGesture = (
+    commit: boolean,
+    event?: { clientX: number; clientY: number }
+  ) => {
     const current = gesture.current
     gesture.current = null
+    setPanning(false)
     if (frame.current !== null) {
       cancelAnimationFrame(frame.current)
       frame.current = null
     }
-    if (current?.kind !== "item" || !current.dragging) return
+    if (!current) return
+    if (current.kind === "marquee") {
+      setMarquee(null)
+      if (!commit || !event) return
+      const moved = Math.hypot(
+        event.clientX - current.client[0],
+        event.clientY - current.client[1]
+      )
+      if (moved < CLICK_SLOP_PX) {
+        // A click on empty floor clears (Shift+click on it does nothing).
+        if (!current.add) onSelect?.(null, { toggle: false })
+        return
+      }
+      const end = planPoint(event.clientX, event.clientY)
+      if (!end) return
+      onMarquee?.(idsInRect(footprints, rectFrom(current.start, end)), {
+        add: current.add,
+      })
+      return
+    }
+    if (current.kind !== "move") return
+    if (!current.dragging) {
+      if (commit && current.collapseOnClick) {
+        onSelect?.(current.anchor, { toggle: false })
+      }
+      return
+    }
     setDragging(null)
     if (commit && current.last) onDrop?.(current.last)
     onDrag?.(null)
@@ -308,40 +402,64 @@ export function PlanView({
     placing?.onMove(null, { free: false })
   }
 
+  const selectedSet = new Set(selectedIds)
+
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return
+    if (event.button !== 0 && event.button !== 1) return
     containerRef.current?.focus({ preventScroll: true })
     if (placing) {
+      if (event.button !== 0) return
       const point = planPoint(event.clientX, event.clientY)
       if (point) {
         placing.onPlace({ point, free: event.altKey, repeat: event.shiftKey })
       }
       return
     }
-    const id = idAt(event.target)
-    const placement = id ? placements.find((p) => p.id === id) : undefined
     event.currentTarget.setPointerCapture(event.pointerId)
-    if (placement) {
-      onSelect?.(placement.id)
-      const grab = planPoint(event.clientX, event.clientY)
-      if (!grab || !editable) return
-      gesture.current = {
-        kind: "item",
-        id: placement.id,
-        pointerId: event.pointerId,
-        client: [event.clientX, event.clientY],
-        start: { origin: [placement.x, placement.z], grab },
-        dragging: false,
-        last: null,
-      }
-    } else {
-      onSelect?.(null)
+    const client: [number, number] = [event.clientX, event.clientY]
+    if (event.button === 1 || space.current) {
+      event.preventDefault()
+      setPanning(true)
       gesture.current = {
         kind: "pan",
         pointerId: event.pointerId,
-        client: [event.clientX, event.clientY],
+        client,
         viewport,
       }
+      return
+    }
+    const id = idAt(event.target)
+    const placement = id ? placements.find((p) => p.id === id) : undefined
+    if (!placement) {
+      const start = planPoint(event.clientX, event.clientY)
+      if (!start) return
+      gesture.current = {
+        kind: "marquee",
+        pointerId: event.pointerId,
+        client,
+        start,
+        add: event.shiftKey,
+      }
+      return
+    }
+    if (event.shiftKey) {
+      onSelect?.(placement.id, { toggle: true })
+      return
+    }
+    const inGroup = selectedSet.has(placement.id) && selectedSet.size > 1
+    if (!inGroup) onSelect?.(placement.id, { toggle: false })
+    const grab = planPoint(event.clientX, event.clientY)
+    if (!grab || !editable) return
+    gesture.current = {
+      kind: "move",
+      ids: inGroup ? selectedIds : [placement.id],
+      anchor: placement.id,
+      pointerId: event.pointerId,
+      client,
+      start: { origin: [placement.x, placement.z], grab },
+      dragging: false,
+      last: null,
+      collapseOnClick: inGroup,
     }
   }
 
@@ -361,34 +479,58 @@ export function PlanView({
       onViewportChange(panBy(current.viewport, dx, dy))
       return
     }
+    const pointer = planPoint(event.clientX, event.clientY)
+    if (!pointer) return
+    if (current.kind === "marquee") {
+      if (Math.hypot(dx, dy) < CLICK_SLOP_PX) return
+      setMarquee(rectFrom(current.start, pointer))
+      return
+    }
     if (!current.dragging) {
       if (!exceedsDragThreshold(dx, dy)) return
       current.dragging = true
-      setDragging(current.id)
+      setDragging(current.anchor)
     }
-    const pointer = planPoint(event.clientX, event.clientY)
-    if (!pointer) return
-    const [x, z] = dragTarget(current.start, pointer, { free: event.altKey })
-    if (current.last && current.last.x === x && current.last.z === z) return
-    current.last = { id: current.id, x, z }
+    const free = event.altKey
+    let offset: [number, number]
+    if (current.ids.length === 1) {
+      // One item: its centre lands on the grid.
+      const [x, z] = dragTarget(current.start, pointer, { free })
+      offset = [x - current.start.origin[0], z - current.start.origin[1]]
+    } else {
+      // A group: the offset is on the grid, so spacing is kept exactly.
+      offset = snapDelta(
+        pointer[0] - current.start.grab[0],
+        pointer[1] - current.start.grab[1],
+        { free }
+      )
+    }
+    const [ox, oz] = offset
+    if (current.last && current.last.dx === ox && current.last.dz === oz) return
+    current.last = { ids: current.ids, dx: ox, dz: oz }
     scheduleDrag()
   }
 
   const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
     if (gesture.current?.pointerId !== event.pointerId) return
-    endGesture(true)
+    endGesture(true, event)
   }
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === " ") {
+      // Space+drag pans; don't scroll the page.
+      event.preventDefault()
+      space.current = true
+      return
+    }
     // While placing, the workspace owns R / Shift+R / Esc.
     if (placing) return
-    if (event.key === "Escape" && gesture.current?.kind === "item") {
+    if (event.key === "Escape" && gesture.current) {
       event.preventDefault()
       endGesture(false)
       return
     }
-    if (!selectedId) return
-    const action = planKeyAction(event, selectedId)
+    const action = planKeyAction(event, selectedIds.length)
     if (!action) return
     event.preventDefault()
     onKeyAction?.(action)
@@ -396,6 +538,7 @@ export function PlanView({
 
   const highlighted = new Set(highlightIds)
   const hoverSet = new Set(hoverIds)
+  const underMarquee = new Set(marquee ? idsInRect(footprints, marquee) : [])
   const severityClass =
     highlightSeverity === "error"
       ? "fill-error-fill/15 stroke-error-fill"
@@ -403,14 +546,24 @@ export function PlanView({
         ? "fill-warning-fill/15 stroke-warning-fill"
         : "fill-info-fill/15 stroke-info-fill"
 
+  const group =
+    selectedIds.length > 1
+      ? groupBounds(
+          footprints.filter((f) => selectedSet.has(f.id)).map((f) => f.outline)
+        )
+      : null
+  /** mm per screen pixel right now (0 until measured). */
+  const mmPerPx = fit > 0 ? 1 / (fit * viewport.zoom) : 0
+
   return (
     <div
       ref={containerRef}
       data-slot="plan-view"
       data-dragging={dragging ?? undefined}
       data-placing={placing?.assetId}
+      data-selected-count={selectedIds.length || undefined}
       role="application"
-      aria-label="Floor plan. Click an item to select it, drag to move it; arrows nudge, R turns, Delete removes, Escape deselects."
+      aria-label="Floor plan. Click an item to select it (Shift+click to add), drag on the floor to select several, drag to move; arrows nudge, R turns, Delete removes, Escape clears. Space+drag pans."
       tabIndex={0}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -419,6 +572,12 @@ export function PlanView({
       onPointerLeave={() => {
         if (placing) leavePlacing()
         else if (!gesture.current) setHover(null)
+      }}
+      onKeyUp={(event) => {
+        if (event.key === " ") space.current = false
+      }}
+      onBlur={() => {
+        space.current = false
       }}
       onDragOver={(event) => {
         if (!placing || !event.dataTransfer.types.length) return
@@ -446,9 +605,11 @@ export function PlanView({
         "relative size-full touch-none overflow-hidden outline-none select-none focus-visible:ring-1 focus-visible:ring-ring/25 focus-visible:ring-inset",
         placing
           ? "cursor-crosshair"
-          : dragging
+          : panning
             ? "cursor-grabbing"
-            : "cursor-default",
+            : dragging
+              ? "cursor-grabbing"
+              : "cursor-default",
         className
       )}
     >
@@ -478,9 +639,9 @@ export function PlanView({
             )}
           >
             {hitOrder.map((f) => {
-              const isSelected = f.id === selectedId
+              const isSelected = selectedSet.has(f.id)
               const isHighlighted = highlighted.has(f.id)
-              const isHovered = hoverSet.has(f.id)
+              const isHovered = hoverSet.has(f.id) || underMarquee.has(f.id)
               return (
                 <g
                   key={f.id}
@@ -519,6 +680,25 @@ export function PlanView({
                 </g>
               )
             })}
+            {group && mmPerPx > 0 ? (
+              <GroupFrame
+                bounds={group}
+                count={selectedIds.length}
+                mmPerPx={mmPerPx}
+              />
+            ) : null}
+            {marquee ? (
+              <rect
+                data-slot="plan-marquee"
+                x={marquee.minX}
+                y={marquee.minZ}
+                width={marquee.maxX - marquee.minX}
+                height={marquee.maxZ - marquee.minZ}
+                className="pointer-events-none fill-clay-fill/10 stroke-ink/80"
+                strokeWidth={1}
+                vectorEffect="non-scaling-stroke"
+              />
+            ) : null}
             {placing?.ghost ? <GhostShape ghost={placing.ghost} /> : null}
           </svg>
         </div>
@@ -530,8 +710,69 @@ export function PlanView({
   )
 }
 
-// Sage for a clean spot, then the severities. (Not clay: it reads too close
-// to brick at a glance.)
+function hitRank(mount: AssetSpec["mount"]): number {
+  return mount === "ceiling" ? 0 : mount === "floor-covering" ? 1 : 2
+}
+
+/**
+ * The dashed frame around a multi-selection, with a small "4 selected"
+ * chip on its top-left corner — sized in screen pixels whatever the zoom.
+ */
+function GroupFrame({
+  bounds,
+  count,
+  mmPerPx,
+}: {
+  bounds: PlanRect
+  count: number
+  mmPerPx: number
+}) {
+  const pad = 8 * mmPerPx
+  const label = `${count} selected`
+  const chipWidth = 14 + label.length * 6.1
+  return (
+    <g
+      data-slot="plan-group"
+      data-count={count}
+      className="pointer-events-none"
+    >
+      <rect
+        x={bounds.minX - pad}
+        y={bounds.minZ - pad}
+        width={bounds.maxX - bounds.minX + pad * 2}
+        height={bounds.maxZ - bounds.minZ + pad * 2}
+        fill="none"
+        className="stroke-ink-soft"
+        strokeWidth={1}
+        strokeDasharray="5 4"
+        vectorEffect="non-scaling-stroke"
+      />
+      <g
+        transform={`translate(${bounds.minX - pad} ${bounds.minZ - pad}) scale(${mmPerPx})`}
+      >
+        <rect
+          x={0}
+          y={-24}
+          width={chipWidth}
+          height={18}
+          rx={9}
+          className="fill-ink"
+        />
+        <text
+          x={chipWidth / 2}
+          y={-11.5}
+          textAnchor="middle"
+          fontSize={10.5}
+          fontWeight={500}
+          className="fill-paper font-sans"
+        >
+          {label}
+        </text>
+      </g>
+    </g>
+  )
+}
+
 const GHOST_TINT = {
   none: "fill-sage-fill/20 stroke-sage-fill",
   info: "fill-info-fill/20 stroke-info-fill",
@@ -633,8 +874,4 @@ function GhostCaption({
       ) : null}
     </div>
   )
-}
-
-function hitRank(mount: AssetSpec["mount"]): number {
-  return mount === "ceiling" ? 0 : mount === "floor-covering" ? 1 : 2
 }

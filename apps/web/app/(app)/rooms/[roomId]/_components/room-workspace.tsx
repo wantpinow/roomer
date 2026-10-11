@@ -29,7 +29,22 @@ import { useRecentAssets } from "@/hooks/use-recent-assets"
 import { useSafeQuery } from "@/hooks/use-safe-query"
 import { useSearchParam } from "@/hooks/use-search-param"
 import type { PlanKeyAction } from "@/lib/plan-edit/keyboard"
-import { moveOp, withPosition } from "@/lib/plan-edit/optimistic"
+import {
+  EMPTY_SELECTION,
+  addToSelection,
+  groupBounds,
+  groupNudgeOps,
+  groupRotateOps,
+  rectCentre,
+  selectAll,
+  selectedIds as selectedIdsOf,
+  selectionOf,
+  toggleSelected,
+  withOffsets,
+  type Selection,
+} from "@/lib/plan-edit/group"
+import { moveOp } from "@/lib/plan-edit/optimistic"
+import { planFootprints } from "@/lib/workspace/footprints"
 import {
   activityEvents,
   asId,
@@ -89,7 +104,7 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
 
   const [mode, setMode] = useState<ViewMode>("plan")
   const [tab, setTab] = useState<InspectorTab>("issues")
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selection, setSelection] = useState<Selection>(EMPTY_SELECTION)
   const [hoverIds, setHoverIds] = useState<string[]>([])
   const [selectedIssueKey, setSelectedIssueKey] = useState<string>()
   const [drag, setDrag] = useState<PlanDrag | null>(null)
@@ -104,7 +119,7 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
   const placements = useMemo(
     () =>
       drag
-        ? withPosition(serverPlacements, drag.id, drag.x, drag.z)
+        ? withOffsets(serverPlacements, drag.ids, drag.dx, drag.dz)
         : serverPlacements,
     [drag, serverPlacements]
   )
@@ -134,11 +149,14 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
   )
   const renders = useMemo(() => renderRows?.map(toRenderSummary), [renderRows])
 
-  // Forget selections that no longer exist (the agent removed the item).
-  const selected =
-    selectedId && placements.some((p) => p.id === selectedId)
-      ? selectedId
-      : null
+  // The selection, in layout order, without items that no longer exist
+  // (the agent removed them).
+  const selected = useMemo(
+    () => selectedIdsOf(selection, serverPlacements),
+    [selection, serverPlacements]
+  )
+  const selectOnly = (id: string | null) =>
+    setSelection(id ? selectionOf([id]) : EMPTY_SELECTION)
   const selectedIssue: LintIssue | undefined = lint?.issues.find(
     (issue) => issueKey(issue) === selectedIssueKey
   )
@@ -154,7 +172,7 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
     apply: editor.apply,
     onPlaced: (placementId, asset) => {
       rememberAsset(asset._id)
-      setSelectedId(placementId)
+      selectOnly(placementId)
       setSelectedIssueKey(undefined)
     },
     onCancelled: (viaDrag) => {
@@ -171,7 +189,7 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
   useHotkey("a", openPicker, mode !== "walk" && canAdd)
 
   const selectLayout = (id: string) => {
-    setSelectedId(null)
+    selectOnly(null)
     setSelectedIssueKey(undefined)
     setHoverIds([])
     setRequestedLayout(id)
@@ -183,9 +201,8 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
   }
 
   const onDrop = (done: PlanDrag) => {
-    const placement = serverPlacements.find((p) => p.id === done.id)
     setDrag(null)
-    if (!placement || (placement.x === done.x && placement.z === done.z)) return
+    if (done.dx === 0 && done.dz === 0) return
     // The agent changed the layout mid-drag: the live query already shows
     // it, so say so instead of sending a move the server would refuse.
     if (
@@ -195,30 +212,78 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
       editor.conflict()
       return
     }
-    void editor.apply([moveOp(placement, done.x, done.z)], {
-      expectedRevision: dragRevision.current,
-    })
+    const [only] = done.ids
+    const single =
+      done.ids.length === 1
+        ? serverPlacements.find((p) => p.id === only)
+        : undefined
+    // One item moves to an absolute (grid-snapped) centre; a group moves
+    // by one offset, as one batch: one revision, one activity event.
+    const ops = single
+      ? [moveOp(single, single.x + done.dx, single.z + done.dz)]
+      : groupNudgeOps(done.ids, done.dx, done.dz)
+    if (ops.length === 0) return
+    void editor.apply(ops, { expectedRevision: dragRevision.current })
   }
+
+  const footprints = useMemo(
+    () => planFootprints(serverPlacements, assets),
+    [serverPlacements, assets]
+  )
 
   const onKeyAction = (action: PlanKeyAction) => {
     if (action.kind === "deselect") {
-      setSelectedId(null)
+      selectOnly(null)
       return
     }
-    const placement = selected
-      ? serverPlacements.find((p) => p.id === selected)
-      : undefined
-    if (!placement) return
+    if (action.kind === "selectAll") {
+      setSelection(selectAll(serverPlacements))
+      return
+    }
+    const group = serverPlacements.filter((p) => selection[p.id])
+    if (group.length === 0) return
+    const expectedRevision = layout?.revision
     if (action.kind === "remove") {
-      setSelectedId(null)
-      void editor.remove(
-        placement,
-        labels[placement.id] ?? placement.id,
-        layout?.revision
+      selectOnly(null)
+      void editor.removeMany(
+        group,
+        group.length === 1
+          ? (labels[group[0]!.id] ?? group[0]!.id)
+          : `${group.length} items`,
+        expectedRevision
       )
       return
     }
-    void editor.apply([action.op], { expectedRevision: layout?.revision })
+    if (action.kind === "nudge") {
+      void editor.apply(
+        groupNudgeOps(
+          group.map((p) => p.id),
+          action.dx,
+          action.dz
+        ),
+        { expectedRevision }
+      )
+      return
+    }
+    // Rotate: one item turns about its own centre; a group about the
+    // centre of its combined outline.
+    if (group.length === 1) {
+      void editor.apply(
+        [{ op: "nudge", id: group[0]!.id, rotate: action.degrees }],
+        { expectedRevision }
+      )
+      return
+    }
+    const bounds = groupBounds(
+      footprints.filter((f) => selection[f.id]).map((f) => f.outline)
+    )
+    if (!bounds) return
+    void editor.apply(
+      groupRotateOps(group, rectCentre(bounds), action.degrees),
+      {
+        expectedRevision,
+      }
+    )
   }
 
   if (
@@ -264,11 +329,19 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
             ready={layout !== undefined && layout !== null}
             empty={layoutRows !== undefined && layoutRows.length === 0}
             selection={{
-              selectedId: selected,
-              onSelect: (id) => {
-                setSelectedId(id)
+              selectedIds: selected,
+              onSelect: (id, { toggle } = { toggle: false }) => {
+                if (toggle && id) {
+                  setSelection((current) => toggleSelected(current, id))
+                  return
+                }
+                selectOnly(id)
                 if (id === null) setSelectedIssueKey(undefined)
               },
+              onMarquee: (ids, { add }) =>
+                setSelection((current) =>
+                  add ? addToSelection(current, ids) : selectionOf(ids)
+                ),
               hoverIds,
               onHover: setHoverIds,
               highlight: selectedIssue
@@ -292,11 +365,11 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
                 onClose={() => setPickerOpen(false)}
                 onPick={(asset) => {
                   setPickerOpen(false)
-                  setSelectedId(null)
+                  selectOnly(null)
                   placingItem.start(asset)
                 }}
                 onDragStart={(asset) => {
-                  setSelectedId(null)
+                  selectOnly(null)
                   placingItem.start(asset, { viaDrag: true })
                 }}
                 onDragEnd={(dropped) => {
@@ -356,15 +429,24 @@ export function RoomWorkspace({ roomId: rawRoomId }: { roomId: string }) {
                 const key = issueKey(issue)
                 const same = key === selectedIssueKey
                 setSelectedIssueKey(same ? undefined : key)
-                setSelectedId(same ? null : (issue.placementIds[0] ?? null))
+                selectOnly(same ? null : (issue.placementIds[0] ?? null))
               }}
             />
           }
           items={
             <ItemList
               items={layoutRows?.length === 0 ? [] : items}
-              selectedId={selected ?? undefined}
-              onSelect={(id) => setSelectedId(id === selected ? null : id)}
+              selectedIds={selected}
+              onSelect={(id, { toggle }) => {
+                if (toggle) {
+                  setSelection((current) => toggleSelected(current, id))
+                } else {
+                  selectOnly(
+                    selected.length === 1 && selected[0] === id ? null : id
+                  )
+                }
+              }}
+              onClearSelection={() => selectOnly(null)}
               onHover={(id) => setHoverIds(id ? [id] : [])}
             />
           }

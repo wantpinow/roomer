@@ -37,7 +37,11 @@ import {
   type ViewMode,
 } from "@/components/workspace/view-mode-control"
 import { ZoomControls } from "@/components/workspace/zoom-controls"
+import { formatNumber } from "@roomer/core/geometry"
+
+import { Price } from "@/components/common/price"
 import { formatPosition } from "@/lib/format/position"
+import { totalPrice } from "@/lib/format/price"
 import type { PlanKeyAction } from "@/lib/plan-edit/keyboard"
 import {
   FIT_VIEWPORT,
@@ -59,8 +63,12 @@ const RoomViewer = dynamic(
 )
 
 export interface StageSelection {
-  selectedId: string | null
-  onSelect: (id: string | null) => void
+  /** The selection, in layout order. */
+  selectedIds: readonly string[]
+  /** Select one item (or none); `toggle` adds/removes it instead. */
+  onSelect: (id: string | null, options?: { toggle: boolean }) => void
+  /** The items a marquee touched; `add` extends the selection. */
+  onMarquee: (ids: string[], options: { add: boolean }) => void
   hoverIds: readonly string[]
   onHover: (ids: string[]) => void
   /** The selected issue's items and severity, washed in the plan. */
@@ -158,9 +166,20 @@ export function WorkspaceStage({
     [room, finishes, placements, assets]
   )
 
-  const selected = selection.selectedId
-    ? placements.find((p) => p.id === selection.selectedId)
-    : undefined
+  const selectedSet = new Set(selection.selectedIds)
+  const selectedPlacements = placements.filter((p) => selectedSet.has(p.id))
+  const selected =
+    selectedPlacements.length === 1 ? selectedPlacements[0] : undefined
+  const selectionPrice = totalPrice(
+    selectedPlacements.map((p) => ({
+      price: assets[p.assetId]?.product?.price,
+      currency: assets[p.assetId]?.product?.currency,
+    }))
+  )
+  const dragged =
+    drag && drag.ids.length === 1
+      ? placements.find((p) => p.id === drag.ids[0])
+      : undefined
 
   let content: React.ReactNode
   if (empty) {
@@ -182,12 +201,13 @@ export function WorkspaceStage({
         theme={theme ?? "light"}
         viewport={viewport}
         onViewportChange={setViewport}
-        selectedId={selection.selectedId}
+        selectedIds={selection.selectedIds}
         highlightIds={selection.highlight?.ids}
         highlightSeverity={selection.highlight?.severity}
         hoverIds={selection.hoverIds}
         onHover={(id) => selection.onHover(id ? [id] : [])}
         onSelect={selection.onSelect}
+        onMarquee={selection.onMarquee}
         onDrag={onDrag}
         onDrop={onDrop}
         onKeyAction={onKeyAction}
@@ -212,11 +232,11 @@ export function WorkspaceStage({
         key={mode === "camera" ? `camera:${camera?.id}` : "orbit"}
         scene={scene}
         selection={[
-          ...(selection.selectedId ? [selection.selectedId] : []),
+          ...selection.selectedIds,
           ...selection.hoverIds,
           ...(selection.highlight?.ids ?? []),
         ]}
-        onSelectionChange={selection.onSelect}
+        onSelectionChange={(id) => selection.onSelect(id)}
       />
     )
   }
@@ -293,20 +313,72 @@ export function WorkspaceStage({
               </SelectContent>
             </Select>
           </FloatingBar>
-        ) : mode === "plan" && drag ? (
+        ) : mode === "plan" && drag && dragged ? (
           <FloatingBar className="gap-2 rounded-md py-1.5 pr-3 pl-3 font-mono text-2xs text-ink-soft">
             <span className="text-foreground">
-              {labels[drag.id] ?? drag.id}
+              {labels[dragged.id] ?? dragged.id}
             </span>
             <span aria-hidden className="text-faint">
               ·
             </span>
             <span className="tabular-nums">
-              {formatPosition(undefined, drag)}
+              {formatPosition(undefined, dragged)}
             </span>
             <span className="pl-1 font-sans text-muted-foreground">
               <Kbd>Alt</Kbd> free
             </span>
+          </FloatingBar>
+        ) : mode === "plan" && drag ? (
+          <FloatingBar
+            data-slot="group-drag-readout"
+            className="gap-2 rounded-md py-1.5 pr-3 pl-3 font-mono text-2xs text-ink-soft"
+          >
+            <span className="font-sans text-foreground">
+              {drag.ids.length} items
+            </span>
+            <span aria-hidden className="text-faint">
+              ·
+            </span>
+            <span className="tabular-nums">
+              Δ {signedMm(drag.dx)}, {signedMm(drag.dz)} mm
+            </span>
+            <span className="pl-1 font-sans text-muted-foreground">
+              <Kbd>Alt</Kbd> free
+            </span>
+          </FloatingBar>
+        ) : mode === "plan" && selectedPlacements.length > 1 ? (
+          <FloatingBar
+            data-slot="group-hint"
+            className="gap-2.5 rounded-md py-1.5 pr-1.5 pl-3 text-xs text-ink-soft"
+          >
+            <span className="font-medium text-foreground tabular-nums">
+              {selectedPlacements.length} selected
+            </span>
+            {selectionPrice.priced > 0 ? (
+              <Price
+                amount={selectionPrice.total}
+                currency={selectionPrice.currency}
+                className="text-ink-soft"
+              />
+            ) : null}
+            <span className="flex items-center gap-1 text-2xs text-muted-foreground">
+              <Kbd>←</Kbd>
+              <Kbd>→</Kbd> nudge
+            </span>
+            <span className="flex items-center gap-1 text-2xs text-muted-foreground">
+              <Kbd>R</Kbd> turn 90°
+            </span>
+            <span className="flex items-center gap-1 text-2xs text-muted-foreground">
+              <Kbd>⌫</Kbd> remove
+            </span>
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => selection.onSelect(null)}
+            >
+              Clear
+              <Kbd>Esc</Kbd>
+            </Button>
           </FloatingBar>
         ) : mode === "plan" && selected ? (
           <FloatingBar className="gap-2.5 rounded-md py-1.5 pr-3 pl-3 text-xs text-ink-soft">
@@ -336,6 +408,22 @@ export function WorkspaceStage({
                 .join(" × ")}
             </span>
           </FloatingBar>
+        ) : mode === "plan" && ready && !empty ? (
+          <FloatingBar
+            data-slot="plan-hint"
+            className="gap-2.5 rounded-md py-1.5 pr-3 pl-3 text-2xs text-muted-foreground"
+          >
+            <span>Drag to select</span>
+            <span className="flex items-center gap-1">
+              <Kbd>⇧</Kbd>click adds
+            </span>
+            <span className="flex items-center gap-1">
+              <Kbd>Space</Kbd>+drag pans
+            </span>
+            <span className="flex items-center gap-1">
+              <Kbd>⌃</Kbd>scroll zooms
+            </span>
+          </FloatingBar>
         ) : null
       }
       caption={caption}
@@ -353,4 +441,13 @@ function StageMessage({ children }: { children: React.ReactNode }) {
       </p>
     </div>
   )
+}
+
+/** +120 / −300 for offsets. */
+function signedMm(value: number): string {
+  return value > 0
+    ? `+${formatNumber(value)}`
+    : value < 0
+      ? `−${formatNumber(-value)}`
+      : "0"
 }

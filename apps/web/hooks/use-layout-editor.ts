@@ -10,7 +10,8 @@ import type { LayoutOp, Placement } from "@roomer/core/schema"
 import { useToast } from "@roomer/ui/components/toast"
 
 import { appErrorOf, describeError } from "@/lib/app-error"
-import { previewOps, restoreOp } from "@/lib/plan-edit/optimistic"
+import { removeOps, restoreOps } from "@/lib/plan-edit/group"
+import { previewOps } from "@/lib/plan-edit/optimistic"
 import { asId, assetSpecOf, assetSpecs } from "@/lib/workspace/view-models"
 
 /**
@@ -110,10 +111,11 @@ export function useLayoutEditor({
     [applyChanges, conflict, layoutId, toast]
   )
 
-  /** Remove an item, with an Undo that puts it back exactly. */
-  const remove = useCallback(
-    async (placement: Placement, name: string, revision?: number) => {
-      const removed = await apply([{ op: "remove", id: placement.id }], {
+  /** Remove items in one batch, with an Undo that puts them all back. */
+  const removeMany = useCallback(
+    async (placements: Placement[], name: string, revision?: number) => {
+      if (placements.length === 0) return
+      const removed = await apply(removeOps(placements.map((p) => p.id)), {
         expectedRevision: revision,
       })
       if (!removed) return
@@ -122,7 +124,7 @@ export function useLayoutEditor({
         action: {
           label: "Undo",
           onClick: () => {
-            void apply([restoreOp(placement)])
+            void apply(restoreOps(placements))
           },
         },
       })
@@ -130,5 +132,12 @@ export function useLayoutEditor({
     [apply, toast]
   )
 
-  return { apply, remove, conflict }
+  /** Remove one item (see `removeMany`). */
+  const remove = useCallback(
+    (placement: Placement, name: string, revision?: number) =>
+      removeMany([placement], name, revision),
+    [removeMany]
+  )
+
+  return { apply, remove, removeMany, conflict }
 }

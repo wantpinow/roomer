@@ -164,7 +164,7 @@ export function WorkspaceDemo() {
             items={
               <ItemList
                 items={ITEMS}
-                selectedId={selectedItem}
+                selectedIds={selectedItem ? [selectedItem] : []}
                 onSelect={(id) =>
                   setSelectedItem((current) =>
                     current === id ? undefined : id

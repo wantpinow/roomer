@@ -34,7 +34,8 @@ export function ItemRow({
 }: {
   item: PlacedItem
   selected?: boolean
-  onSelect?: (placementId: string) => void
+  /** A click; `toggle` when Shift is held (add to / take out of a group). */
+  onSelect?: (placementId: string, options: { toggle: boolean }) => void
   onHover?: (placementId: string | null) => void
   className?: string
 }) {
@@ -47,7 +48,7 @@ export function ItemRow({
       data-slot="item-row"
       data-placement-id={id}
       aria-pressed={onSelect ? selected : undefined}
-      onClick={() => onSelect?.(id)}
+      onClick={(event) => onSelect?.(id, { toggle: event.shiftKey })}
       onMouseEnter={() => onHover?.(id)}
       onMouseLeave={() => onHover?.(null)}
       onFocus={() => onHover?.(id)}

@@ -2,6 +2,7 @@
 
 import { ArmchairIcon } from "lucide-react"
 
+import { Button } from "@roomer/ui/components/button"
 import { EmptyState } from "@roomer/ui/components/empty-state"
 import { Skeleton } from "@roomer/ui/components/skeleton"
 import { cn } from "@roomer/ui/lib/utils"
@@ -13,18 +14,22 @@ import { ItemRow, type PlacedItem } from "./item-row"
 
 /**
  * The layout's furniture, with a footer that totals the price (GBP) and
- * counts the pieces. `items === undefined` means loading.
+ * counts the pieces. With several selected, a bar above the list says how
+ * many and what they cost, with a Clear. Click selects a row, Shift+click
+ * toggles it. `items === undefined` means loading.
  */
 export function ItemList({
   items,
-  selectedId,
+  selectedIds = [],
   onSelect,
+  onClearSelection,
   onHover,
   className,
 }: {
   items: readonly PlacedItem[] | undefined
-  selectedId?: string
-  onSelect?: (placementId: string) => void
+  selectedIds?: readonly string[]
+  onSelect?: (placementId: string, options: { toggle: boolean }) => void
+  onClearSelection?: () => void
   onHover?: (placementId: string | null) => void
   className?: string
 }) {
@@ -48,14 +53,54 @@ export function ItemList({
     }))
   )
 
+  const selected = new Set(selectedIds)
+  const picked = items.filter((item) => selected.has(item.placement.id))
+  const pickedTotal = totalPrice(
+    picked.map((item) => ({
+      price: item.asset.price,
+      currency: item.asset.currency,
+    }))
+  )
+
   return (
     <div data-slot="item-list" className={cn("flex flex-col", className)}>
+      {picked.length > 1 ? (
+        <div
+          data-slot="item-selection"
+          className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-clay-tint/70 py-2 pr-2 pl-5 text-xs text-ink-soft backdrop-blur-none"
+        >
+          <span className="font-medium text-foreground tabular-nums">
+            {picked.length} selected
+          </span>
+          {pickedTotal.priced > 0 ? (
+            <>
+              <span aria-hidden className="text-faint">
+                ·
+              </span>
+              <Price
+                amount={pickedTotal.total}
+                currency={pickedTotal.currency}
+              />
+            </>
+          ) : null}
+          {onClearSelection ? (
+            <Button
+              variant="ghost"
+              size="xs"
+              className="ml-auto"
+              onClick={onClearSelection}
+            >
+              Clear
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
       <ul className="flex flex-col p-2">
         {items.map((item) => (
           <li key={item.placement.id}>
             <ItemRow
               item={item}
-              selected={item.placement.id === selectedId}
+              selected={selected.has(item.placement.id)}
               onSelect={onSelect}
               onHover={onHover}
             />

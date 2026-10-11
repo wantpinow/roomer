@@ -149,7 +149,11 @@ export function ItemsDemo() {
     <div className="flex flex-wrap gap-6">
       <Specimen label="Placed items" note="with total" width={INSPECTOR}>
         <div className="max-h-[560px] overflow-auto">
-          <ItemList items={ITEMS} selectedId="sofa" />
+          <ItemList
+            items={ITEMS}
+            selectedIds={["sofa", "coffee-table", "armchair"]}
+            onClearSelection={() => undefined}
+          />
         </div>
       </Specimen>
       <div className="flex flex-col gap-6">

@@ -1,14 +1,15 @@
-import type { LayoutOp } from "@roomer/core/schema"
-
-// Keyboard editing of the selected placement in the plan:
+// Keyboard editing of the selection on the plan:
 //   arrows      nudge 10mm (Shift: 100mm), up = up the page (−z)
-//   R / ⇧R      turn 15° clockwise / anticlockwise
+//   R / ⇧R      one item: turn 15° clockwise / anticlockwise;
+//               a group: turn 90° / 15° clockwise about its centre
 //   Delete, ⌫   remove
-//   Esc         deselect
+//   Esc         clear the selection
+//   ⌘A / Ctrl+A select every item
 
 export const NUDGE_MM = 10
 export const NUDGE_LARGE_MM = 100
 export const ROTATE_STEP_DEG = 15
+export const GROUP_ROTATE_STEP_DEG = 90
 
 export interface KeyInput {
   key: string
@@ -19,9 +20,11 @@ export interface KeyInput {
 }
 
 export type PlanKeyAction =
-  | { kind: "op"; op: Extract<LayoutOp, { op: "nudge" }> }
+  | { kind: "nudge"; dx: number; dz: number }
+  | { kind: "rotate"; degrees: number }
   | { kind: "remove" }
   | { kind: "deselect" }
+  | { kind: "selectAll" }
 
 const ARROWS: Record<string, readonly [number, number]> = {
   ArrowLeft: [-1, 0],
@@ -30,40 +33,39 @@ const ARROWS: Record<string, readonly [number, number]> = {
   ArrowDown: [0, 1],
 }
 
-/** What a key press does to the selected placement, or null if nothing. */
+/**
+ * What a key press does, given how many items are selected; null when it
+ * does nothing (so the browser keeps it).
+ */
 export function planKeyAction(
   event: KeyInput,
-  placementId: string
+  selected: number
 ): PlanKeyAction | null {
-  // Leave browser and OS shortcuts (⌘←, Ctrl+R, Alt+…) alone.
+  if ((event.metaKey || event.ctrlKey) && !event.altKey) {
+    return event.key === "a" || event.key === "A" ? { kind: "selectAll" } : null
+  }
+  // Leave other browser and OS shortcuts (Alt+…) alone.
   if (event.metaKey || event.ctrlKey || event.altKey) return null
+  if (event.key === "Escape") return selected > 0 ? { kind: "deselect" } : null
+  if (selected === 0) return null
   const arrow = ARROWS[event.key]
   if (arrow) {
     const step = event.shiftKey ? NUDGE_LARGE_MM : NUDGE_MM
-    const [sx, sz] = arrow
-    return {
-      kind: "op",
-      op: {
-        op: "nudge",
-        id: placementId,
-        ...(sx !== 0 ? { dx: sx * step } : {}),
-        ...(sz !== 0 ? { dz: sz * step } : {}),
-      },
-    }
+    return { kind: "nudge", dx: arrow[0] * step, dz: arrow[1] * step }
   }
   if (event.key === "r" || event.key === "R") {
-    return {
-      kind: "op",
-      op: {
-        op: "nudge",
-        id: placementId,
-        rotate: event.shiftKey ? -ROTATE_STEP_DEG : ROTATE_STEP_DEG,
-      },
-    }
+    const degrees =
+      selected > 1
+        ? event.shiftKey
+          ? ROTATE_STEP_DEG
+          : GROUP_ROTATE_STEP_DEG
+        : event.shiftKey
+          ? -ROTATE_STEP_DEG
+          : ROTATE_STEP_DEG
+    return { kind: "rotate", degrees }
   }
   if (event.key === "Delete" || event.key === "Backspace") {
     return { kind: "remove" }
   }
-  if (event.key === "Escape") return { kind: "deselect" }
   return null
 }

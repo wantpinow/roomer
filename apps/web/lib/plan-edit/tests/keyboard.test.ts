@@ -2,59 +2,87 @@ import { describe, expect, it } from "vitest"
 
 import { planKeyAction } from "../keyboard"
 
-const id = "sofa"
-
 describe("planKeyAction", () => {
   it("nudges 10mm with the arrows, up the page being −z", () => {
-    expect(planKeyAction({ key: "ArrowRight" }, id)).toEqual({
-      kind: "op",
-      op: { op: "nudge", id, dx: 10 },
+    expect(planKeyAction({ key: "ArrowRight" }, 1)).toEqual({
+      kind: "nudge",
+      dx: 10,
+      dz: 0,
     })
-    expect(planKeyAction({ key: "ArrowUp" }, id)).toEqual({
-      kind: "op",
-      op: { op: "nudge", id, dz: -10 },
+    expect(planKeyAction({ key: "ArrowUp" }, 1)).toEqual({
+      kind: "nudge",
+      dx: 0,
+      dz: -10,
     })
-    expect(planKeyAction({ key: "ArrowLeft" }, id)).toEqual({
-      kind: "op",
-      op: { op: "nudge", id, dx: -10 },
-    })
-    expect(planKeyAction({ key: "ArrowDown" }, id)).toEqual({
-      kind: "op",
-      op: { op: "nudge", id, dz: 10 },
+    expect(planKeyAction({ key: "ArrowLeft" }, 3)).toEqual({
+      kind: "nudge",
+      dx: -10,
+      dz: 0,
     })
   })
 
   it("nudges 100mm with Shift", () => {
-    expect(planKeyAction({ key: "ArrowDown", shiftKey: true }, id)).toEqual({
-      kind: "op",
-      op: { op: "nudge", id, dz: 100 },
+    expect(planKeyAction({ key: "ArrowDown", shiftKey: true }, 2)).toEqual({
+      kind: "nudge",
+      dx: 0,
+      dz: 100,
     })
   })
 
-  it("turns 15° clockwise with R and back with Shift+R", () => {
-    expect(planKeyAction({ key: "r" }, id)).toEqual({
-      kind: "op",
-      op: { op: "nudge", id, rotate: 15 },
+  it("turns one item 15° either way", () => {
+    expect(planKeyAction({ key: "r" }, 1)).toEqual({
+      kind: "rotate",
+      degrees: 15,
     })
-    expect(planKeyAction({ key: "R", shiftKey: true }, id)).toEqual({
-      kind: "op",
-      op: { op: "nudge", id, rotate: -15 },
+    expect(planKeyAction({ key: "R", shiftKey: true }, 1)).toEqual({
+      kind: "rotate",
+      degrees: -15,
+    })
+  })
+
+  it("turns a group a quarter, or 15° with Shift", () => {
+    expect(planKeyAction({ key: "r" }, 4)).toEqual({
+      kind: "rotate",
+      degrees: 90,
+    })
+    expect(planKeyAction({ key: "R", shiftKey: true }, 4)).toEqual({
+      kind: "rotate",
+      degrees: 15,
     })
   })
 
   it("removes with Delete or Backspace", () => {
-    expect(planKeyAction({ key: "Delete" }, id)).toEqual({ kind: "remove" })
-    expect(planKeyAction({ key: "Backspace" }, id)).toEqual({ kind: "remove" })
+    expect(planKeyAction({ key: "Delete" }, 1)).toEqual({ kind: "remove" })
+    expect(planKeyAction({ key: "Backspace" }, 2)).toEqual({ kind: "remove" })
   })
 
-  it("deselects with Escape", () => {
-    expect(planKeyAction({ key: "Escape" }, id)).toEqual({ kind: "deselect" })
+  it("clears with Escape, but only when something is selected", () => {
+    expect(planKeyAction({ key: "Escape" }, 2)).toEqual({ kind: "deselect" })
+    expect(planKeyAction({ key: "Escape" }, 0)).toBeNull()
   })
 
-  it("leaves modifier shortcuts and other keys alone", () => {
-    expect(planKeyAction({ key: "ArrowLeft", metaKey: true }, id)).toBeNull()
-    expect(planKeyAction({ key: "r", ctrlKey: true }, id)).toBeNull()
-    expect(planKeyAction({ key: "ArrowUp", altKey: true }, id)).toBeNull()
-    expect(planKeyAction({ key: "x" }, id)).toBeNull()
+  it("selects everything with Cmd/Ctrl+A, selection or not", () => {
+    expect(planKeyAction({ key: "a", metaKey: true }, 0)).toEqual({
+      kind: "selectAll",
+    })
+    expect(planKeyAction({ key: "a", ctrlKey: true }, 2)).toEqual({
+      kind: "selectAll",
+    })
+  })
+
+  it("does nothing without a selection", () => {
+    expect(planKeyAction({ key: "ArrowRight" }, 0)).toBeNull()
+    expect(planKeyAction({ key: "r" }, 0)).toBeNull()
+    expect(planKeyAction({ key: "Delete" }, 0)).toBeNull()
+  })
+
+  it("leaves other shortcuts and keys alone", () => {
+    expect(planKeyAction({ key: "ArrowLeft", metaKey: true }, 1)).toBeNull()
+    expect(planKeyAction({ key: "r", ctrlKey: true }, 1)).toBeNull()
+    expect(planKeyAction({ key: "ArrowUp", altKey: true }, 1)).toBeNull()
+    expect(
+      planKeyAction({ key: "a", metaKey: true, altKey: true }, 1)
+    ).toBeNull()
+    expect(planKeyAction({ key: "x" }, 1)).toBeNull()
   })
 })
