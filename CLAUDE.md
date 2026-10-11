@@ -38,11 +38,20 @@ pnpm typecheck      # tsc in every package
 pnpm format         # prettier --write (format:check in CI-style runs)
 pnpm e2e            # Playwright: boots its own backend (:3220) + Next (:3100), then runs specs
 pnpm e2e:ui         # same, Playwright UI mode
-pnpm seed           # seed the dev deployment (placeholder today)
-pnpm mcp <tool> '<json>'  # call a tool on the running MCP server (placeholder today)
+pnpm seed           # seed the dev deployment: living room, starter library, "Starter" layout (idempotent)
+pnpm seed --refresh # also bring the existing living room back in line with its fixture (keeps ids, layouts)
+pnpm mcp --list     # list the MCP tools of the running server (needs `pnpm dev`)
+pnpm mcp <tool> '<json>'  # call a tool; images land in .roomer-out/mcp/ (paths printed); exit 1 on a tool error
+pnpm mcp <tool> @args.json  # arguments from a file (big asset specs); --json also prints structuredContent
 ```
 
 Run one package: `pnpm --filter @roomer/core test`, `pnpm --filter web dev`.
+
+**MCP server:** Streamable HTTP at `http://localhost:3000/api/mcp/mcp` (local requests only),
+instructions = `docs/agent-guide.md`. The repo's `.mcp.json` registers it as `roomer`, so Claude
+Code started in this repo connects once `pnpm dev` is running (approve the project server when
+asked; check with `/mcp` or `claude mcp list`). Elsewhere:
+`claude mcp add --transport http roomer http://localhost:3000/api/mcp/mcp`.
 
 ## Ports and local Convex
 
